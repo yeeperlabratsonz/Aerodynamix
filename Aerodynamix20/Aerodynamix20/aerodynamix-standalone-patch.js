@@ -446,6 +446,66 @@
         opacity: 1;
         transform: translate(-50%, 0);
       }
+      #aeroMessageNotification {
+        position: fixed;
+        top: 14px;
+        left: 50%;
+        z-index: 10101;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        width: min(410px, calc(100% - 28px));
+        padding: 10px 14px 10px 10px;
+        border: 1px solid rgba(130,185,255,.42);
+        border-radius: 14px;
+        background: rgba(7,18,38,.97);
+        color: #fff;
+        box-shadow: 0 14px 44px rgba(0,0,0,.55);
+        opacity: 0;
+        transform: translate(-50%, -18px);
+        pointer-events: none;
+        cursor: pointer;
+        transition: opacity .18s ease, transform .18s ease;
+      }
+      #aeroMessageNotification.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+        pointer-events: auto;
+      }
+      #aeroMessageNotification .aero-message-avatar {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        border-radius: 50%;
+        background: rgba(44,127,252,.28);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        font-size: .72rem;
+        font-weight: 800;
+      }
+      #aeroMessageNotification .aero-message-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      #aeroMessageNotification .aero-message-copy {
+        min-width: 0;
+        line-height: 1.25;
+      }
+      #aeroMessageNotification .aero-message-title {
+        font-size: .82rem;
+        font-weight: 800;
+      }
+      #aeroMessageNotification .aero-message-preview {
+        margin-top: 3px;
+        overflow: hidden;
+        color: rgba(255,255,255,.68);
+        font-size: .74rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
       #aeroThemeEffects {
         position: fixed;
         inset: 0;
@@ -709,6 +769,23 @@
     toast.setAttribute('role', 'status');
     toast.setAttribute('aria-live', 'polite');
     document.body.appendChild(toast);
+
+    var messageNotification = document.createElement('div');
+    messageNotification.id = 'aeroMessageNotification';
+    messageNotification.setAttribute('role', 'alert');
+    messageNotification.setAttribute('aria-live', 'polite');
+    messageNotification.innerHTML =
+      '<div class="aero-message-avatar"></div>' +
+      '<div class="aero-message-copy">' +
+        '<div class="aero-message-title">New message</div>' +
+        '<div class="aero-message-preview"></div>' +
+      '</div>';
+    messageNotification.addEventListener('click', function () {
+      messageNotification.classList.remove('show');
+      showView('connect');
+      loadConnectFrame();
+    });
+    document.body.appendChild(messageNotification);
   }
 
   function toast(message) {
@@ -720,6 +797,70 @@
     toast.timer = setTimeout(function () {
       element.classList.remove('show');
     }, 2600);
+  }
+
+  var messageNotificationTimer = null;
+  var unreadMessageSnapshot = null;
+  var messageNotificationPoll = null;
+
+  function showMessageNotification(conversation) {
+    var element = document.getElementById('aeroMessageNotification');
+    if (!element || !conversation || !conversation.user) return;
+    var user = conversation.user;
+    var avatar = element.querySelector('.aero-message-avatar');
+    var title = element.querySelector('.aero-message-title');
+    var preview = element.querySelector('.aero-message-preview');
+    var message = conversation.last_message;
+    var initials = (user.username || '?').slice(0, 2).toUpperCase();
+    avatar.textContent = initials;
+    if (user.pfp_url) {
+      var image = document.createElement('img');
+      image.alt = '';
+      image.src = resolveSitePath(user.pfp_url);
+      image.style.objectPosition = (user.pfp_offset_x || 50) + '% ' + (user.pfp_offset_y || 50) + '%';
+      image.addEventListener('error', function () { image.remove(); });
+      avatar.textContent = '';
+      avatar.appendChild(image);
+    }
+    title.textContent = 'New message from ' + (user.username || 'someone');
+    preview.textContent = message && message.text ? message.text : 'You have an unread message';
+    element.classList.add('show');
+    clearTimeout(messageNotificationTimer);
+    messageNotificationTimer = setTimeout(function () {
+      element.classList.remove('show');
+    }, 5000);
+  }
+
+  async function pollStandaloneMessages() {
+    if (!window.fetch) return;
+    try {
+      var response = await fetch(new URL('/api/dms', CONNECT_ORIGIN).href, { credentials: 'include' });
+      if (!response.ok) return;
+      var data = await response.json();
+      var conversations = Array.isArray(data.conversations) ? data.conversations : [];
+      var totalUnread = conversations.reduce(function (sum, item) {
+        return sum + Number(item.unread || 0);
+      }, 0);
+      if (unreadMessageSnapshot !== null && totalUnread > unreadMessageSnapshot) {
+        var newest = conversations
+          .filter(function (item) { return Number(item.unread || 0) > 0; })
+          .sort(function (a, b) {
+            return String(b.last_message && b.last_message.created_at || '')
+              .localeCompare(String(a.last_message && a.last_message.created_at || ''));
+          })[0];
+        if (newest) showMessageNotification(newest);
+      }
+      unreadMessageSnapshot = totalUnread;
+    } catch (error) {
+      // Notifications are supplemental; an unavailable session should not
+      // affect navigation or the embedded Connect page.
+    }
+  }
+
+  function startStandaloneMessageNotifications() {
+    if (messageNotificationPoll) return;
+    pollStandaloneMessages();
+    messageNotificationPoll = setInterval(pollStandaloneMessages, 5000);
   }
 
   function getManifest() {
@@ -1346,6 +1487,7 @@
     applyCloak(settings.cloak);
     applyTheme(settings.theme, true);
     updateConnectionStatus();
+    startStandaloneMessageNotifications();
     drawLibrary();
     loadCustomGames();
     var params = new URLSearchParams(location.search);
