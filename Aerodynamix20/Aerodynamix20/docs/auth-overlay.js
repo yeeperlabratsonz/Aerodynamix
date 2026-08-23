@@ -2,6 +2,123 @@
 (function() {
     'use strict';
 
+    startSiteMessageNotifications();
+
+    function startSiteMessageNotifications() {
+        if (window.__aeroSiteMessageNotifications || location.protocol === 'file:') return;
+        window.__aeroSiteMessageNotifications = true;
+
+        const style = document.createElement('style');
+        style.textContent = `
+            #aero-site-message-notification {
+                position: fixed; top: 14px; left: 50%; z-index: 10101;
+                display: flex; align-items: center; gap: 11px;
+                width: min(410px, calc(100% - 28px)); box-sizing: border-box;
+                padding: 10px 14px 10px 10px; border: 1px solid rgba(130,185,255,.42);
+                border-radius: 14px; background: rgba(7,18,38,.97); color: #fff;
+                box-shadow: 0 14px 44px rgba(0,0,0,.55); opacity: 0;
+                transform: translate(-50%, -18px); pointer-events: none; cursor: pointer;
+                transition: opacity .18s ease, transform .18s ease;
+                font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            }
+            #aero-site-message-notification.show {
+                opacity: 1; transform: translate(-50%, 0); pointer-events: auto;
+            }
+            #aero-site-message-notification .aero-site-message-avatar {
+                width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%;
+                display: grid; place-items: center; overflow: hidden;
+                background: rgba(44,127,252,.28); color: #fff;
+                font-size: .72rem; font-weight: 800;
+            }
+            #aero-site-message-notification img {
+                width: 100%; height: 100%; object-fit: cover;
+            }
+            #aero-site-message-notification .aero-site-message-copy {
+                min-width: 0; line-height: 1.25;
+            }
+            #aero-site-message-notification .aero-site-message-title {
+                font-size: .82rem; font-weight: 800;
+            }
+            #aero-site-message-notification .aero-site-message-preview {
+                margin-top: 3px; overflow: hidden; color: rgba(255,255,255,.68);
+                font-size: .74rem; text-overflow: ellipsis; white-space: nowrap;
+            }
+        `;
+        document.head.appendChild(style);
+
+        const notification = document.createElement('div');
+        notification.id = 'aero-site-message-notification';
+        notification.setAttribute('role', 'alert');
+        notification.setAttribute('aria-live', 'polite');
+        notification.innerHTML =
+            '<div class="aero-site-message-avatar"></div>' +
+            '<div class="aero-site-message-copy">' +
+                '<div class="aero-site-message-title">New message</div>' +
+                '<div class="aero-site-message-preview"></div>' +
+            '</div>';
+        document.body.appendChild(notification);
+
+        let previousUnread = null;
+        let hideTimer = null;
+
+        function showNotification(conversation) {
+            const user = conversation && conversation.user;
+            if (!user) return;
+            const avatar = notification.querySelector('.aero-site-message-avatar');
+            const title = notification.querySelector('.aero-site-message-title');
+            const preview = notification.querySelector('.aero-site-message-preview');
+            avatar.textContent = (user.username || '?').slice(0, 2).toUpperCase();
+            if (user.pfp_url) {
+                const image = document.createElement('img');
+                image.alt = '';
+                image.src = /^https?:\/\//i.test(user.pfp_url)
+                    ? user.pfp_url
+                    : new URL(user.pfp_url, location.origin).href;
+                image.style.objectPosition = `${user.pfp_offset_x || 50}% ${user.pfp_offset_y || 50}%`;
+                image.addEventListener('error', () => image.remove());
+                avatar.textContent = '';
+                avatar.appendChild(image);
+            }
+            title.textContent = `New message from ${user.username || 'someone'}`;
+            preview.textContent = conversation.last_message?.text || 'You have an unread message';
+            notification.classList.add('show');
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(() => notification.classList.remove('show'), 5000);
+        }
+
+        notification.addEventListener('click', () => {
+            notification.classList.remove('show');
+            const connectLink = document.querySelector('nav a[href$="dynamix-connect.html"]');
+            if (connectLink) connectLink.click();
+            else location.href = 'dynamix-connect.html';
+        });
+
+        async function pollMessages() {
+            try {
+                const response = await fetch('/api/dms', { credentials: 'include' });
+                if (!response.ok) return;
+                const data = await response.json();
+                const conversations = Array.isArray(data.conversations) ? data.conversations : [];
+                const totalUnread = conversations.reduce(
+                    (total, conversation) => total + Number(conversation.unread || 0), 0
+                );
+                if (previousUnread !== null && totalUnread > previousUnread) {
+                    const newest = conversations
+                        .filter(conversation => Number(conversation.unread || 0) > 0)
+                        .sort((a, b) => String(b.last_message?.created_at || '')
+                            .localeCompare(String(a.last_message?.created_at || '')))[0];
+                    if (newest) showNotification(newest);
+                }
+                previousUnread = totalUnread;
+            } catch (error) {
+                // Notifications are supplemental and must never block page loading.
+            }
+        }
+
+        pollMessages();
+        setInterval(pollMessages, 5000);
+    }
+
     const PERSISTENT_ACCESS_KEY = 'aerodynamix_full_access';
 
     // Full access is a one-time unlock. Restore it when a new browser session
