@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071226">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Aerodynamix">
+    <title>Theme Settings - Aerodynamix</title>
+    <script src="theme.js"></script>
+    <script src="tab-cloak.js"></script>
+    <script src="discs.js" defer></script>
+    <script src="auth-overlay.js" defer></script>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="mobile.css">
+    <style>
+        .settings-container {
+            margin-top: 10vw;
+            padding: 3vw;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 1vw;
+        }
+
+        .settings-container h2 {
+            color: #fff;
+            font-size: 2.5vw;
+            margin-bottom: 2vw;
+            text-align: center;
+        }
+
+        .theme-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1vw;
+        }
+
+        .theme-button {
+            padding: 1.5vw;
+            font-size: 1.5vw;
+            border: 2px solid #fff;
+            border-radius: 1vw;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .theme-button:hover {
+            transform: scale(1.05);
+        }
+
+        .theme-button.black {
+            background-color: #1b1b1b;
+            color: #fff;
+        }
+
+        .theme-button.frutiger-aero {
+            background: url('images/frutiger-aero-btn-bg.png') center/cover no-repeat;
+            color: #fff;
+            border-color: rgba(255,255,255,0.8);
+            text-shadow: 0 2px 6px rgba(0,0,0,0.5), 0 0 10px rgba(0,0,0,0.3);
+            font-weight: 800;
+        }
+
+        .theme-button.purple {
+            background-color: #663399;
+            color: #fff;
+        }
+
+        .theme-button.blue {
+            background-color: #0000ff;
+            color: #fff;
+        }
+
+        .theme-button.christmas {
+            background-color: #c41e3a;
+            color: #fff;
+            border-color: #0d3b1e;
+            font-weight: 800;
+        }
+
+        .theme-button.bubble-gum-pink {
+            background: #ff69b4;
+            color: #fff;
+            border-color: #ffb6d9;
+            text-shadow: 0 2px 6px #800040;
+            font-weight: 800;
+            box-shadow: 0 8px 22px #80004055;
+        }
+
+        .theme-button.lite {
+            background-color: #2ecc71;
+            color: #fff;
+            border-color: #27ae60;
+            font-weight: 800;
+        }
+        .theme-button.lite.active {
+            background-color: #e74c3c;
+            border-color: #c0392b;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-top: 2vw;
+            padding: 1vw 2vw;
+            background-color: #2c7ffc;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 0.5vw;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .back-button:hover {
+            background-color: #1e5bc4;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <img src="images/logo.gif" alt="logo" onclick="window.location='index.html'">
+        <h1><span class="logo-a" id="logo-a">A</span>ERODYNAMIX</h1>
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:0.4vw;">
+            <a href="index.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Games</a>
+            <a href="apps.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Apps</a>
+            <a href="shop.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Shop</a>
+            <a href="card-collection.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Card Collection</a>
+            <a href="discs.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Discs</a>
+            <a href="media-player.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Media Player</a>
+            <a href="dynamix-connect.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Connect</a>
+        </div>
+        <a href="colors.html" style="margin-right:1.5vw; color:#fff; text-decoration:none; padding:0.55vw 1.3vw; background-color:#2c7ffc; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Settings</a>
+    </nav>
+
+    <div class="content">
+        <div class="settings-container">
+            <h2>Choose Theme</h2>
+            <p id="theme-info" style="text-align:center; font-size:0.85rem; color:#aaa; margin:-1vw 0 1vw;">Themes cost 200 <img src="images/disc.png" alt="Disc" class="disc-icon sm"> each. Black is free.</p>
+            <p id="no-themes-msg" style="display:none; text-align:center; color:#fff; font-size:1.1rem; padding:1rem 0;">No themes. Visit the Shop to unlock one.</p>
+            <div class="theme-options" id="theme-options">
+                <button class="theme-button black" data-theme="black" onclick="setTheme('black')">Black</button>
+                <button class="theme-button frutiger-aero" data-theme="frutiger-aero" onclick="setTheme('frutiger-aero')">Frutiger Aero <span class="theme-price">· 200 <img src="images/disc.png" alt="Disc" class="disc-icon sm"></span></button>
+                <button class="theme-button purple" data-theme="purple" onclick="setTheme('purple')">Midnight Purple <span class="theme-price">· 200 <img src="images/disc.png" alt="Disc" class="disc-icon sm"></span></button>
+                <button class="theme-button blue" data-theme="blue" onclick="setTheme('blue')">Genesis Blue <span class="theme-price">· 200 <img src="images/disc.png" alt="Disc" class="disc-icon sm"></span></button>
+                <button class="theme-button christmas" data-theme="christmas" onclick="setTheme('christmas')">Christmas <span class="theme-price">· 200 <img src="images/disc.png" alt="Disc" class="disc-icon sm"></span></button>
+                <button class="theme-button bubble-gum-pink" data-theme="bubble-gum-pink" onclick="setTheme('bubble-gum-pink')">Bubble Gum Pink <span class="theme-price">· 200 <img src="images/disc.png" alt="Disc" class="disc-icon sm"></span></button>
+            </div>
+            <h2 style="margin-top: 2.5vw;">Performance</h2>
+            <button id="lite-mode-btn" class="theme-button lite" onclick="toggleLiteMode()">Lite Mode</button>
+            <p id="lite-status" style="text-align:center; font-size:0.9rem; color:#aaa; margin-top:0.5vw;">Lite Mode is locked. Buy a visual theme to unlock it.</p>
+            <button onclick="enableTabCloak()" class="back-button" style="background-color: #e74c3c; margin-top: 2vw;">Tab Cloak</button>
+            <label for="tab-cloak-preset" style="display:block; margin-top:1vw; color:#fff; font-weight:600;">Cloak preset</label>
+            <select id="tab-cloak-preset" onchange="setTabCloakPreset(this.value)" style="display:block; margin:0.5vw auto; padding:0.65vw 1vw; min-width:220px; border:0; border-radius:0.5vw; font:inherit;">
+                <option value="google">Google · G favicon</option>
+                <option value="deltaMath">DeltaMath · grad cap</option>
+                <option value="classroom">Google Classroom · chalkboard</option>
+            </select>
+            <a href="index.html" class="back-button">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        let purchasedThemes = [];
+
+        async function refreshPurchasedThemes() {
+            if (AeroDiscs.isPaid()) {
+                purchasedThemes = AeroDiscs.VISUAL_THEMES;
+            } else {
+                try {
+                    const info = await AeroDiscs.getBalance();
+                    purchasedThemes = (info && info.purchased_themes) || [];
+                } catch (e) {
+                    purchasedThemes = [];
+                }
+            }
+            updateThemeButtons();
+        }
+
+        function updateThemeButtons() {
+            const trial = AeroDiscs.isFreeTrial() && !AeroDiscs.isPaid();
+            const paid = AeroDiscs.isPaid();
+            const empty = document.getElementById('no-themes-msg');
+            const options = document.getElementById('theme-options');
+            const info = document.getElementById('theme-info');
+            if (info) {
+                info.innerHTML = paid
+                    ? 'All themes are included.'
+                    : 'Themes cost 200 <img src="images/disc.png" alt="Disc" class="disc-icon sm"> each. Black is free.';
+            }
+            document.querySelectorAll('.theme-price').forEach(price => {
+                price.hidden = paid;
+            });
+            document.querySelectorAll('.theme-button[data-theme]').forEach(btn => {
+                const theme = btn.dataset.theme;
+                const owned = purchasedThemes.includes(theme) || paid;
+                // Black is always available in the basic experience. Other themes
+                // appear after they are unlocked.
+                btn.hidden = trial && theme !== 'black' && !owned;
+            });
+            if (empty) empty.style.display = 'none';
+            if (options) options.style.display = '';
+        }
+
+        async function setTheme(theme) {
+            if (AeroDiscs.isPaid()) {
+                localStorage.setItem('aerodynamixTheme', theme);
+                applyTheme(theme);
+                return;
+            }
+            if (theme === 'black') {
+                localStorage.setItem('aerodynamixTheme', theme);
+                applyTheme(theme);
+                return;
+            }
+            const result = await AeroDiscs.tryUseTheme(theme);
+            if (result.apply) {
+                localStorage.setItem('aerodynamixTheme', theme);
+                applyTheme(theme);
+                refreshPurchasedThemes();
+            }
+        }
+
+        async function toggleLiteMode() {
+            if (!AeroDiscs.isPaid() && !AeroDiscs.hasVisualTheme(purchasedThemes)) {
+                alert('Lite Mode is locked. Buy a visual theme (anything other than Black) to unlock it.');
+                return;
+            }
+            const current = localStorage.getItem('aerodynamixLite') === 'true';
+            const next = !current;
+            localStorage.setItem('aerodynamixLite', next ? 'true' : 'false');
+            applyLiteMode(next);
+            window.dispatchEvent(new CustomEvent('aerodynamixLiteChanged', { detail: { enabled: next } }));
+        }
+
+        function applyLiteMode(enabled) {
+            const btn = document.getElementById('lite-mode-btn');
+            const status = document.getElementById('lite-status');
+            if (!btn || !status) return;
+            if (enabled) {
+                btn.classList.add('active');
+                btn.textContent = 'Lite Mode: ON';
+                status.textContent = 'Lite Mode is active. Animations, particle effects, and heavy visual effects are disabled.';
+                status.style.color = '#2ecc71';
+                document.body.classList.add('lite-mode');
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = 'Lite Mode';
+                status.style.color = '#aaa';
+                document.body.classList.remove('lite-mode');
+            }
+            checkLiteLock();
+        }
+
+        function checkLiteLock() {
+            const btn = document.getElementById('lite-mode-btn');
+            const status = document.getElementById('lite-status');
+            if (!btn || !status) return;
+            if (AeroDiscs.isPaid()) {
+                status.textContent = 'Disables animations, particle effects, and heavy visual effects';
+                status.style.color = '#aaa';
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+                return;
+            }
+            if (AeroDiscs.hasVisualTheme(purchasedThemes)) {
+                status.textContent = 'Disables animations, particle effects, and heavy visual effects';
+                status.style.color = '#aaa';
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            } else {
+                status.textContent = 'Lite Mode is locked. Buy a visual theme to unlock it.';
+                status.style.color = '#ff5b6a';
+                btn.style.opacity = '0.6';
+                btn.style.pointerEvents = 'none';
+            }
+        }
+
+        // Load saved theme and lite mode on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            applyLiteMode(localStorage.getItem('aerodynamixLite') === 'true');
+        });
+
+        // Refresh purchased theme state once discs module is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshPurchasedThemes();
+        });
+        window.addEventListener('aerodynamixFreeTrial', refreshPurchasedThemes);
+        window.addEventListener('aerodynamixAuthorized', refreshPurchasedThemes);
+    </script>
+    <div style="height: 120px;"></div>
+    <script src="music-player.js"></script>
+    <script src="script.js"></script>
+    <script src="bubble-overlay.js"></script>
+    <script src="snow-overlay.js"></script>
+    <script src="mobile-nav.js"></script>
+</body>
+</html>

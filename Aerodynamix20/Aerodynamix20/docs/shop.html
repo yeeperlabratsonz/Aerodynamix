@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071226">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Aerodynamix">
+    <title>Shop - Aerodynamix</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="theme.js"></script>
+    <script src="tab-cloak.js"></script>
+    <script src="discs.js" defer></script>
+    <script src="auth-overlay.js" defer></script>
+    <style>
+        .shop-page { min-height:100vh; padding:9vw 3.5vw 140px; background:radial-gradient(circle at 50% 0%,rgba(44,127,252,.12),transparent 34rem); }
+        .shop-heading { max-width:1380px; margin:0 auto 3.4rem; padding:2.6rem 3rem; text-align:left; color:#fff; border:1px solid rgba(255,255,255,.12); border-radius:24px; background:linear-gradient(120deg,rgba(14,25,50,.96),rgba(10,14,25,.9)); box-shadow:0 24px 65px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.06); }
+        .shop-heading h1 { margin:0 0 .65rem; font-size:clamp(2.2rem,4vw,4rem); letter-spacing:-.04em; }
+        .shop-heading p { max-width:620px; color:rgba(255,255,255,.65); margin:0; font-size:1rem; line-height:1.6; }
+        .shop-heading::after { content:'Permanent unlocks • One-time purchases • Your balance is shown above'; display:block; margin-top:1.2rem; color:#82b7ff; font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+        .mobile-access-button { margin-top:1.35rem; border:1px solid rgba(130,183,255,.3); border-radius:10px; padding:.72rem 1rem; color:#cfe3ff; background:rgba(44,127,252,.12); font:700 .75rem Montserrat,sans-serif; cursor:pointer; transition:background .2s ease,border-color .2s ease,transform .2s ease; }
+        .mobile-access-button:hover { border-color:rgba(130,183,255,.7); background:rgba(44,127,252,.25); transform:translateY(-1px); }
+        .mobile-access-button.unlocked { color:#75e6a0; border-color:rgba(74,222,128,.3); background:rgba(74,222,128,.08); cursor:default; }
+        .access-modal { position:fixed; inset:0; z-index:70; display:none; place-items:center; padding:1rem; background:rgba(2,5,16,.86); backdrop-filter:blur(12px); }
+        .access-modal.open { display:grid; }
+        .access-card { width:min(420px,100%); position:relative; padding:2rem 1.4rem 1.4rem; border:1px solid rgba(157,207,255,.35); border-radius:20px; background:linear-gradient(145deg,#142d5e,#0b1022 72%); box-shadow:0 30px 100px #000b; color:#fff; }
+        .access-card h2 { margin:0 0 .45rem; font-size:1.35rem; }
+        .access-card p { margin:0 0 1.2rem; color:#a8c4ed; font-size:.82rem; line-height:1.5; }
+        .access-input { width:100%; box-sizing:border-box; border:1px solid rgba(255,255,255,.18); border-radius:10px; padding:.9rem 1rem; color:#fff; background:rgba(0,0,0,.25); font:600 1rem Montserrat,sans-serif; outline:none; }
+        .access-input:focus { border-color:#68a8ff; box-shadow:0 0 0 3px rgba(44,127,252,.2); }
+        .access-submit { width:100%; margin-top:.8rem; border:0; border-radius:10px; padding:.9rem; color:#fff; background:linear-gradient(135deg,#2c7ffc,#1a5fd0); font:800 .8rem Montserrat,sans-serif; cursor:pointer; }
+        .access-submit:disabled { opacity:.65; cursor:wait; }
+        .access-error { min-height:1.1rem; margin:.65rem 0 0!important; color:#ff7581!important; font-size:.72rem!important; }
+        .access-close { position:absolute; top:.7rem; right:.7rem; width:32px; height:32px; border:0; border-radius:50%; color:#fff; background:#ffffff14; font-size:1.25rem; cursor:pointer; }
+        .shop-section { max-width:1380px; margin:0 auto 3.5rem; }
+        .shop-section-heading { display:flex; align-items:end; justify-content:space-between; gap:1rem; margin-bottom:1.2rem; padding-bottom:.9rem; border-bottom:1px solid rgba(255,255,255,.12); }
+        .shop-section-title { margin:0; color:#fff; font-size:1.55rem; letter-spacing:-.02em; }
+        .shop-section-subtitle { margin:.35rem 0 0; color:rgba(255,255,255,.5); font-size:.8rem; }
+        .shop-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:1rem; }
+        .shop-card { min-width:0; overflow:hidden; border:1px solid rgba(255,255,255,.1); border-radius:16px; background:rgba(14,20,34,.9); box-shadow:0 12px 28px rgba(0,0,0,.24); color:#fff; transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease; }
+        .shop-card:hover { transform:translateY(-4px); border-color:rgba(125,184,255,.45); box-shadow:0 18px 35px rgba(0,0,0,.34),0 0 22px rgba(44,127,252,.08); }
+        .shop-card img { display:block; width:100%; aspect-ratio:1.48; object-fit:cover; }
+        .shop-card-body { min-height:112px; display:flex; flex-direction:column; justify-content:space-between; gap:.8rem; padding:1rem; }
+        .shop-card h2 { margin:0; overflow:hidden; font-size:.9rem; line-height:1.3; white-space:nowrap; text-overflow:ellipsis; }
+        .shop-section-heading + .shop-grid {}
+        .theme-preview { width:100%; aspect-ratio:1.48; }
+        .theme-preview.frutiger-aero { background:url('images/frutiger-aero-btn-bg.png') center/cover; }
+        .theme-preview.purple { background:linear-gradient(135deg,#9b59d0,#32105e); }
+        .theme-preview.blue { background:linear-gradient(135deg,#4f9cff,#07165c); }
+        .theme-preview.christmas { background:linear-gradient(135deg,#d63d52,#0d3b1e); }
+         .theme-preview.bubble-gum-pink { background:#ff69b4; border:3px solid #ffb6d9; box-sizing:border-box; }
+        .shop-buy { width:100%; border:1px solid rgba(125,184,255,.25); border-radius:9px; padding:.68rem .55rem; color:#fff; background:linear-gradient(135deg,#2c7ffc,#1a5fd0); font:700 .72rem Montserrat,sans-serif; letter-spacing:.02em; cursor:pointer; transition:filter .2s ease,transform .2s ease; }
+        .shop-buy:hover { filter:brightness(1.12); transform:translateY(-1px); }
+        .shop-buy:disabled { background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.12); color:#9ebcff; cursor:default; transform:none; }
+        .shop-buy.daily-pack-locked { background:#555d69; border-color:#687383; color:#d4d9e1; box-shadow:none; cursor:default; }
+        .shop-card.owned { border-color:rgba(74,222,128,.25); }
+        .pack-odds { margin-top:.8rem; color:rgba(255,255,255,.52); font-size:.68rem; line-height:1.65; }
+        .pack-odds b { color:#c9dcff; letter-spacing:.05em; text-transform:uppercase; }
+        .shop-card.owned .shop-card-body::before { content:'Unlocked'; color:#65e69a; font-size:.63rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; }
+         .card-pack-section { margin-top:1rem; }
+         .card-pack { position:relative; overflow:hidden; border:1px solid rgba(135,184,255,.3); border-radius:20px; background:linear-gradient(135deg,#142d5e,#101426 58%,#271347); box-shadow:0 18px 45px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.1); }
+         .card-pack::before { content:''; position:absolute; inset:-40%; background:conic-gradient(from 180deg,transparent,#64c9ff22,transparent,#d39cff22,transparent); animation:packShimmer 8s linear infinite; }
+         .card-pack-inner { position:relative; display:flex; align-items:center; justify-content:space-between; gap:2rem; padding:2.2rem 2.5rem; }
+          .pack-art { width:168px; height:226px; flex:none; position:relative; transform-style:preserve-3d; animation:boosterSpin 18s linear infinite; filter:drop-shadow(20px 26px 16px #000b) drop-shadow(0 0 18px #5edcff3d); }
+         .pack-face, .pack-edge { position:absolute; display:block; backface-visibility:hidden; }
+         .pack-face { inset:0; overflow:hidden; border:2px solid #8be4ff; border-radius:11px 13px 14px 12px; color:#fff; text-align:center; }
+          .pack-front { overflow:hidden; transform:translateZ(11px) rotateX(1deg); background:radial-gradient(circle at 50% 51%,#43bfff55 0 10%,transparent 11%),conic-gradient(from 20deg at 50% 52%,#102c68,#126ea8 16%,#452a9d 34%,#0d245b 48%,#8a2fa0 66%,#10275d 82%,#102c68); box-shadow:inset 0 0 22px #07112f99,inset 14px 0 18px #ffffff1b,inset -12px 0 22px #07112f55,0 0 0 4px #14295b,0 15px 25px #000b,0 0 20px #62dcff3d; }
+          .pack-front::before { content:''; position:absolute; inset:18px 7px 15px; border:1px solid #b8f3ff88; border-radius:5px; background:radial-gradient(circle at 50% 52%,transparent 0 18%,#8beaff20 19% 20%,transparent 21%),repeating-conic-gradient(from 8deg at 50% 52%,#8ceaff1c 0 3deg,transparent 3deg 22deg),repeating-linear-gradient(135deg,transparent 0 15px,#8ceaff1c 16px 18px),linear-gradient(155deg,#1b78bd,#48258e 60%,#111b43); box-shadow:inset 12px 0 20px #ffffff14,inset -15px 0 25px #07112f55; }
+          .pack-front::after { content:''; position:absolute; inset:31px 18px 29px; pointer-events:none; border:1px solid #9feeff66; border-radius:50% 44% 52% 46%; transform:rotate(-18deg); box-shadow:0 0 0 5px #47c9ff16,0 0 18px #47c9ff66, inset 0 0 12px #8eeaff33; }
+         .pack-back { transform:rotateY(180deg) translateZ(11px); background:linear-gradient(110deg,#101d48,#374da4 45%,#111a3d); box-shadow:inset 15px 0 20px #ffffff15,inset -15px 0 22px #0008,0 15px 25px #000b; }
+         .pack-back::after { content:'AERODYNAMIX\\A ARCADE SERIES\\A 3 GODLY CARDS'; white-space:pre; position:absolute; inset:35% 0 auto; color:#c8f5ff; font-size:.48rem; line-height:1.7; letter-spacing:.1em; }
+         .pack-edge { background:linear-gradient(180deg,#5fcfff,#223878 45%,#c166e4 80%,#16234e); border:1px solid #92e8ff; }
+         .pack-edge { background:linear-gradient(90deg,#071329,#55b9d6 26%,#d2f8ff 43%,#0b3159 72%,#020917); border:1px solid #92e8ff; box-shadow:inset 4px 0 7px #fff4,inset -6px 0 10px #0008; }
+         .pack-edge-left, .pack-edge-right { width:22px; height:226px; top:0; border-radius:5px; }
+         .pack-edge-left { left:calc(50% - 11px); transform:rotateY(90deg) translateZ(84px); }
+         .pack-edge-right { left:calc(50% - 11px); transform:rotateY(-90deg) translateZ(84px); }
+         .pack-edge-top, .pack-edge-bottom { width:168px; height:14px; left:0; border-radius:4px; }
+         .pack-edge-top { top:calc(50% - 7px); transform:rotateX(90deg) translateZ(113px); }
+         .pack-edge-bottom { top:calc(50% - 7px); transform:rotateX(-90deg) translateZ(113px); }
+         .pack-fold-left, .pack-fold-right { position:absolute; z-index:4; top:39px; width:10px; height:172px; background:linear-gradient(90deg,#061430,#b9f6ff99 35%,#164d80 62%,#07142d); opacity:.78; box-shadow:0 0 5px #001b; }
+         .pack-fold-left { left:5px; transform:skewY(-3deg); border-radius:4px 0 0 7px; }
+         .pack-fold-right { right:5px; transform:skewY(3deg); border-radius:0 4px 7px 0; }
+         .pack-header, .pack-footer { position:absolute; left:-1px; right:-1px; z-index:2; display:grid; place-items:center; color:#dfffff; background:repeating-linear-gradient(135deg,#0e8ca7 0 5px,#19b9bc 5px 9px,#087a9a 9px 13px); border:1px solid #9fffff; box-shadow:inset 0 2px 4px #ffffff55, inset 0 -3px 5px #003d5d88,0 1px 2px #001b; text-transform:uppercase; letter-spacing:.08em; text-shadow:0 1px 3px #00334a; }
+         .pack-header { top:0; height:39px; border-radius:9px 11px 0 0; font-size:.42rem; }
+         .pack-header::after { content:'AERODYNAMIX'; display:block; font-size:.62rem; letter-spacing:.1em; color:#fff; }
+         .pack-footer { bottom:0; height:17px; border-radius:0 0 10px 9px; font-size:.33rem; }
+         .pack-seam { position:absolute; top:39px; left:0; right:0; z-index:3; height:5px; background:linear-gradient(#dfffff,#49d9ff 45%,#0f81be 55%,#dfffff); box-shadow:0 2px 4px #001b; }
+          .pack-art span { position:absolute; inset:91px 0 auto; z-index:2; font-size:1.3rem; line-height:.9; font-weight:900; letter-spacing:.08em; color:#f5fdff; text-shadow:0 3px 9px #000,0 0 16px #65dfff; }
+           .pack-art span::before { content:'A'; display:grid; place-items:center; width:42px; height:42px; margin:0 auto 9px; border:2px solid #9feeff; border-radius:50%; color:#dffaff; background:radial-gradient(circle,#65d8ff 0 18%,#147de8 19% 48%,#063caa 49% 100%); box-shadow:0 0 0 4px #132d6dcc,0 0 10px #29aaff,0 0 26px #1688ff,inset 0 0 12px #ffffff99; font-size:1.55rem; line-height:1; font-weight:900; font-style:normal; letter-spacing:0; text-shadow:0 0 5px #fff,0 2px 5px #062c83; }
+           .pack-art span::after { content:'AeroDynamix  •  ARCADE SERIES  •  3 CARDS'; display:block; margin-top:10px; padding-top:5px; border-top:1px solid #b9f4ff99; color:#e2fbff; font-size:.28rem; letter-spacing:.08em; text-shadow:0 0 7px #48cfff; }
+         .pack-art + .pack-copy { margin-left:.5rem; }
+         .pack-copy { flex:1; }
+         .pack-copy h2 { margin:0 0 .35rem; color:#fff; font-size:1.5rem; }
+         .pack-copy p { margin:0; max-width:560px; color:rgba(255,255,255,.65); line-height:1.55; }
+         .pack-price { display:flex; align-items:center; gap:.45rem; margin-top:.8rem; color:#8edcff; font-weight:800; }
+         .pack-buy { width:auto; min-width:180px; padding:1rem 1.2rem; font-size:.8rem; }
+         .pack-buy small { display:block; margin-top:.25rem; color:#b7d5ff; font-size:.62rem; font-weight:500; }
+         .collection-count { color:#82b7ff; font-size:.75rem; font-weight:700; }
+         .pack-modal { position:fixed; inset:0; z-index:50; display:none; place-items:center; padding:1rem; background:rgba(2,5,16,.84); backdrop-filter:blur(12px); }
+         .pack-modal.open { display:grid; }
+         .pack-stage { width:min(900px,100%); min-height:500px; position:relative; padding:2rem; border:1px solid rgba(157,207,255,.35); border-radius:24px; background:radial-gradient(circle at 50% 25%,#254b8b,#0b1022 65%); box-shadow:0 30px 100px #000b; text-align:center; color:#fff; overflow:hidden; }
+         .pack-stage h2 { margin:.3rem 0 .4rem; font-size:clamp(1.4rem,3vw,2.2rem); }
+         .pack-stage p { margin:0 0 1.3rem; color:#a8c4ed; }
+         .pack-opening { height:360px; display:grid; place-items:center; }
+          .opening-pack { width:132px; height:246px; position:relative; isolation:isolate; border:3px solid #8ae0ff; border-radius:5px 7px 8px 6px; background:linear-gradient(115deg,#6edbff 0 3%,#164385 13%,#b461e4 55%,#142448 100%); display:grid; place-items:center; font-size:1.25rem; line-height:.9; font-weight:900; letter-spacing:.1em; transform:perspective(700px) rotateY(-12deg) rotateZ(-4deg); box-shadow:0 0 40px #6dcfff88, 10px 14px 0 -3px #0b1b4a, 20px 27px 45px #0008; animation:packPulse 1.1s ease-in-out infinite alternate; }
+          .opening-pack::before { content:''; position:absolute; z-index:-1; inset:7px; border:1px solid #c2f5ff99; background:linear-gradient(105deg,#ffffff4d 0 5%,transparent 13% 52%,#fff3 58%,transparent 66%),repeating-linear-gradient(135deg,transparent 0 16px,#8ceaff35 17px 19px),radial-gradient(ellipse at 50% 58%,#8edfff66 0 25%,transparent 26%),linear-gradient(155deg,#1d70ae,#50248f 60%,#101b42); }
+          .opening-pack::after { content:'TEAR HERE'; position:absolute; top:-12px; left:-8px; right:-8px; height:18px; padding-top:2px; color:#073360; background:repeating-linear-gradient(135deg,#bdf5ff 0 8px,#72cef0 8px 11px); border:1px solid #d9fbff; font-size:.42rem; letter-spacing:.16em; text-align:center; box-shadow:0 0 30px 12px #b3eeff; transform:rotate(-4deg) scaleX(0); animation:tearSeal 1.9s ease forwards; }
+          .opening-pack .tear-rip { position:absolute; z-index:2; top:31px; left:50%; width:0; height:3px; background:#efffff; box-shadow:0 0 12px 4px #8beaff,0 0 2px 1px #fff; transform:translateX(-50%) rotate(-4deg); animation:tearRip 1.9s ease forwards; }
+          .opening-pack .tear-rip::after { content:''; position:absolute; inset:-8px 0; background:repeating-linear-gradient(165deg,transparent 0 7px,#d9fbff 8px 10px,transparent 11px 16px); opacity:.8; }
+         .revealed-cards { display:flex; justify-content:center; gap:1rem; height:360px; align-items:center; }
+          .revealed-card { width:170px; min-height:280px; padding:.45rem; border:3px solid var(--card-accent); border-radius:13px; background:linear-gradient(160deg,#1b2f5b,#0d1225 68%); box-shadow:0 0 14px color-mix(in srgb,var(--card-accent) 22%,transparent),0 18px 30px #0008; animation:cardReveal .82s cubic-bezier(.16,.82,.24,1) both; }
+          .revealed-card.rarity-epic { box-shadow:0 0 25px color-mix(in srgb,var(--card-accent) 55%,transparent),0 18px 30px #0008; }
+          .revealed-card.rarity-legendary { box-shadow:0 0 34px color-mix(in srgb,var(--card-accent) 68%,transparent),0 18px 30px #0008; }
+          .revealed-card.rarity-mythic { box-shadow:0 0 44px color-mix(in srgb,var(--card-accent) 78%,transparent),0 18px 30px #0008; }
+          .revealed-card.rarity-godly { border-color:transparent; background:linear-gradient(#111a33,#111a33) padding-box,linear-gradient(120deg,#ff3d81,#ffd447,#58f59a,#4bc9ff,#b65cff,#ff3d81) border-box; background-size:100% 100%,300% 300%; animation:cardReveal .82s cubic-bezier(.16,.82,.24,1) both,godlyBorder 2.5s linear infinite; box-shadow:0 0 25px #fff,0 0 60px #ff4bd8cc,0 18px 35px #000b; }
+           .revealed-card.rarity-secret { border-color:transparent; background:linear-gradient(#111a33,#111a33) padding-box,linear-gradient(120deg,#fff,#8aeaff,#fff,#ffd447,#fff) border-box; background-size:100% 100%,300% 300%; animation:cardReveal .82s cubic-bezier(.16,.82,.24,1) both,godlyBorder 1.8s linear infinite; box-shadow:0 0 28px #fff,0 0 70px #8aeaffcc,0 18px 35px #000b; }
+         .revealed-card:nth-child(2) { animation-delay:.16s; } .revealed-card:nth-child(3) { animation-delay:.32s; }
+          .revealed-card-art { height:175px; display:grid; place-items:center; overflow:hidden; border-radius:8px; background:linear-gradient(145deg,#1b68a0,#713ca8 60%,#f0a558); color:#fff; font-size:2rem; font-weight:900; text-shadow:0 2px 8px #000; }
+          .revealed-card-art img { width:100%; height:100%; object-fit:cover; display:block; filter:saturate(1.12) contrast(1.05); }
+          .revealed-card .rarity { text-shadow:0 0 8px color-mix(in srgb,var(--card-accent) 65%,transparent); }
+          .godly-card-reveal { position:absolute; inset:0; z-index:8; display:grid; place-items:center; pointer-events:none; opacity:0; background:radial-gradient(circle,#fff 0 2%,#ffe77a66 8%,#d934ff33 28%,transparent 64%); }
+          .godly-card-reveal.active { animation:godlyCinematic 2.7s ease-out forwards; }
+          .godly-card-reveal::before { content:'GODLY'; color:#fff; font-size:clamp(2.5rem,9vw,6rem); font-weight:1000; letter-spacing:.3em; text-shadow:0 0 10px #fff,0 0 28px #ff4bd8,0 0 60px #4bc9ff; transform:scale(.35) rotate(-8deg); }
+         .revealed-card h3 { margin:.55rem 0 .15rem; font-size:.85rem; } .revealed-card .rarity { color:var(--card-accent); font-size:.65rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em; }
+         .pack-close { position:absolute; top:1rem; right:1rem; border:0; background:#ffffff14; color:#fff; border-radius:50%; width:34px; height:34px; cursor:pointer; }
+         .pack-close:hover { background:#ffffff2b; }
+          .pack-done { margin-top:.6rem; border:1px solid rgba(157,207,255,.45); border-radius:9px; padding:.72rem 1.2rem; color:#fff; background:linear-gradient(135deg,#2c7ffc,#1a5fd0); font:700 .78rem Montserrat,sans-serif; cursor:pointer; box-shadow:0 8px 24px rgba(44,127,252,.25); }
+          .pack-done:hover { filter:brightness(1.12); transform:translateY(-1px); }
+          @keyframes boosterSpin { 0% { transform:perspective(700px) rotateY(0deg) rotateZ(-2deg) translateY(0); } 50% { transform:perspective(700px) rotateY(180deg) rotateZ(2deg) translateY(-2px); } 100% { transform:perspective(700px) rotateY(360deg) rotateZ(-2deg) translateY(0); } }
+          @keyframes godlyBorder { to { background-position:0 0,300% 0; } }
+          @keyframes godlyCinematic { 0% { opacity:0; transform:scale(.7); } 18% { opacity:1; transform:scale(1.08); } 35% { opacity:1; transform:scale(1); } 78% { opacity:1; } 100% { opacity:0; transform:scale(1.18); } }
+          @keyframes packShimmer { to { transform:rotate(360deg); } } @keyframes packPulse { to { transform:rotate(4deg) scale(1.04); } } @keyframes tearSeal { 0% { transform:rotate(-4deg) scaleX(0); opacity:0; } 22% { transform:rotate(-4deg) scaleX(1); opacity:1; } 58% { transform:rotate(-4deg) scaleX(1); opacity:1; } 100% { transform:rotate(-4deg) scaleX(0); opacity:0; } } @keyframes tearRip { 0%,22% { width:0; opacity:0; } 34% { width:48px; opacity:1; } 62% { width:126px; opacity:1; } 100% { width:138px; opacity:0; } } @keyframes cardReveal { from { opacity:0; transform:translateY(-430px) rotateZ(-5deg) rotateY(55deg) scale(.76); } 72% { opacity:1; transform:translateY(18px) rotateZ(2deg) rotateY(-5deg) scale(1.02); } to { opacity:1; transform:translateY(0) rotateZ(0) rotateY(0) scale(1); } }
+         @media (max-width:650px) { .card-pack-inner { align-items:flex-start; padding:1.4rem; gap:1rem; } .pack-art { width:85px; } .pack-art span { font-size:.85rem; } .pack-buy { min-width:120px; } .revealed-cards { gap:.35rem; } .revealed-card { width:31%; min-height:220px; } .revealed-card-art { height:135px; } .pack-stage { padding:1.2rem .7rem; } }
+        @media (max-width:1200px) { .shop-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+        @media (max-width:900px) { .shop-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+        @media (max-width:768px) { .shop-page { padding:24vw 4vw 120px; } .shop-heading { padding:1.8rem 1.35rem; margin-bottom:2.5rem; } .shop-heading::after { line-height:1.5; } .shop-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; } .shop-card-body { min-height:105px; padding:.8rem; } .shop-section { margin-bottom:2.5rem; } .shop-section-heading { align-items:start; flex-direction:column; gap:.2rem; } }
+        @media (max-width:430px) { .shop-grid { grid-template-columns:1fr 1fr; } .shop-card h2 { font-size:.78rem; } .shop-buy { font-size:.65rem; } }
+    </style>
+</head>
+<body>
+    <nav>
+        <img src="images/logo.gif" alt="logo" onclick="window.location='index.html'">
+        <h1><span class="logo-a">A</span>ERODYNAMIX</h1>
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:0.4vw;">
+            <a href="index.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw;">Games</a>
+            <a href="apps.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw;">Apps</a>
+            <a href="shop.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; background:#2c7ffc; border-radius:0.5vw; font-weight:600; font-size:0.95vw;">Shop</a>
+            <a href="card-collection.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw;">Card Collection</a>
+            <a href="discs.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw;">Discs</a>
+            <a href="media-player.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw;">Media Player</a>
+            <a href="dynamix-connect.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw;">Connect</a>
+        </div>
+        <a href="colors.html" style="margin-right:1.5vw; color:#fff; text-decoration:none; padding:0.55vw 1.3vw; background:#2c7ffc; border-radius:0.5vw; font-weight:600; font-size:0.95vw;">Settings</a>
+    </nav>
+    <main class="shop-page">
+        <header class="shop-heading">
+            <h1>Shop</h1>
+            <p>Spend Dynamix Discs to permanently unlock games and visual themes.</p>
+            <button class="mobile-access-button" id="mobile-access-open" type="button">Enter access code</button>
+        </header>
+        <section class="shop-section" aria-labelledby="games-heading">
+        <div class="shop-section-heading">
+            <div><h2 class="shop-section-title" id="games-heading">Games</h2><p class="shop-section-subtitle">Unlock classic favorites and keep them forever.</p></div>
+            <span class="shop-section-subtitle">100 Dynamix Discs each</span>
+        </div>
+        <section class="shop-grid">
+            <article class="shop-card" data-game="games/run-3/"><img src="images/run-3.jpg" alt="Run 3"><div class="shop-card-body"><h2>Run 3</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="games/drive-mad/"><img src="images/drive-mad.jpg" alt="Drive Mad"><div class="shop-card-body"><h2>Drive Mad</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="games/retro-bowl/"><img src="images/retro-bowl.jpg" alt="Retro Bowl"><div class="shop-card-body"><h2>Retro Bowl</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="games/slope/"><img src="images/slope.jpg" alt="Slope"><div class="shop-card-body"><h2>Slope</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="games/nextbot/" data-cost="250"><img src="images/run-3.jpg" alt="Namix Backrooms"><div class="shop-card-body"><h2>Namix Backrooms</h2><button class="shop-buy">Buy for 250</button></div></article>
+            <article class="shop-card" data-game="games/minecraft/"><img src="images/mc.png" alt="Minecraft"><div class="shop-card-body"><h2>Minecraft</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="games/supersmashflash/"><img src="images/supersmashflash.jpg" alt="Super Smash Flash"><div class="shop-card-body"><h2>Super Smash Flash</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="games/papaspizzeria/"><img src="images/papaspizzeria.png" alt="Papa's Pizzeria"><div class="shop-card-body"><h2>Papa's Pizzeria</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="games/papasfreezeria/"><img src="images/papasfreezeria.png" alt="Papa's Freezeria"><div class="shop-card-body"><h2>Papa's Freezeria</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/clpapaspancakeria_1785823156106.html"><img src="images/papas-pancakeria.png" alt="Papa's Pancakeria"><div class="shop-card-body"><h2>Papa's Pancakeria</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/clpapabakeria_1785823158430.html"><img src="images/papas-bakeria.png" alt="Papa's Bakeria"><div class="shop-card-body"><h2>Papa's Bakeria</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Meatboy_1785823544552.html"><img src="images/meat-boy.png" alt="Meat Boy"><div class="shop-card-body"><h2>Meat Boy</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/clnewgroundsrumble_1785823619219.html"><img src="images/newgrounds-rumble.png" alt="Newgrounds Rumble"><div class="shop-card-body"><h2>Newgrounds Rumble</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/clwebecomewhatwebehold_1785823806062.html"><img src="images/we-become-what-we-behold.png" alt="We Become What We Behold"><div class="shop-card-body"><h2>We Become What We Behold</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/clbadtimesim_1785823969837.html"><img src="images/bad-time-simulator.png" alt="Bad Time Simulator"><div class="shop-card-body"><h2>Bad Time Simulator</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/cldeltarune_1785824146159.html"><img src="images/deltarune.png" alt="Deltarune"><div class="shop-card-body"><h2>Deltarune</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="games/adventure-capitalist/"><img src="images/adventure-capitalist.png" alt="Adventure Capitalist"><div class="shop-card-body"><h2>Adventure Capitalist</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="games/fridaynightfunkin/"><img src="images/fridaynightfunkin.png" alt="Friday Night Funkin'"><div class="shop-card-body"><h2>Friday Night Funkin'</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="games/run-2/"><img src="images/run-2.png" alt="Run 2"><div class="shop-card-body"><h2>Run 2</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="games/picoschool/"><img src="images/picoschool.png" alt="Pico's School"><div class="shop-card-body"><h2>Pico's School</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="games/worldshardestgame/"><img src="images/worldshardestgame.png" alt="World's Hardest Game"><div class="shop-card-body"><h2>World's Hardest Game</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="games/sandboxels/"><img src="images/sandboxels.png" alt="Sandboxels"><div class="shop-card-body"><h2>Sandboxels</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Alien_Hominid_1784867581921.html"><img src="images/alien-hominid.png" alt="Alien Hominid"><div class="shop-card-body"><h2>Alien Hominid</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/clsubwaysurferssanfrancisco_(1)_1784785408303.html"><img src="images/subway-surfers-sf.jpg" alt="Subway Surfers"><div class="shop-card-body"><h2>Subway Surfers SF</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Hobo_1_1784866297260.html"><img src="images/hobo-1.png" alt="Hobo 1"><div class="shop-card-body"><h2>Hobo 1</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Hobo_2_1784866273340.html"><img src="images/hobo-2.png" alt="Hobo 2"><div class="shop-card-body"><h2>Hobo 2</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Hobo_3_1784866253185.html"><img src="images/hobo-3.png" alt="Hobo 3"><div class="shop-card-body"><h2>Hobo 3</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Hobo_4_1784866216457.html"><img src="images/hobo-4.png" alt="Hobo 4"><div class="shop-card-body"><h2>Hobo 4</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Hobo_5_1784866218574.html"><img src="images/hobo-5.png" alt="Hobo 5"><div class="shop-card-body"><h2>Hobo 5</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Hobo_6_1784866220679.html"><img src="images/hobo-6.png" alt="Hobo 6"><div class="shop-card-body"><h2>Hobo 6</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Hobo_7_1784866222995.html"><img src="images/hobo-7.png" alt="Hobo 7"><div class="shop-card-body"><h2>Hobo 7</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Gladihoppers_1784866393639.html"><img src="images/gladihoppers.jpg" alt="Gladihoppers"><div class="shop-card-body"><h2>Gladihoppers</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Fruit_Ninja_1784866426153.html"><img src="images/fruit-ninja.png" alt="Fruit Ninja"><div class="shop-card-body"><h2>Fruit Ninja</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Binding_of_Issac__Wrath_of_the_Lamb_1784866537332.html"><img src="images/binding-of-isaac.png" alt="Binding of Isaac"><div class="shop-card-body"><h2>Binding of Isaac</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Crossy_Road_1785017138507.html"><img src="images/crossy-road.png" alt="Crossy Road"><div class="shop-card-body"><h2>Crossy Road</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Cookie_Clicker_1785028048876.html"><img src="images/cookie-clicker.png" alt="Cookie Clicker"><div class="shop-card-body"><h2>Cookie Clicker</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/Duck_Life_1785028116865.html"><img src="images/duck-life.png" alt="Duck Life"><div class="shop-card-body"><h2>Duck Life</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/clgdlite_1785028362055.html"><img src="images/geometry-dash-lite.jpg" alt="Geometry Dash Lite"><div class="shop-card-body"><h2>Geometry Dash Lite</h2><button class="shop-buy">Buy for 100</button></div></article>
+            <article class="shop-card" data-game="attached_assets/DOOM_1785028500807.html"><img src="images/doom.png" alt="DOOM"><div class="shop-card-body"><h2>DOOM</h2><button class="shop-buy">Buy for 100</button></div></article>
+             <article class="shop-card" data-game="attached_assets/cldokidokiliteratureclub_1785271141970.html"><img src="images/doki-doki-literature-club.jpg" alt="Doki Doki Literature Club"><div class="shop-card-body"><h2>Doki Doki Literature Club</h2><button class="shop-buy">Buy for 100</button></div></article>
+             <article class="shop-card" data-game="attached_assets/clbaldisbasicsremaster_1785376652529.html"><img src="images/baldis-basics-classic-remastered.png" alt="Baldi's Basics Classic Remastered"><div class="shop-card-body"><h2>Baldi's Basics Classic Remastered</h2><button class="shop-buy">Buy for 100</button></div></article>
+             <article class="shop-card" data-game="attached_assets/clstickminbreakingbank_1785806522581.html"><img src="images/stickmin-breaking-bank.jpg" alt="Henry Stickmin: Breaking the Bank"><div class="shop-card-body"><h2>Henry Stickmin: Breaking the Bank</h2><button class="shop-buy">Buy for 100</button></div></article>
+             <article class="shop-card" data-game="attached_assets/clstickminescapingprison_1785806520945.html"><img src="images/stickmin-escaping-prison.avif" alt="Henry Stickmin: Escaping the Prison"><div class="shop-card-body"><h2>Henry Stickmin: Escaping the Prison</h2><button class="shop-buy">Buy for 100</button></div></article>
+             <article class="shop-card" data-game="attached_assets/clstickmanstealingdiamond_1785806513520.html"><img src="images/stickmin-stealing-diamond.avif" alt="Henry Stickmin: Stealing the Diamond"><div class="shop-card-body"><h2>Henry Stickmin: Stealing the Diamond</h2><button class="shop-buy">Buy for 100</button></div></article>
+             <article class="shop-card" data-game="attached_assets/clstickminairship_1785806516884.html"><img src="images/stickmin-infiltrating-airship.avif" alt="Henry Stickmin: Infiltrating the Airship"><div class="shop-card-body"><h2>Henry Stickmin: Infiltrating the Airship</h2><button class="shop-buy">Buy for 100</button></div></article>
+             <article class="shop-card" data-game="attached_assets/clstickminfleecomplex_1785806519008.html"><img src="images/stickmin-fleeing-complex.avif" alt="Henry Stickmin: Fleeing the Complex"><div class="shop-card-body"><h2>Henry Stickmin: Fleeing the Complex</h2><button class="shop-buy">Buy for 100</button></div></article>
+             <article class="shop-card greatest-game-shop-card" data-game="games/the-greatest-game/index.html" data-cost="1000"><img src="images/greatest-game.svg" alt="The Greatest Game of All Time"><div class="shop-card-body"><h2>THE GREATEST GAME OF ALL TIME</h2><button class="shop-buy">Buy for 1000</button></div></article>
+             <article class="shop-card lite-download-shop-card" id="lite-download" data-game="aerodynamix-lite-download" data-cost="2000" data-download="/download/aerodynamix-lite.html"><img src="images/logo.gif" alt="Aerodynamix Lite"><div class="shop-card-body"><h2>Aerodynamix Lite</h2><button class="shop-buy">Buy for 2000</button></div></article>
+        </section>
+        </section>
+        <section class="shop-section" aria-labelledby="themes-heading">
+        <div class="shop-section-heading">
+            <div><h2 class="shop-section-title" id="themes-heading">Themes</h2><p class="shop-section-subtitle">Give your Aerodynamix experience a new look.</p></div>
+            <span class="shop-section-subtitle">200 Dynamix Discs each</span>
+        </div>
+        <section class="shop-grid theme-shop-grid">
+            <article class="shop-card theme-shop-card" data-theme="frutiger-aero"><div class="theme-preview frutiger-aero"></div><div class="shop-card-body"><h2>Frutiger Aero</h2><button class="shop-buy theme-buy">Buy for 200</button></div></article>
+            <article class="shop-card theme-shop-card" data-theme="purple"><div class="theme-preview purple"></div><div class="shop-card-body"><h2>Midnight Purple</h2><button class="shop-buy theme-buy">Buy for 200</button></div></article>
+            <article class="shop-card theme-shop-card" data-theme="blue"><div class="theme-preview blue"></div><div class="shop-card-body"><h2>Genesis Blue</h2><button class="shop-buy theme-buy">Buy for 200</button></div></article>
+            <article class="shop-card theme-shop-card" data-theme="christmas"><div class="theme-preview christmas"></div><div class="shop-card-body"><h2>Christmas</h2><button class="shop-buy theme-buy">Buy for 200</button></div></article>
+            <article class="shop-card theme-shop-card" data-theme="bubble-gum-pink"><div class="theme-preview bubble-gum-pink"></div><div class="shop-card-body"><h2>Bubble Gum Pink</h2><button class="shop-buy theme-buy">Buy for 200</button></div></article>
+        </section>
+        </section>
+         <section class="shop-section card-pack-section" aria-labelledby="cards-heading">
+             <div class="shop-section-heading">
+                 <div><h2 class="shop-section-title" id="cards-heading">Aerodynamix Trading Cards</h2><p class="shop-section-subtitle">Collect the first official Aerodynamix card set.</p></div>
+                 <span class="collection-count" id="collection-count">0 cards collected</span>
+             </div>
+             <article class="card-pack">
+                 <div class="card-pack-inner">
+                       <div class="pack-art" aria-label="Spinning Aerodynamix booster pack">
+                           <div class="pack-face pack-front">
+                               <div class="pack-header">BOOSTER PACK</div>
+                               <div class="pack-seam"></div>
+                                <div class="pack-fold-left" aria-hidden="true"></div>
+                                <div class="pack-fold-right" aria-hidden="true"></div>
+                                <span>Aero<br><b>Dynamix</b></span>
+                               <div class="pack-footer">4 DIGITAL CARDS</div>
+                           </div>
+                          <div class="pack-face pack-back"></div>
+                          <div class="pack-edge pack-edge-left"></div>
+                          <div class="pack-edge pack-edge-right"></div>
+                          <div class="pack-edge pack-edge-top"></div>
+                          <div class="pack-edge pack-edge-bottom"></div>
+                      </div>
+                      <div class="pack-copy"><h2>Aerodynamix Starter Pack</h2><p id="pack-description">Rip open a digital pack and discover 4 random cards from the Aerodynamix arcade set.</p><div class="pack-price" id="pack-price"><img src="images/disc.png" alt="" class="disc-icon sm"> 100 Dynamix Discs</div><div class="pack-odds"><b>Pack odds</b><br>Common 50% · Uncommon 20% · Rare 12% · Epic 7%<br>Legendary 5% · Mythic 4% · Godly 2%</div></div>
+                      <button class="shop-buy pack-buy" id="buy-card-pack">Open pack<small>4 cards guaranteed</small></button>
+                 </div>
+             </article>
+         </section>
+    </main>
+     <div class="pack-modal" id="pack-modal" aria-hidden="true">
+         <div class="pack-stage">
+             <button class="pack-close" id="pack-close" aria-label="Close">&times;</button>
+              <div class="godly-card-reveal" id="godly-card-reveal" aria-hidden="true"></div>
+              <h2 id="pack-stage-title">Opening your pack…</h2><p id="pack-stage-subtitle">Your Aerodynamix cards are being revealed.</p>
+              <div class="pack-opening" id="pack-opening"><div class="opening-pack">Aero<br>dynamix<span class="tear-rip" aria-hidden="true"></span></div></div>
+             <div class="revealed-cards" id="revealed-cards" hidden></div>
+              <button class="pack-done" id="pack-done" type="button" hidden>Back to Shop</button>
+         </div>
+     </div>
+      <div class="access-modal" id="access-modal" aria-hidden="true">
+          <form class="access-card" id="access-form">
+              <button class="access-close" id="access-close" type="button" aria-label="Close">&times;</button>
+              <h2>Enter access code</h2>
+              <p>Use your access code here if you are on a phone or tablet.</p>
+              <input class="access-input" id="access-code-input" type="password" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Access code" aria-label="Access code">
+              <button class="access-submit" id="access-submit" type="submit">Unlock full access</button>
+              <p class="access-error" id="access-error" role="alert"></p>
+          </form>
+      </div>
+    <script src="shop.js"></script>
+    <script src="music-player.js"></script>
+    <script src="bubble-overlay.js"></script>
+    <script src="snow-overlay.js"></script>
+    <script src="mobile-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07101f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%232385ff'/%3E%3Cpath d='M32 12l4.8 15.2L52 32l-15.2 4.8L32 52l-4.8-15.2L12 32l15.2-4.8L32 12z' fill='white'/%3E%3C/svg%3E">
+  <title>Aerodynamix Lite Connect</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050914;
+      --panel: rgba(11, 21, 40, .84);
+      --panel-strong: #0d1b31;
+      --panel-soft: #102440;
+      --line: rgba(148, 180, 226, .18);
+      --line-strong: rgba(105, 168, 255, .42);
+      --text: #eef6ff;
+      --muted: #8fa5c3;
+      --blue: #4e9cff;
+      --blue-strong: #2385ff;
+      --cyan: #47d9e8;
+      --green: #42d69b;
+      --orange: #ffb45e;
+      --red: #ff6f8c;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .35);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      min-width: 320px;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(54, 119, 219, .25), transparent 33rem),
+        radial-gradient(circle at 92% 20%, rgba(62, 218, 232, .1), transparent 28rem),
+        var(--bg);
+    }
+    button, textarea, input { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .45; }
+    .app-shell { width: min(1440px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 52px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 38px; }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand-mark {
+      display: grid; width: 42px; height: 42px; place-items: center;
+      border: 1px solid rgba(105, 168, 255, .5); border-radius: 13px;
+      color: #fff; background: linear-gradient(145deg, #216cff, #42d9e7);
+      box-shadow: 0 0 28px rgba(35, 133, 255, .38); font-size: 21px; font-weight: 900;
+    }
+    .brand-title { margin: 0; font-size: 16px; letter-spacing: .18em; font-weight: 800; }
+    .brand-subtitle { margin: 4px 0 0; color: var(--muted); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .pill, .status-pill {
+      display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 0 11px;
+      border: 1px solid var(--line); border-radius: 999px; color: var(--muted);
+      background: rgba(8, 16, 31, .75); font-size: 11px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .pill::before, .status-pill::before { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); content: ""; }
+    .pill.local::before { background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+    .status-pill.connected { border-color: rgba(66, 214, 155, .38); color: #a5f5d5; }
+    .status-pill.connected::before { background: var(--green); box-shadow: 0 0 12px var(--green); }
+    .status-pill.waiting::before { background: var(--orange); box-shadow: 0 0 12px var(--orange); }
+    .status-pill.error { border-color: rgba(255, 111, 140, .38); color: #ffc0cd; }
+    .status-pill.error::before { background: var(--red); box-shadow: 0 0 12px var(--red); }
+
+    .hero { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 24px; margin-bottom: 26px; }
+    .eyebrow { margin: 0 0 10px; color: var(--cyan); font-size: 11px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+    h1 { max-width: 760px; margin: 0; font-size: clamp(31px, 5vw, 66px); line-height: .98; letter-spacing: -.055em; }
+    .hero-copy { max-width: 680px; margin: 17px 0 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+    .hero-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+    .btn {
+      min-height: 42px; padding: 0 15px; border: 1px solid var(--line-strong); border-radius: 12px;
+      color: var(--text); background: rgba(17, 37, 66, .78); transition: transform .18s, border-color .18s, background .18s;
+      font-size: 13px; font-weight: 800;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); border-color: rgba(129, 193, 255, .85); background: #15335b; }
+    .btn.primary { border-color: transparent; background: linear-gradient(135deg, var(--blue-strong), #3ec5dd); box-shadow: 0 10px 28px rgba(35, 133, 255, .23); }
+    .btn.ghost { color: var(--muted); background: transparent; }
+    .btn.danger { border-color: rgba(255, 111, 140, .35); color: #ffb4c2; background: rgba(93, 18, 43, .28); }
+    .notice {
+      display: flex; align-items: flex-start; gap: 10px; padding: 13px 15px; margin-bottom: 20px;
+      border: 1px solid rgba(255, 180, 94, .3); border-radius: 14px; color: #ffd59d;
+      background: rgba(87, 53, 16, .22); font-size: 12px; line-height: 1.5;
+    }
+    .notice strong { color: #ffe6c1; }
+    .notice.ok { border-color: rgba(66, 214, 155, .3); color: #b0f6da; background: rgba(14, 80, 55, .2); }
+    .notice.hidden { display: none; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(340px, .85fr); gap: 18px; align-items: start; }
+    .panel {
+      border: 1px solid var(--line); border-radius: 20px; background: linear-gradient(145deg, rgba(18, 35, 61, .9), rgba(8, 16, 31, .88));
+      box-shadow: var(--shadow); backdrop-filter: blur(18px);
+    }
+    .panel-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 20px 20px 0; }
+    .panel-heading h2 { margin: 0; font-size: 16px; letter-spacing: -.01em; }
+    .panel-heading p { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .media-panel { overflow: hidden; }
+    .feeds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 20px; }
+    .video-card { position: relative; min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: #02050b; }
+    .video-card video { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: radial-gradient(circle, #142d4e, #02050b 68%); }
+    .video-card.remote video { transform: scaleX(-1); }
+    .video-label {
+      position: absolute; top: 10px; left: 10px; display: flex; align-items: center; gap: 7px;
+      padding: 7px 9px; border: 1px solid rgba(255,255,255,.16); border-radius: 9px;
+      background: rgba(2, 7, 16, .72); font-size: 11px; font-weight: 800;
+    }
+    .video-label::before { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); content: ""; }
+    .video-label.live::before { background: var(--green); box-shadow: 0 0 11px var(--green); }
+    .video-placeholder { position: absolute; inset: 0; display: grid; place-items: center; color: #6483aa; font-size: 34px; }
+    .video-card video:not([srcObject]) + .video-placeholder { display: grid; }
+    .video-placeholder span { display: grid; gap: 8px; place-items: center; font-size: 12px; }
+    .feed-footer { display: flex; justify-content: space-between; gap: 10px; padding: 9px 11px; color: var(--muted); font-size: 11px; }
+    .feed-footer strong { color: var(--text); }
+    .media-controls { display: flex; flex-wrap: wrap; gap: 9px; padding: 0 20px 20px; }
+    .control-btn { min-height: 35px; padding: 0 11px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); background: rgba(8, 18, 34, .7); font-size: 11px; font-weight: 800; }
+    .control-btn.active { border-color: rgba(66, 214, 155, .4); color: #a9f5d8; }
+
+    .connection-panel { padding-bottom: 20px; }
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin: 20px 20px 17px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: rgba(3, 9, 18, .52); }
+    .tab { min-height: 36px; border: 0; border-radius: 9px; color: var(--muted); background: transparent; font-size: 12px; font-weight: 800; }
+    .tab.active { color: var(--text); background: linear-gradient(135deg, #1d5fb9, #176e88); box-shadow: 0 4px 14px rgba(25, 112, 195, .25); }
+    .mode-pane { padding: 0 20px; }
+    .step { display: grid; grid-template-columns: 25px 1fr; gap: 10px; margin-bottom: 15px; }
+    .step-number { display: grid; width: 25px; height: 25px; place-items: center; border: 1px solid var(--line-strong); border-radius: 8px; color: var(--cyan); font-size: 11px; font-weight: 900; }
+    .step-body strong { display: block; margin: 2px 0 5px; font-size: 12px; }
+    .step-body p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .field-label { display: flex; justify-content: space-between; gap: 10px; margin: 15px 0 7px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    textarea {
+      display: block; width: 100%; min-height: 86px; resize: vertical; padding: 11px;
+      border: 1px solid var(--line); border-radius: 11px; outline: none; color: #c9e2ff;
+      background: rgba(2, 8, 18, .75); font-family: "SFMono-Regular", Consolas, monospace; font-size: 10px; line-height: 1.45;
+    }
+    textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(78, 156, 255, .12); }
+    .field-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .helper { margin: 9px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .helper code { color: #b9d9ff; }
+    .empty-pane { display: none; }
+
+    .side-stack { display: grid; gap: 18px; }
+    .quick-panel { padding-bottom: 19px; }
+    .quick-list { display: grid; gap: 12px; margin: 20px; }
+    .quick-item { display: flex; gap: 11px; align-items: flex-start; }
+    .quick-icon { display: grid; flex: 0 0 31px; width: 31px; height: 31px; place-items: center; border: 1px solid rgba(71, 217, 232, .28); border-radius: 10px; color: var(--cyan); background: rgba(47, 177, 194, .1); font-size: 13px; font-weight: 900; }
+    .quick-item strong { display: block; margin-bottom: 3px; font-size: 12px; }
+    .quick-item span { color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .log-panel { min-height: 182px; padding-bottom: 14px; }
+    .event-log { height: 130px; overflow: auto; margin: 15px 20px 0; padding: 10px; border: 1px solid var(--line); border-radius: 11px; color: #9fc4ef; background: rgba(2, 8, 17, .7); font-family: "SFMono-Regular", Consolas, monospace; font-size: 10px; line-height: 1.65; }
+    .event-log div + div { margin-top: 2px; }
+    .event-log .time { color: #5278a7; }
+
+    .tools-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .65fr); gap: 18px; margin-top: 18px; }
+    .chat-panel, .state-panel { min-width: 0; padding-bottom: 18px; }
+    .messages { display: flex; flex-direction: column; gap: 7px; height: 185px; overflow: auto; margin: 16px 20px 11px; padding: 11px; border: 1px solid var(--line); border-radius: 12px; background: rgba(2, 8, 17, .58); }
+    .message { max-width: 88%; padding: 8px 10px; border-radius: 10px; color: #c9dcf5; background: #142b4b; font-size: 11px; line-height: 1.4; }
+    .message.local { align-self: flex-end; color: #e6f7ff; background: linear-gradient(135deg, #1555a4, #187e93); }
+    .message.system { align-self: center; color: var(--muted); background: transparent; font-size: 10px; text-align: center; }
+    .chat-form { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 0 20px; }
+    .chat-form input {
+      min-width: 0; height: 38px; padding: 0 11px; border: 1px solid var(--line); border-radius: 10px; outline: none;
+      color: var(--text); background: rgba(2, 8, 17, .75); font-size: 12px;
+    }
+    .chat-form input:focus { border-color: var(--blue); }
+    .state-content { margin: 17px 20px 0; }
+    .state-card { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(2, 8, 17, .5); }
+    .state-row { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 14px; }
+    .state-row:last-child { margin-bottom: 0; }
+    .state-row label { color: var(--muted); font-size: 11px; font-weight: 700; }
+    .state-value { color: var(--cyan); font-family: monospace; font-size: 12px; font-weight: 800; }
+    input[type="range"] { width: 100%; accent-color: var(--blue); }
+    .sync-readout { margin: 13px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .connection-state { margin: 0 20px; padding: 10px 11px; border: 1px solid var(--line); border-radius: 11px; color: var(--muted); background: rgba(2, 8, 17, .45); font-size: 11px; line-height: 1.5; }
+    .connection-state strong { color: var(--text); }
+    .hidden { display: none !important; }
+    .toast { position: fixed; right: 20px; bottom: 20px; z-index: 5; max-width: min(360px, calc(100% - 40px)); padding: 12px 14px; border: 1px solid var(--line-strong); border-radius: 12px; color: var(--text); background: #112a4a; box-shadow: var(--shadow); font-size: 12px; }
+    @media (max-width: 980px) {
+      .layout, .tools-layout { grid-template-columns: 1fr; }
+      .hero { grid-template-columns: 1fr; align-items: start; }
+      .hero-actions { justify-content: flex-start; }
+    }
+    @media (max-width: 620px) {
+      .app-shell { width: min(100% - 20px, 560px); padding-top: 14px; }
+      .topbar { align-items: flex-start; margin-bottom: 27px; }
+      .header-actions { flex-direction: column; align-items: flex-end; gap: 7px; }
+      .brand-subtitle { font-size: 9px; }
+      .feeds { grid-template-columns: 1fr; }
+      .panel-heading { padding: 17px 15px 0; }
+      .feeds, .media-controls { padding-left: 15px; padding-right: 15px; }
+      .tabs { margin-left: 15px; margin-right: 15px; }
+      .mode-pane { padding: 0 15px; }
+      .quick-list, .event-log, .messages, .chat-form, .state-content { margin-left: 15px; margin-right: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">✦</div>
+        <div>
+          <p class="brand-title">AERODYNAMIX LITE</p>
+          <p class="brand-subtitle">Local peer connection</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="pill local">Offline / LAN</span>
+        <span class="status-pill waiting" id="headerStatus">Waiting for Peer</span>
+        <button class="btn ghost" id="resetBtn" type="button">Reset</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Second edition · serverless signaling</p>
+          <h1>Connect locally.<br><span style="color:var(--cyan)">Stay together.</span></h1>
+          <p class="hero-copy">A self-contained local connection room for nearby devices. Exchange the two small signal blocks manually, then use the peer-to-peer media and data channels over the same Wi-Fi network.</p>
+        </div>
+        <div class="hero-actions">
+          <button class="btn primary" id="mediaBtn" type="button">Enable camera &amp; mic</button>
+          <button class="btn ghost" id="muteBtn" type="button" disabled>Mute mic</button>
+          <button class="btn ghost" id="cameraBtn" type="button" disabled>Hide camera</button>
+        </div>
+      </section>
+
+      <div class="notice" id="environmentNotice">
+        <strong>Local browser note:</strong>
+        <span>Camera and microphone access require HTTPS or <code>localhost</code>. The peer connection itself stays local and uses no internet servers.</span>
+      </div>
+
+      <section class="layout">
+        <article class="panel media-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Live feeds</h2>
+              <p>Direct WebRTC audio/video stream</p>
+            </div>
+            <span class="status-pill waiting" id="mediaStatus">Waiting for Peer</span>
+          </div>
+          <div class="feeds">
+            <div class="video-card">
+              <video id="localVideo" autoplay muted playsinline></video>
+              <div class="video-placeholder" id="localPlaceholder"><span>◉<small>Enable your camera</small></span></div>
+              <div class="video-label" id="localLabel">Local</div>
+              <div class="feed-footer"><strong>Your device</strong><span id="localFeedState">Camera off</span></div>
+            </div>
+            <div class="video-card remote">
+              <video id="remoteVideo" autoplay playsinline></video>
+              <div class="video-placeholder" id="remotePlaceholder"><span>◎<small>Waiting for peer</small></span></div>
+              <div class="video-label" id="remoteLabel">Remote</div>
+              <div class="feed-footer"><strong>Peer device</strong><span id="remoteFeedState">Not connected</span></div>
+            </div>
+          </div>
+          <div class="media-controls">
+            <button class="control-btn" id="audioOnlyBtn" type="button">Audio-only fallback</button>
+            <button class="control-btn" id="clearRemoteBtn" type="button">Clear remote feed</button>
+          </div>
+        </article>
+
+        <aside class="side-stack">
+          <article class="panel connection-panel">
+            <div class="panel-heading">
+              <div>
+                <h2>Connection panel</h2>
+                <p>One host, one joiner, two signal exchanges</p>
+              </div>
+            </div>
+            <div class="tabs" role="tablist" aria-label="Connection mode">
+              <button class="tab active" id="hostTab" type="button" role="tab" aria-selected="true">Host mode</button>
+              <button class="tab" id="joinTab" type="button" role="tab" aria-selected="false">Join mode</button>
+            </div>
+
+            <div class="mode-pane" id="hostPane">
+              <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-body"><strong>Create the host offer</strong><p>Enable media, create an offer, and send the complete block to the other device.</p></div>
+              </div>
+              <button class="btn primary" id="createOfferBtn" type="button">Create host offer</button>
+              <label class="field-label" for="offerOutput"><span>Host SDP offer</span><span id="offerCount">0 candidates</span></label>
+              <textarea id="offerOutput" readonly placeholder="Your generated offer will appear here..."></textarea>
+              <div class="field-actions"><button class="btn" id="copyOfferBtn" type="button" disabled>Copy offer</button></div>
+              <div class="step" style="margin-top:18px">
+                <span class="step-number">2</span>
+                <div class="step-body"><strong>Accept the guest answer</strong><p>Paste the answer from the join device after it creates one.</p></div>
+              </div>
+              <label class="field-label" for="answerInput"><span>Guest SDP answer</span></label>
+              <textarea id="answerInput" placeholder="Paste the guest answer JSON here..."></textarea>
+              <div class="field-actions"><button class="btn primary" id="acceptAnswerBtn" type="button">Accept answer</button></div>
+            </div>
+
+            <div class="mode-pane hidden" id="joinPane">
+              <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-body"><strong>Paste the host offer</strong><p>Copy the host's complete offer block into the field below.</p></div>
+              </div>
+              <label class="field-label" for="joinOfferInput"><span>Host SDP offer</span></label>
+              <textarea id="joinOfferInput" placeholder="Paste the host offer JSON here..."></textarea>
+              <div class="step" style="margin-top:18px">
+                <span class="step-number">2</span>
+                <div class="step-body"><strong>Create your answer</strong><p>Generate an answer, copy it, and send it back to the host device.</p></div>
+              </div>
+              <button class="btn primary" id="createAnswerBtn" type="button">Create join answer</button>
+              <label class="field-label" for="answerOutput"><span>Guest SDP answer</span><span id="answerCount">0 candidates</span></label>
+              <textarea id="answerOutput" readonly placeholder="Your generated answer will appear here..."></textarea>
+              <div class="field-actions"><button class="btn" id="copyAnswerBtn" type="button" disabled>Copy answer</button></div>
+            </div>
+          </article>
+
+          <article class="panel quick-panel">
+            <div class="panel-heading"><div><h2>How local mode works</h2><p>No room server, no account, no internet</p></div></div>
+            <div class="quick-list">
+              <div class="quick-item"><div class="quick-icon">1</div><div><strong>Exchange text</strong><span>SDP contains the local ICE candidates needed to find the nearby peer.</span></div></div>
+              <div class="quick-item"><div class="quick-icon">↔</div><div><strong>Connect directly</strong><span>Media and the ordered data channel travel peer-to-peer after signaling.</span></div></div>
+              <div class="quick-item"><div class="quick-icon">⌁</div><div><strong>Sync your app</strong><span>Use the data channel for chat, JSON state, and future local games.</span></div></div>
+            </div>
+          </article>
+        </aside>
+      </section>
+
+      <section class="tools-layout">
+        <article class="panel chat-panel">
+          <div class="panel-heading"><div><h2>Peer messages</h2><p>Low-latency text over the data channel</p></div><span class="status-pill waiting" id="dataStatus">Channel offline</span></div>
+          <div class="messages" id="messages"><div class="message system">Connect to a peer to start chatting.</div></div>
+          <form class="chat-form" id="chatForm">
+            <input id="chatInput" type="text" maxlength="500" autocomplete="off" placeholder="Write a local message..." disabled>
+            <button class="btn primary" type="submit" disabled id="sendBtn">Send</button>
+          </form>
+        </article>
+
+        <article class="panel state-panel">
+          <div class="panel-heading"><div><h2>Shared app state</h2><p>Live JSON sync demo</p></div></div>
+          <div class="state-content">
+            <div class="state-card">
+              <div class="state-row"><label for="sharedRange">Shared signal</label><span class="state-value" id="sharedValue">50%</span></div>
+              <input id="sharedRange" type="range" min="0" max="100" value="50" disabled>
+              <div class="state-row" style="margin-top:16px"><label>Peer value</label><span class="state-value" id="peerValue">—</span></div>
+            </div>
+            <p class="sync-readout" id="syncReadout">The slider sends <code>{ type: "state", payload: ... }</code> over the data channel. Replace it with your local game's state object later.</p>
+          </div>
+        </article>
+      </section>
+
+      <article class="panel log-panel" style="margin-top:18px">
+        <div class="panel-heading"><div><h2>Connection log</h2><p>Useful when two local devices are troubleshooting a handshake</p></div></div>
+        <div class="event-log" id="eventLog" aria-live="polite"></div>
+      </article>
+    </main>
+  </div>
+  <div class="toast hidden" id="toast" role="status"></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const $ = id => document.getElementById(id);
+      const ui = {
+        headerStatus: $('headerStatus'), mediaStatus: $('mediaStatus'), dataStatus: $('dataStatus'),
+        localVideo: $('localVideo'), remoteVideo: $('remoteVideo'), localPlaceholder: $('localPlaceholder'),
+        remotePlaceholder: $('remotePlaceholder'), localLabel: $('localLabel'), remoteLabel: $('remoteLabel'),
+        localFeedState: $('localFeedState'), remoteFeedState: $('remoteFeedState'), mediaBtn: $('mediaBtn'),
+        muteBtn: $('muteBtn'), cameraBtn: $('cameraBtn'), audioOnlyBtn: $('audioOnlyBtn'),
+        clearRemoteBtn: $('clearRemoteBtn'), resetBtn: $('resetBtn'), hostTab: $('hostTab'), joinTab: $('joinTab'),
+        hostPane: $('hostPane'), joinPane: $('joinPane'), createOfferBtn: $('createOfferBtn'),
+        offerOutput: $('offerOutput'), offerCount: $('offerCount'), copyOfferBtn: $('copyOfferBtn'),
+        answerInput: $('answerInput'), acceptAnswerBtn: $('acceptAnswerBtn'), joinOfferInput: $('joinOfferInput'),
+        createAnswerBtn: $('createAnswerBtn'), answerOutput: $('answerOutput'), answerCount: $('answerCount'),
+        copyAnswerBtn: $('copyAnswerBtn'), eventLog: $('eventLog'), chatForm: $('chatForm'),
+        chatInput: $('chatInput'), sendBtn: $('sendBtn'), messages: $('messages'), sharedRange: $('sharedRange'),
+        sharedValue: $('sharedValue'), peerValue: $('peerValue'), syncReadout: $('syncReadout'),
+        environmentNotice: $('environmentNotice'), toast: $('toast')
+      };
+
+      const app = {
+        mode: 'host',
+        pc: null,
+        dataChannel: null,
+        localStream: null,
+        remoteStream: new MediaStream(),
+        mediaReady: false,
+        offerReady: false,
+        busy: false,
+        toastTimer: null,
+        sharedState: { signal: 50 }
+      };
+
+      function log(message) {
+        const row = document.createElement('div');
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        row.innerHTML = `<span class="time">${time}</span> ${escapeHtml(message)}`;
+        ui.eventLog.appendChild(row);
+        ui.eventLog.scrollTop = ui.eventLog.scrollHeight;
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+      }
+
+      function toast(message) {
+        ui.toast.textContent = message;
+        ui.toast.classList.remove('hidden');
+        clearTimeout(app.toastTimer);
+        app.toastTimer = setTimeout(() => ui.toast.classList.add('hidden'), 3500);
+      }
+
+      function setStatus(element, text, type = 'waiting') {
+        element.textContent = text;
+        element.className = `status-pill ${type}`;
+      }
+
+      function setConnectionState(text, type = 'waiting') {
+        setStatus(ui.headerStatus, text, type);
+        setStatus(ui.mediaStatus, text, type);
+      }
+
+      function updateEnvironmentNote() {
+        const secure = window.isSecureContext || ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+        const mediaAvailable = Boolean(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+        if (secure && mediaAvailable) {
+          ui.environmentNotice.className = 'notice ok';
+          ui.environmentNotice.innerHTML = '<strong>Ready:</strong><span>This page can request camera and microphone access. Keep both devices on the same Wi-Fi and exchange the signal blocks below.</span>';
+        } else {
+          ui.environmentNotice.innerHTML = '<strong>Camera/mic note:</strong><span>Browser media access needs HTTPS or <code>localhost</code>. Serve this file from a local HTTPS host for other Wi-Fi devices; the connection itself uses no internet servers.</span>';
+        }
+      }
+
+      function setBusy(busy) {
+        app.busy = busy;
+        document.querySelectorAll('.connection-panel .btn').forEach(button => {
+          if (button.id !== 'copyOfferBtn' && button.id !== 'copyAnswerBtn') button.disabled = busy;
+        });
+      }
+
+      async function ensureMedia(audioOnly = false) {
+        if (app.localStream && app.mediaReady) return app.localStream;
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Camera and microphone are unavailable in this browser context. Use HTTPS or localhost.');
+        }
+        const constraints = audioOnly
+          ? { audio: true, video: false }
+          : { audio: true, video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' } };
+        try {
+          app.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (error) {
+          if (!audioOnly && error.name === 'NotFoundError') {
+            app.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            toast('No camera was found, so the room is using audio only.');
+          } else {
+            throw error;
+          }
+        }
+        app.mediaReady = true;
+        ui.localVideo.srcObject = app.localStream;
+        ui.localPlaceholder.classList.add('hidden');
+        ui.localFeedState.textContent = app.localStream.getVideoTracks().length ? 'Camera live' : 'Audio only';
+        ui.mediaBtn.textContent = 'Media enabled';
+        ui.mediaBtn.disabled = true;
+        ui.muteBtn.disabled = false;
+        ui.cameraBtn.disabled = !app.localStream.getVideoTracks().length;
+        ui.audioOnlyBtn.disabled = true;
+        log(`Local ${app.localStream.getVideoTracks().length ? 'camera and microphone' : 'microphone'} ready.`);
+        return app.localStream;
+      }
+
+      function addLocalTracks() {
+        if (!app.pc || !app.localStream) return;
+        app.localStream.getTracks().forEach(track => {
+          if (!app.pc.getSenders().some(sender => sender.track === track)) app.pc.addTrack(track, app.localStream);
+        });
+      }
+
+      function wireDataChannel(channel) {
+        app.dataChannel = channel;
+        channel.onopen = () => {
+          setStatus(ui.dataStatus, 'Channel connected', 'connected');
+          ui.chatInput.disabled = false;
+          ui.sendBtn.disabled = false;
+          ui.sharedRange.disabled = false;
+          log('Ordered data channel is open.');
+          sendEnvelope('state', app.sharedState);
+        };
+        channel.onclose = () => {
+          setStatus(ui.dataStatus, 'Channel offline', 'waiting');
+          ui.chatInput.disabled = true;
+          ui.sendBtn.disabled = true;
+          ui.sharedRange.disabled = true;
+          log('Data channel closed.');
+        };
+        channel.onerror = () => log('Data channel reported an error.');
+        channel.onmessage = event => {
+          let message;
+          try { message = JSON.parse(event.data); } catch (error) { return log('Received an unreadable data message.'); }
+          if (message.type === 'chat') addMessage(message.payload, false);
+          if (message.type === 'state') applyPeerState(message.payload);
+          if (message.type === 'hello') log(`Peer says hello${message.payload?.mode ? ` (${message.payload.mode})` : ''}.`);
+        };
+      }
+
+      function sendEnvelope(type, payload) {
+        if (!app.dataChannel || app.dataChannel.readyState !== 'open') return false;
+        app.dataChannel.send(JSON.stringify({ type, payload, sentAt: Date.now() }));
+        return true;
+      }
+
+      function createPeerConnection() {
+        if (app.pc) app.pc.close();
+        app.remoteStream = new MediaStream();
+        ui.remoteVideo.srcObject = app.remoteStream;
+        ui.remotePlaceholder.classList.remove('hidden');
+        ui.remoteFeedState.textContent = 'Connecting...';
+        app.pc = new RTCPeerConnection({ iceServers: [] });
+        app.pc.ontrack = event => {
+          const stream = event.streams[0];
+          if (stream) {
+            ui.remoteVideo.srcObject = stream;
+          } else if (!app.remoteStream.getTracks().some(track => track.id === event.track.id)) {
+            app.remoteStream.addTrack(event.track);
+            ui.remoteVideo.srcObject = app.remoteStream;
+          }
+          ui.remotePlaceholder.classList.add('hidden');
+          ui.remoteFeedState.textContent = 'Remote media live';
+          ui.remoteLabel.classList.add('live');
+          log('Remote media track received.');
+        };
+        app.pc.onconnectionstatechange = () => {
+          const state = app.pc.connectionState;
+          if (state === 'connected') {
+            setConnectionState('Connected', 'connected');
+            ui.remoteFeedState.textContent = 'Peer connected';
+            log('Peer connection is connected.');
+          } else if (state === 'failed') {
+            setConnectionState('Connection failed', 'error');
+            ui.remoteFeedState.textContent = 'Handshake failed';
+            log('Connection failed. Check Wi-Fi, firewall, and copied SDP.');
+          } else if (state === 'disconnected') {
+            setConnectionState('Disconnected', 'waiting');
+            log('Peer disconnected.');
+          }
+        };
+        app.pc.oniceconnectionstatechange = () => log(`ICE state: ${app.pc.iceConnectionState}.`);
+        app.pc.ondatachannel = event => {
+          wireDataChannel(event.channel);
+          log('Peer data channel received.');
+        };
+        return app.pc;
+      }
+
+      function waitForIceGathering(pc) {
+        if (pc.iceGatheringState === 'complete') return Promise.resolve();
+        return new Promise(resolve => {
+          let finished = false;
+          const finish = () => {
+            if (finished) return;
+            finished = true;
+            pc.removeEventListener('icegatheringstatechange', check);
+            clearTimeout(timer);
+            resolve();
+          };
+          const check = () => { if (pc.iceGatheringState === 'complete') finish(); };
+          const timer = setTimeout(finish, 12000);
+          pc.addEventListener('icegatheringstatechange', check);
+          check();
+        });
+      }
+
+      function countCandidates(description) {
+        return (description?.sdp?.match(/^a=candidate:/gm) || []).length;
+      }
+
+      function signalText(description) {
+        return JSON.stringify({ type: description.type, sdp: description.sdp }, null, 2);
+      }
+
+      function parseSignal(value, expectedType) {
+        let signal;
+        try { signal = JSON.parse(value); } catch (error) { throw new Error('Paste the complete JSON signal block, including type and sdp.'); }
+        if (!signal || signal.type !== expectedType || typeof signal.sdp !== 'string' || !signal.sdp.includes('v=0')) {
+          throw new Error(`This signal must be a valid ${expectedType}.`);
+        }
+        return { type: signal.type, sdp: signal.sdp };
+      }
+
+      async function createHostOffer() {
+        if (app.busy) return;
+        setBusy(true);
+        try {
+          await ensureMedia();
+          const pc = createPeerConnection();
+          addLocalTracks();
+          wireDataChannel(pc.createDataChannel('aero-state', { ordered: true }));
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          log('Host offer created; gathering local ICE candidates...');
+          await waitForIceGathering(pc);
+          ui.offerOutput.value = signalText(pc.localDescription);
+          ui.offerCount.textContent = `${countCandidates(pc.localDescription)} candidates`;
+          ui.copyOfferBtn.disabled = false;
+          app.offerReady = true;
+          setConnectionState('Waiting for answer', 'waiting');
+          log('Offer is ready to copy to the join device.');
+          toast('Host offer created.');
+        } catch (error) {
+          setConnectionState('Setup error', 'error');
+          log(`Host setup error: ${error.message}`);
+          toast(error.message);
+        } finally { setBusy(false); }
+      }
+
+      async function acceptGuestAnswer() {
+        if (!app.pc) return toast('Create a host offer first.');
+        try {
+          await app.pc.setRemoteDescription(parseSignal(ui.answerInput.value.trim(), 'answer'));
+          setConnectionState('Connecting', 'waiting');
+          log('Guest answer accepted. Waiting for the local peer connection...');
+        } catch (error) {
+          setConnectionState('Invalid answer', 'error');
+          log(`Answer error: ${error.message}`);
+          toast(error.message);
+        }
+      }
+
+      async function createJoinAnswer() {
+        if (app.busy) return;
+        setBusy(true);
+        try {
+          const offer = parseSignal(ui.joinOfferInput.value.trim(), 'offer');
+          await ensureMedia();
+          const pc = createPeerConnection();
+          addLocalTracks();
+          await pc.setRemoteDescription(offer);
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          log('Join answer created; gathering local ICE candidates...');
+          await waitForIceGathering(pc);
+          ui.answerOutput.value = signalText(pc.localDescription);
+          ui.answerCount.textContent = `${countCandidates(pc.localDescription)} candidates`;
+          ui.copyAnswerBtn.disabled = false;
+          setConnectionState('Waiting for host', 'waiting');
+          log('Answer is ready to copy back to the host device.');
+          toast('Join answer created.');
+        } catch (error) {
+          setConnectionState('Setup error', 'error');
+          log(`Join setup error: ${error.message}`);
+          toast(error.message);
+        } finally { setBusy(false); }
+      }
+
+      async function copyText(textarea, label) {
+        if (!textarea.value) return;
+        try {
+          await navigator.clipboard.writeText(textarea.value);
+        } catch (error) {
+          textarea.focus(); textarea.select(); document.execCommand('copy');
+        }
+        toast(`${label} copied.`);
+      }
+
+      function addMessage(text, local) {
+        const empty = ui.messages.querySelector('.system');
+        if (empty) empty.remove();
+        const row = document.createElement('div');
+        row.className = `message${local ? ' local' : ''}`;
+        row.textContent = text;
+        ui.messages.appendChild(row);
+        ui.messages.scrollTop = ui.messages.scrollHeight;
+      }
+
+      function sendChat(event) {
+        event.preventDefault();
+        const text = ui.chatInput.value.trim();
+        if (!text || !sendEnvelope('chat', text)) return;
+        addMessage(text, true);
+        ui.chatInput.value = '';
+      }
+
+      function applyPeerState(payload) {
+        if (!payload || typeof payload.signal !== 'number') return;
+        const value = Math.max(0, Math.min(100, payload.signal));
+        ui.peerValue.textContent = `${value}%`;
+        ui.syncReadout.textContent = `Peer state received over the data channel: { signal: ${value} }.`;
+      }
+
+      function sendSharedState() {
+        app.sharedState = { signal: Number(ui.sharedRange.value) };
+        ui.sharedValue.textContent = `${app.sharedState.signal}%`;
+        sendEnvelope('state', app.sharedState);
+      }
+
+      async function enableMedia() {
+        try { await ensureMedia(); } catch (error) { toast(error.message); log(`Media error: ${error.message}`); }
+      }
+
+      function toggleTrack(kind, button, onText, offText) {
+        const track = app.localStream?.getTracks().find(item => item.kind === kind);
+        if (!track) return;
+        track.enabled = !track.enabled;
+        button.textContent = track.enabled ? offText : onText;
+        button.classList.toggle('active', track.enabled);
+        log(`${kind === 'audio' ? 'Microphone' : 'Camera'} ${track.enabled ? 'enabled' : 'disabled'}.`);
+      }
+
+      function clearRemote() {
+        ui.remoteVideo.srcObject = null;
+        app.remoteStream = new MediaStream();
+        ui.remotePlaceholder.classList.remove('hidden');
+        ui.remoteFeedState.textContent = 'Not connected';
+        ui.remoteLabel.classList.remove('live');
+      }
+
+      function reset() {
+        if (app.pc) app.pc.close();
+        app.pc = null; app.dataChannel = null; app.offerReady = false;
+        app.localStream?.getTracks().forEach(track => track.stop());
+        app.localStream = null; app.mediaReady = false;
+        ui.localVideo.srcObject = null; clearRemote();
+        ui.offerOutput.value = ''; ui.answerInput.value = ''; ui.joinOfferInput.value = ''; ui.answerOutput.value = '';
+        ui.offerCount.textContent = '0 candidates'; ui.answerCount.textContent = '0 candidates';
+        ui.copyOfferBtn.disabled = true; ui.copyAnswerBtn.disabled = true;
+        ui.mediaBtn.disabled = false; ui.mediaBtn.textContent = 'Enable camera & mic';
+        ui.muteBtn.disabled = true; ui.cameraBtn.disabled = true; ui.audioOnlyBtn.disabled = false;
+        ui.localPlaceholder.classList.remove('hidden'); ui.localFeedState.textContent = 'Camera off';
+        ui.chatInput.disabled = true; ui.sendBtn.disabled = true; ui.sharedRange.disabled = true;
+        setStatus(ui.dataStatus, 'Channel offline', 'waiting'); setConnectionState('Waiting for Peer', 'waiting');
+        log('Room reset.');
+      }
+
+      function selectMode(mode) {
+        app.mode = mode;
+        const host = mode === 'host';
+        ui.hostTab.classList.toggle('active', host); ui.joinTab.classList.toggle('active', !host);
+        ui.hostTab.setAttribute('aria-selected', String(host)); ui.joinTab.setAttribute('aria-selected', String(!host));
+        ui.hostPane.classList.toggle('hidden', !host); ui.joinPane.classList.toggle('hidden', host);
+        log(`Switched to ${host ? 'host' : 'join'} mode.`);
+      }
+
+      ui.mediaBtn.addEventListener('click', enableMedia);
+      ui.audioOnlyBtn.addEventListener('click', () => ensureMedia(true).catch(error => toast(error.message)));
+      ui.muteBtn.addEventListener('click', () => toggleTrack('audio', ui.muteBtn, 'Unmute mic', 'Mute mic'));
+      ui.cameraBtn.addEventListener('click', () => toggleTrack('video', ui.cameraBtn, 'Show camera', 'Hide camera'));
+      ui.clearRemoteBtn.addEventListener('click', clearRemote);
+      ui.resetBtn.addEventListener('click', reset);
+      ui.hostTab.addEventListener('click', () => selectMode('host'));
+      ui.joinTab.addEventListener('click', () => selectMode('join'));
+      ui.createOfferBtn.addEventListener('click', createHostOffer);
+      ui.acceptAnswerBtn.addEventListener('click', acceptGuestAnswer);
+      ui.createAnswerBtn.addEventListener('click', createJoinAnswer);
+      ui.copyOfferBtn.addEventListener('click', () => copyText(ui.offerOutput, 'Offer'));
+      ui.copyAnswerBtn.addEventListener('click', () => copyText(ui.answerOutput, 'Answer'));
+      ui.chatForm.addEventListener('submit', sendChat);
+      ui.sharedRange.addEventListener('input', sendSharedState);
+
+      window.AerodynamixLite = {
+        sendState(payload) { return sendEnvelope('state', payload); },
+        sendMessage(text) { return sendEnvelope('chat', String(text)); },
+        get connectionState() { return app.pc?.connectionState || 'new'; },
+        get dataChannelState() { return app.dataChannel?.readyState || 'closed'; }
+      };
+
+      updateEnvironmentNote();
+      log('Local room ready. Choose Host or Join mode.');
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+- [Attached assets serving path](attached-assets-serving.md) — uploaded files land in root `attached_assets`; the web server only serves `docs/`, so game files must be copied to `docs/attached_assets`.
+- [Scoped session nesting](scoped-session-nesting.md) — helper functions in `server.py` must not close the shared scoped session when called from inside another database operation, or the caller's object becomes detached.
+- [Game purchase persistence](game-purchase-persistence.md) — game unlocks are stored in both localStorage (anonymous users, same-device replay) and the DB (logged-in users, cross-device replay), synced on game-frame load.
+- [Card inventory auth boundary](card-inventory-auth-boundary.md) — cards collected before login must merge into the database inventory before authenticated card features use them.
+- [WebRTC calling architecture](webrtc-calling-architecture.md) — one-to-one calls use Flask polling for signaling and browser peer connections; production reliability may require TURN.
+- [Trading card rarity maintenance](trading-card-rarity-maintenance.md) — card-pool size, pull weights, and normalized sell values must stay synchronized after rarity changes.
+- [Card trade safety](card-trade-safety.md) — card trades must validate server-side and reserve cards until a pending offer is resolved.
+- [Default basic access](default-basic-access.md) — the arcade starts in basic mode; alternate access remains internal and is not advertised.
+- [Shop secret full access](shop-secret-full-access.md) — Shop-only ArrowUp, ArrowDown, 2005 sequence activates the shared authorized state.
+- [Render deployment sync](render-deployment-sync.md) — the connected Render service may not auto-deploy GitHub main; verify the live build before debugging stale production behavior.
+- [Guest state persistence](guest-state-persistence.md) — anonymous discs, unlocks, and cards belong in durable device-keyed server state, not oversized Flask session cookies.
+- [Persistent full access](persistent-full-access.md) — successful direct-key and Shop-sequence unlocks persist in browser storage and server state, then migrate to accounts.
+- [Mobile access entry](mobile-access-entry.md) — mobile users enter the same full-access code through a Shop touch modal instead of the keyboard sequence.
+- [Shared mobile foundation](mobile-responsive-foundation.md) — all navigable pages use one responsive layer, mobile menu, manifest, and home-screen icon convention.
+- [Trade modal loading](trade-modal-independent-loading.md) — current-user cards, friend cards, and pending trades load independently so one failure cannot blank the user’s inventory.
+- [Game purchase identifiers](game-purchase-identifiers.md) — Shop, library, and game-frame URLs must share canonical purchase keys or an explicit compatibility map.
+- [Mobile game keyboard](mobile-game-keyboard.md) — every catalog game receives touch keyboard controls through the shared game-frame wrapper.
+- [Game ordering preference](game-ordering-preference.md) — new games can be placed in any sensible catalog position; no chronological or alphabetical rule is required.
+- [Media Player starter pack loading](media-player-starter-pack-loading.md) — bundled tracks use direct served URLs and load inside one named starter-pack group after access is confirmed.
+- [Media Player folder playback](media-player-folder-playback.md) — double-clicking a folder plays only its items in order and uses the folder cover throughout that run.
+- [WebGL preview compatibility](webgl-preview-compatibility.md) — headless preview may lack WebGL; detect it and show an actionable fallback instead of hanging.

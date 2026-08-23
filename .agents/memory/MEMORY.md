@@ -1,0 +1,7 @@
+- [Mall coordinate system](mall-coordinate-system.md) — the imported mall is already Y-up; rotating it around X turns the floor into a wall.
+- [PostgreSQL heartbeat timestamps](postgres-heartbeat-timestamps.md) — multiplayer timestamps need 64-bit precision or active players become stale.
+- [Standalone page shells](standalone-page-shells.md) — embedded app pages must omit their own navigation when the host export supplies the shared shell.
+- [Gemini API compatibility](gemini-api-integration.md) — new Gemini keys may reject legacy generateContent models; use the current Interactions API model list.
+- [PostgreSQL startup migrations](postgres-startup-migrations.md) — only run schema-altering type migrations when introspection shows they are needed, avoiding concurrent-start deadlocks.
+- [Lite export streaming patches](lite-export-streaming-patches.md) — inject hosted Lite patches early and use compact game data, not the giant inline manifest.
+- [Standalone export enhancement](standalone-export-enhancement.md) — keep giant exports immutable; inject a small layer and inline it only when packaging.

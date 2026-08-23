@@ -1,0 +1,10 @@
+zipFile.zip filter=lfs diff=lfs merge=lfs -text
+Aerodynamix20/aerodynamix-offline-bundle.zip filter=lfs diff=lfs merge=lfs -text
+attached_assets/.presentation_1786869445187.html.Ti9uGZPn-IgChBiyIQYhr~ filter=lfs diff=lfs merge=lfs -text
+attached_assets/presentation_1786869598978.html filter=lfs diff=lfs merge=lfs -text
+attached_assets/presentation_1787186743740.html filter=lfs diff=lfs merge=lfs -text
+Aerodynamix20/Aerodynamix20/attached_assets/aerodynamix-lite-new.html filter=lfs diff=lfs merge=lfs -text
+Aerodynamix20/Aerodynamix20/attached_assets/aerodynamix-lite-new.zip filter=lfs diff=lfs merge=lfs -text
+attached_assets/presentation_1787450952428.html filter=lfs diff=lfs merge=lfs -text
+Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone.html filter=lfs diff=lfs merge=lfs -text
+Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone.zip filter=lfs diff=lfs merge=lfs -text

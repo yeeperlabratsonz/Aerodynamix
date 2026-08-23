@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071226">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Aerodynamix">
+    <title>Aerodynamix</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="runtime-origin.js"></script>
+    <script src="theme.js"></script>
+    <script src="tab-cloak.js"></script>
+    <script src="discs.js" defer></script>
+    <script src="auth-overlay.js" defer></script>
+    <script src="boot-screen.js"></script>
+    <script src="mobile-nav.js" defer></script>
+    <link rel="preload" as="image" href="images/run-3.jpg">
+    <link rel="preload" as="image" href="images/drive-mad.jpg">
+    <link rel="preload" as="image" href="images/supersmashflash.jpg">
+    <link rel="preload" as="image" href="images/papaspizzeria.png">
+    <link rel="preload" as="image" href="images/retro-bowl.jpg">
+    <link rel="preload" as="image" href="images/mc.png">
+    <link rel="preload" as="image" href="images/slope.jpg">
+    <link rel="preload" as="image" href="images/papasfreezeria.png">
+    <link rel="preload" as="image" href="images/adventure-capitalist.png">
+    <link rel="preload" as="image" href="images/fridaynightfunkin.png">
+    <link rel="preload" as="image" href="images/run-2.png">
+    <link rel="preload" as="image" href="images/picoschool.png">
+    <link rel="preload" as="image" href="images/worldshardestgame.png">
+    <link rel="preload" as="image" href="images/sandboxels.png">
+    <link rel="preload" as="image" href="images/crossy-road.png">
+    <link rel="preload" as="image" href="images/cookie-clicker.png">
+    <link rel="preload" as="image" href="images/duck-life.png">
+    <link rel="preload" as="image" href="images/geometry-dash-lite.jpg">
+    <link rel="preload" as="image" href="images/doom.png">
+</head>
+<body>
+    <nav>
+        <img src="images/logo.gif" alt="logo" onclick="window.location='index.html'">
+        <h1><span class="logo-a" id="logo-a">A</span>ERODYNAMIX</h1>
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:0.4vw;">
+            <a href="index.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; background-color:#2c7ffc; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Games</a>
+            <a href="apps.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Apps</a>
+            <a href="media-player.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Media Player</a>
+            <a href="dynamix-connect.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Connect</a>
+        </div>
+        <a href="colors.html" style="margin-right:1.5vw; color:#fff; text-decoration:none; padding:0.55vw 1.3vw; background-color:#2c7ffc; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Settings</a>
+    </nav>
+
+    <div class="featured" id="spotlight">
+        <h1>Best Games</h1>
+        <div class="games-row">
+          <a href="game-frame.html?game=attached_assets/clrun3_1785269152832.html">
+            <img src="images/run-3.jpg">
+            <div class="play-button">
+                <i class="fa-solid fa-play"></i>
+            </div>
+          </a>
+          <a href="game-frame.html?game=attached_assets/cldrivemad_1785269192927.html">
+            <img src="images/drive-mad.jpg">
+            <div class="play-button">
+                <i class="fa-solid fa-play"></i>
+            </div>
+          </a>
+          <a href="game-frame.html?game=games/papaspizzeria/">
+            <img src="images/papaspizzeria.png">
+            <div class="play-button">
+                <i class="fa-solid fa-play"></i>
+            </div>
+          </a>
+          <a href="game-frame.html?game=games/supersmashflash/">
+            <img src="images/supersmashflash.jpg">
+            <div class="play-button">
+                <i class="fa-solid fa-play"></i>
+            </div>
+          </a>
+        </div>
+    </div>
+
+    <div class="content">
+
+    <hr>
+
+    <div class="search">
+        <input type="text" placeholder="Search..." oninput="">
+        <button><i class="fas fa-search"></i></button>
+    </div>
+
+    <div id="games">
+        <p id="no-games-msg" style="display:none; color:#fff; font-size:1.2rem; text-align:center; width:100%; margin-top:2vw;">If there's no games then try refreshing the page</p>
+        <a href="game-frame.html?game=attached_assets/clrun3_1785269152832.html"><img src="images/run-3.jpg" alt="run 3" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/cldrivemad_1785269192927.html"><img src="images/drive-mad.jpg" alt="drive mad" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/clretrobowl_1785269280952.html"><img src="images/retro-bowl.jpg" alt="retrobowl" loading="eager"></a>
+        <a href="game-frame.html?game=games/slope/"><img src="images/slope.jpg" alt="slope" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/Eaglercraft1.12_1785377874032.html"><img src="images/mc.png" alt="minecraft" loading="eager"></a>
+        <a href="game-frame.html?game=games/supersmashflash/"><img src="images/supersmashflash.jpg" alt="super smash flash" loading="eager"></a>
+        <a href="game-frame.html?game=games/papaspizzeria/"><img src="images/papaspizzeria.png" alt="papa's pizzeria" loading="eager"></a>
+        <a href="game-frame.html?game=games/papasfreezeria/"><img src="images/papasfreezeria.png" alt="papa's freezeria" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/clpapaspancakeria_1785823156106.html"><img src="images/papas-pancakeria.png" alt="papa's pancakeria" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/clpapabakeria_1785823158430.html"><img src="images/papas-bakeria.png" alt="papa's bakeria" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/Meatboy_1785823544552.html"><img src="images/meat-boy.png" alt="meat boy" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/clnewgroundsrumble_1785823619219.html"><img src="images/newgrounds-rumble.png" alt="Newgrounds Rumble" loading="eager"></a>
+         <a href="game-frame.html?game=attached_assets/clwebecomewhatwebehold_1785823806062.html"><img src="images/we-become-what-we-behold.png" alt="We Become What We Behold" loading="eager"></a>
+         <a href="game-frame.html?game=attached_assets/clbadtimesim_1785823969837.html"><img src="images/bad-time-simulator.png" alt="Bad Time Simulator" loading="eager"></a>
+         <a href="game-frame.html?game=attached_assets/cldeltarune_1785824146159.html"><img src="images/deltarune.png" alt="Deltarune" loading="eager"></a>
+        <a href="game-frame.html?game=games/adventure-capitalist/"><img src="images/adventure-capitalist.png" alt="adventure capitalist" loading="eager"></a>
+        <a href="game-frame.html?game=games/fridaynightfunkin/"><img src="images/fridaynightfunkin.png" alt="friday night funkin'" loading="eager"></a>
+        <a href="game-frame.html?game=games/run-2/"><img src="images/run-2.png" alt="run 2" loading="eager"></a>
+        <a href="game-frame.html?game=games/picoschool/"><img src="images/picoschool.png" alt="pico's school" loading="eager"></a>
+        <a href="game-frame.html?game=games/worldshardestgame/"><img src="images/worldshardestgame.png" alt="world's hardest game" loading="eager"></a>
+        <a href="game-frame.html?game=games/sandboxels/"><img src="images/sandboxels.png" alt="sandboxels" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/Alien_Hominid_1784867581921.html"><img src="images/alien-hominid.png" alt="alien hominid" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/clsubwaysurferssanfrancisco_(1)_1784785408303.html"><img src="images/subway-surfers-sf.jpg" alt="subway surfers san francisco" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/hobo-fixed-1.html"><img src="images/hobo-1.png" alt="hobo 1" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/hobo-fixed-2.html"><img src="images/hobo-2.png" alt="hobo 2" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/hobo-fixed-3.html"><img src="images/hobo-3.png" alt="hobo 3" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/hobo-fixed-4.html"><img src="images/hobo-4.png" alt="hobo 4" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/hobo-fixed-5.html"><img src="images/hobo-5.png" alt="hobo 5" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/hobo-fixed-6.html"><img src="images/hobo-6.png" alt="hobo 6" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/hobo-fixed-7.html"><img src="images/hobo-7.png" alt="hobo 7" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/Gladihoppers_1784866393639.html"><img src="images/gladihoppers.jpg" alt="gladihoppers" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/Fruit_Ninja_1784866426153.html"><img src="images/fruit-ninja.png" alt="fruit ninja" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/Binding_of_Issac__Wrath_of_the_Lamb_1784866537332.html"><img src="images/binding-of-isaac.png" alt="binding of isaac wrath of the lamb" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/Crossy_Road_1785017138507.html"><img src="images/crossy-road.png" alt="crossy road" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/Cookie_Clicker_1785028048876.html"><img src="images/cookie-clicker.png" alt="cookie clicker" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/Duck_Life_1785028116865.html"><img src="images/duck-life.png" alt="duck life" loading="eager"></a>
+        <a href="game-frame.html?game=attached_assets/clgdlite_1785028362055.html"><img src="images/geometry-dash-lite.jpg" alt="geometry dash lite" loading="eager"></a>
+         <a href="game-frame.html?game=attached_assets/DOOM_1785028500807.html"><img src="images/doom.png" alt="doom" loading="eager"></a>
+          <a href="game-frame.html?game=attached_assets/cldokidokiliteratureclub_1785271141970.html"><img src="images/doki-doki-literature-club.jpg" alt="Doki Doki Literature Club" loading="eager"></a>
+          <a href="game-frame.html?game=attached_assets/clbaldisbasicsremaster_1785376652529.html"><img src="images/baldis-basics-classic-remastered.png" alt="Baldi's Basics Classic Remastered" loading="eager"></a>
+           <a href="game-frame.html?game=attached_assets/clstickminbreakingbank_1785806522581.html"><img src="images/stickmin-breaking-bank.jpg" alt="Breaking the Bank" loading="eager"></a>
+           <a href="game-frame.html?game=attached_assets/clstickminescapingprison_1785806520945.html"><img src="images/stickmin-escaping-prison.avif" alt="Escaping the Prison" loading="eager"></a>
+           <a href="game-frame.html?game=attached_assets/clstickmanstealingdiamond_1785806513520.html"><img src="images/stickmin-stealing-diamond.avif" alt="Stealing the Diamond" loading="eager"></a>
+           <a href="game-frame.html?game=attached_assets/clstickminairship_1785806516884.html"><img src="images/stickmin-infiltrating-airship.avif" alt="Infiltrating the Airship" loading="eager"></a>
+           <a href="game-frame.html?game=attached_assets/clstickminfleecomplex_1785806519008.html"><img src="images/stickmin-fleeing-complex.avif" alt="Fleeing the Complex" loading="eager"></a>
+          <a href="game-frame.html?game=games/the-greatest-game/index.html"><img src="images/greatest-game-square.svg" alt="THE GREATEST GAME OF ALL TIME" loading="eager"></a>
+    </div>
+    </div>
+    <div style="height: 120px;"></div>
+    <script src="music-player.js"></script>
+    <script src="script.js"></script>
+    <script src="bubble-overlay.js"></script>
+    <script src="snow-overlay.js"></script>
+    <script src="trial-games.js" defer></script>
+</body>
+</html>

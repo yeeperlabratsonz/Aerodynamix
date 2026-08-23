@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071226">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Aerodynamix">
+  <title>Dynamix Connect</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="mobile.css">
+  <link rel="stylesheet" href="dynamix-connect.css">
+  <script src="theme.js"></script>
+  <script src="tab-cloak.js"></script>
+  <script src="discs.js" defer></script>
+  <script src="snow-overlay.js" defer></script>
+  <script src="auth-overlay.js" defer></script>
+  <script src="dynamix-connect.js" defer></script>
+  <script src="mobile-nav.js" defer></script>
+</head>
+<body>
+  <nav>
+    <img src="images/logo.gif" alt="logo" onclick="window.location='index.html'">
+    <h1><span class="logo-a" id="logo-a">D</span>YNAMIX <span style="color:#2c7ffc">CONNECT</span></h1>
+    <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:0.4vw;">
+      <a href="index.html">Games</a>
+      <a href="apps.html">Apps</a>
+      <a href="media-player.html">Media Player</a>
+      <a href="dynamix-connect.html" class="active">Connect</a>
+    </div>
+    <a href="colors.html">Settings</a>
+  </nav>
+
+  <div class="dc-container">
+    <div class="dc-header">
+      <h1>What's on your mind?</h1>
+      <p>Share thoughts, moments, and connect with the Aerodynamix community.</p>
+    </div>
+
+    <!-- Page tabs -->
+    <div class="dc-page-tabs" id="dc-page-tabs">
+      <button class="dc-page-tab active" data-page="feed">
+        <i class="fas fa-home"></i> Feed
+      </button>
+      <button class="dc-page-tab" data-page="friends">
+        <i class="fas fa-user-friends"></i> Friends
+        <span class="dc-tab-badge" id="friend-req-badge" style="display:none;"></span>
+      </button>
+      <button class="dc-page-tab" data-page="messages">
+        <i class="fas fa-envelope"></i> Messages
+        <span class="dc-tab-badge" id="unread-dm-badge" style="display:none;"></span>
+      </button>
+    </div>
+
+    <!-- ═══════════════ FEED PAGE ═══════════════ -->
+    <div id="page-feed">
+      <!-- Auth card -->
+      <div id="auth-section" class="dc-card">
+        <div class="dc-tabs">
+          <button class="dc-tab active" data-tab="login">Log In</button>
+          <button class="dc-tab" data-tab="register">Create Account</button>
+        </div>
+        <form id="login-form" class="dc-form">
+          <input type="text" id="login-username" placeholder="Username" required autocomplete="username">
+          <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
+          <button type="submit" class="dc-btn">Log In</button>
+          <p class="dc-error" id="login-error"></p>
+        </form>
+        <form id="register-form" class="dc-form hidden">
+          <input type="text" id="register-username" placeholder="Username" required autocomplete="username">
+          <input type="password" id="register-password" placeholder="Password" required autocomplete="new-password">
+          <button type="submit" class="dc-btn">Create Account</button>
+          <p class="dc-error" id="register-error"></p>
+        </form>
+      </div>
+
+      <!-- Post card (shown when logged in) -->
+      <div id="post-section" class="dc-card hidden">
+        <div class="dc-user-bar">
+          <span>Logged in as <strong id="current-username">User</strong><span id="current-user-badge"></span></span>
+          <div style="display:flex; align-items:center; gap:0.6rem;">
+            <button id="dc-claim-btn" class="dc-btn-sm" style="display:none;">+100 <img src="images/disc.png" alt="Disc" class="disc-icon" style="margin-left:4px;"></button>
+            <button id="logout-btn" class="dc-btn-secondary">Log Out</button>
+          </div>
+        </div>
+
+        <!-- My profile section -->
+        <div class="dc-my-profile">
+          <div class="dc-my-pfp-wrap">
+            <div class="dc-avatar dc-avatar-lg" id="my-avatar"></div>
+            <button class="dc-pfp-change-btn" id="change-pfp-btn" title="Change profile picture">
+              <i class="fas fa-camera"></i>
+            </button>
+          </div>
+          <div class="dc-my-bio">
+            <textarea id="bio-input" maxlength="200" placeholder="Write a short bio…"></textarea>
+            <div class="dc-bio-footer">
+              <span class="dc-char-count"><span id="bio-char-count">0</span>/200</span>
+              <button class="dc-btn-sm" id="save-bio-btn">Save Bio</button>
+            </div>
+            <p class="dc-success" id="bio-success"></p>
+          </div>
+        </div>
+
+        <!-- Post form -->
+        <form id="post-form" class="dc-form dc-post-form">
+          <textarea id="post-text" placeholder="I like Ping Pong…" maxlength="500" required></textarea>
+          <div class="dc-char-count"><span id="char-count">0</span>/500</div>
+          <div class="dc-file-row">
+            <label for="post-image" class="dc-file-label"><i class="fas fa-image"></i> Attach an image</label>
+            <input type="file" id="post-image" accept="image/*">
+            <span id="file-name">No image selected</span>
+          </div>
+          <button type="submit" class="dc-btn">Post</button>
+          <p class="dc-error" id="post-error"></p>
+          <p class="dc-success" id="post-success"></p>
+        </form>
+      </div>
+
+      <div class="dc-feed-header">
+        <h2>Community Feed</h2>
+      </div>
+      <div id="feed" class="dc-feed">
+        <div class="dc-loading">Loading posts…</div>
+      </div>
+    </div><!-- /#page-feed -->
+
+    <!-- ═══════════════ FRIENDS PAGE ═══════════════ -->
+    <div id="page-friends" class="hidden">
+      <div id="friends-login-prompt" class="dc-card dc-login-prompt hidden">
+        <i class="fas fa-user-friends fa-2x" style="opacity:0.5; margin-bottom:0.5rem;"></i>
+        <p>Log in to see your friends and friend requests.</p>
+      </div>
+
+      <!-- Incoming Requests -->
+      <div id="friend-requests-card" class="dc-card hidden">
+        <h3 class="dc-section-title"><i class="fas fa-user-clock"></i> Friend Requests</h3>
+        <div id="friend-requests-list"><div class="dc-loading">Loading…</div></div>
+      </div>
+
+      <!-- Friends list -->
+      <div id="friends-list-card" class="dc-card hidden">
+        <h3 class="dc-section-title"><i class="fas fa-user-friends"></i> Friends</h3>
+        <div id="friends-list"><div class="dc-loading">Loading…</div></div>
+      </div>
+    </div><!-- /#page-friends -->
+
+    <!-- ═══════════════ MESSAGES PAGE ═══════════════ -->
+    <div id="page-messages" class="hidden">
+      <div id="messages-login-prompt" class="dc-card dc-login-prompt hidden">
+        <i class="fas fa-envelope fa-2x" style="opacity:0.5; margin-bottom:0.5rem;"></i>
+        <p>Log in to send and receive messages.</p>
+      </div>
+
+      <div id="messages-card" class="dc-card dc-messages-card hidden">
+        <!-- Conversations panel -->
+        <div id="conversations-panel" class="dc-conversations-panel">
+          <div class="dc-conversations-header">Messages</div>
+          <div id="conversations-list" class="dc-conversations-list">
+            <div class="dc-loading">Loading…</div>
+          </div>
+        </div>
+
+        <!-- Chat panel -->
+        <div id="chat-panel" class="dc-chat-panel hidden">
+          <div class="dc-chat-header">
+            <button id="dm-back-btn" class="dc-back-btn" title="Back to conversations">
+              <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="dc-avatar dc-avatar-sm" id="dm-peer-avatar"></div>
+            <strong id="dm-peer-name"></strong>
+          </div>
+          <div id="dm-messages" class="dc-dm-messages"></div>
+          <form id="dm-form" class="dc-dm-form">
+            <input type="text" id="dm-input" placeholder="Type a message…" maxlength="1000" autocomplete="off">
+            <button type="submit" class="dc-btn dc-btn-sm"><i class="fas fa-paper-plane"></i></button>
+          </form>
+        </div>
+      </div>
+    </div><!-- /#page-messages -->
+
+  </div><!-- /.dc-container -->
+
+  <!-- PFP Editor Modal -->
+  <div id="pfp-modal" class="dc-modal-overlay hidden">
+    <div class="dc-modal-content">
+      <h3 class="dc-modal-title">Profile Picture</h3>
+      <div id="pfp-crop-circle" class="dc-pfp-crop-circle">
+        <span class="dc-pfp-drag-hint" id="pfp-drag-hint">
+          <i class="fas fa-image"></i><br>Choose an image
+        </span>
+      </div>
+      <p class="dc-pfp-tip">Drag to reposition</p>
+      <label for="pfp-file-input" class="dc-file-label dc-pfp-file-label">
+        <i class="fas fa-upload"></i> Choose Image
+      </label>
+      <input type="file" id="pfp-file-input" accept="image/*">
+      <div class="dc-modal-actions">
+        <button id="pfp-save-btn" class="dc-btn" disabled>Save</button>
+        <button id="pfp-cancel-btn" class="dc-btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Profile Modal -->
+  <div id="profile-modal" class="dc-modal-overlay hidden">
+    <div class="dc-modal-content dc-profile-modal-content">
+      <button class="dc-modal-close-btn" id="profile-modal-close">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="dc-profile-header">
+        <div class="dc-avatar dc-avatar-xl" id="profile-view-avatar"></div>
+        <div class="dc-profile-info">
+          <h2 id="profile-view-username"></h2>
+          <p id="profile-view-bio" class="dc-profile-bio"></p>
+          <p id="profile-view-joined" class="dc-profile-joined"></p>
+          <div class="dc-profile-actions">
+            <button id="profile-call-btn" class="dc-btn dc-call-profile-btn" type="button" style="display:none;">
+              <i class="fas fa-video"></i> Video Call
+            </button>
+            <button id="profile-friend-btn" class="dc-btn-secondary dc-friend-profile-btn" type="button" style="display:none;">
+              <i class="fas fa-user-plus"></i> Add Friend
+            </button>
+            <button id="profile-dm-btn" class="dc-btn-secondary dc-dm-profile-btn" type="button" style="display:none;">
+              <i class="fas fa-envelope"></i> Message
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="dc-profile-posts-label">Posts</div>
+      <div id="profile-view-posts" class="dc-profile-posts"></div>
+    </div>
+  </div>
+
+  <!-- Incoming call prompt -->
+  <div id="incoming-call-modal" class="dc-modal-overlay hidden">
+    <div class="dc-modal-content dc-incoming-call-content">
+      <div class="dc-incoming-icon"><i class="fas fa-video"></i></div>
+      <h3 class="dc-modal-title"><span id="incoming-caller-name">Someone</span> is calling</h3>
+      <p class="dc-call-hint">Answer with your camera and microphone.</p>
+      <div class="dc-modal-actions">
+        <button id="answer-call-btn" class="dc-btn" type="button"><i class="fas fa-phone"></i> Answer</button>
+        <button id="decline-call-btn" class="dc-btn-secondary" type="button"><i class="fas fa-phone-slash"></i> Decline</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- One-to-one WebRTC call -->
+  <div id="video-call-modal" class="dc-modal-overlay hidden">
+    <div class="dc-video-call-content">
+      <div class="dc-video-call-header">
+        <div><span class="dc-call-status-dot"></span><strong id="video-call-peer">Video call</strong> <span id="video-call-status">Connecting…</span></div>
+        <button id="close-video-call-btn" class="dc-modal-close-btn" type="button" aria-label="End call"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="dc-video-stage">
+        <video id="remote-video" autoplay playsinline></video>
+        <div id="remote-video-placeholder" class="dc-video-placeholder"><i class="fas fa-user"></i><span>Waiting for video…</span></div>
+        <video id="local-video" autoplay muted playsinline></video>
+      </div>
+      <p id="video-call-error" class="dc-error dc-video-error"></p>
+      <div class="dc-call-controls">
+        <button id="toggle-mic-btn" class="dc-call-control" type="button" title="Mute microphone"><i class="fas fa-microphone"></i><span>Mute</span></button>
+        <button id="toggle-camera-btn" class="dc-call-control" type="button" title="Turn camera off"><i class="fas fa-video"></i><span>Camera</span></button>
+        <button id="end-call-btn" class="dc-call-control dc-end-call" type="button" title="End call"><i class="fas fa-phone-slash"></i><span>Hang up</span></button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

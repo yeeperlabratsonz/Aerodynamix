@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071226">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Aerodynamix">
+    <title>Apps - Aerodynamix</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="mobile.css">
+    <style>
+        .apps-page { min-height:calc(100vh - 7vw); padding:8vw 7vw 8rem; }
+        .apps-title { margin:0 0 .55rem; color:#fff; font-size:clamp(2rem,3.5vw,3.2rem); text-align:center; letter-spacing:.12em; text-transform:uppercase; }
+        .apps-subtitle { margin:0 auto; max-width:620px; color:rgba(255,255,255,.58); text-align:center; line-height:1.6; }
+        .apps-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,320px)); justify-content:center; gap:1.2rem; margin:3.5rem auto 0; max-width:1100px; }
+        .app-card { display:flex; flex-direction:column; overflow:hidden; min-height:290px; border:1px solid rgba(125,184,255,.22); border-radius:20px; background:linear-gradient(150deg,rgba(19,38,73,.96),rgba(11,16,29,.96)); box-shadow:0 18px 42px rgba(0,0,0,.3); color:#fff; text-decoration:none; transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease; }
+        .app-card:hover { transform:translateY(-5px); border-color:rgba(125,184,255,.65); box-shadow:0 22px 48px rgba(0,0,0,.4),0 0 28px rgba(44,127,252,.12); }
+        .app-card-art { display:grid; place-items:center; height:175px; background:linear-gradient(135deg,#173f87,#6b37a8 60%,#ef7b9a); }
+        .app-card-art i { color:#fff; font-size:4.5rem; filter:drop-shadow(0 7px 8px rgba(0,0,0,.3)); transform:rotate(-8deg); }
+        .app-card-body { display:flex; flex:1; flex-direction:column; gap:.65rem; padding:1.1rem 1.2rem 1.2rem; }
+        .app-card-body h2 { margin:0; font-size:1.05rem; }
+        .app-card-body p { margin:0; color:rgba(255,255,255,.58); font-size:.78rem; line-height:1.5; }
+        .app-card-launch { margin-top:auto; padding:.68rem .8rem; border:1px solid rgba(125,184,255,.25); border-radius:9px; background:linear-gradient(135deg,#2c7ffc,#1a5fd0); color:#fff; font-size:.76rem; font-weight:800; text-align:center; }
+        @media (max-width:768px) { .apps-page { padding:24vw 4vw 7rem; } .apps-grid { margin-top:2.5rem; } }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="theme.js"></script>
+    <script src="tab-cloak.js"></script>
+    <script src="discs.js" defer></script>
+    <script src="auth-overlay.js" defer></script>
+    <script src="mobile-nav.js" defer></script>
+</head>
+<body>
+    <nav>
+        <img src="images/logo.gif" alt="logo" onclick="window.location='index.html'">
+        <h1><span class="logo-a" id="logo-a">A</span>ERODYNAMIX</h1>
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:0.4vw;">
+            <a href="index.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Games</a>
+            <a href="apps.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; background-color:#2c7ffc; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Apps</a>
+            <a href="shop.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Shop</a>
+            <a href="card-collection.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Card Collection</a>
+            <a href="discs.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Discs</a>
+            <a href="media-player.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Media Player</a>
+            <a href="dynamix-connect.html" style="color:#fff; text-decoration:none; padding:0.55vw 1.3vw; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Connect</a>
+        </div>
+        <a href="colors.html" style="margin-right:1.5vw; color:#fff; text-decoration:none; padding:0.55vw 1.3vw; background-color:#2c7ffc; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Settings</a>
+    </nav>
+
+    <main class="apps-page">
+        <h1 class="apps-title">Apps</h1>
+        <p class="apps-subtitle">Small creative tools for your Aerodynamix workspace.</p>
+        <div class="search">
+            <input type="text" placeholder="Search apps..." aria-label="Search apps">
+            <button type="button" aria-label="Search apps"><i class="fas fa-search"></i></button>
+        </div>
+        <div id="apps" class="apps-grid">
+            <a class="app-card" href="drawing.html" data-app-name="canvas drawing draw">
+                <div class="app-card-art"><i class="fas fa-paintbrush"></i></div>
+                <div class="app-card-body">
+                    <h2>Canvas</h2>
+                    <p>Draw on a blank canvas or load an image from your device and sketch over it.</p>
+                    <span class="app-card-launch">Open app <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <div style="height:120px;"></div>
+    <script src="music-player.js"></script>
+    <script src="bubble-overlay.js"></script>
+    <script src="snow-overlay.js"></script>
+    <script>
+        (() => {
+            const input = document.querySelector('.search input');
+            const button = document.querySelector('.search button');
+            const cards = [...document.querySelectorAll('.app-card')];
+            const filter = () => {
+                const query = (input.value || '').trim().toLowerCase();
+                cards.forEach(card => {
+                    card.hidden = Boolean(query) && !card.dataset.appName.includes(query);
+                });
+            };
+            input.addEventListener('input', filter);
+            button.addEventListener('click', filter);
+        })();
+    </script>
+</body>
+</html>

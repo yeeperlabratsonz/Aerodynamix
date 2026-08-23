@@ -1,0 +1,24 @@
+Refactor my entire existing Aerodynamix codebase into a single, self-contained `index.html` file (with all CSS inline inside `<style>` tags and all Vanilla JavaScript inside `<script>` tags). Do not use external files, CDNs, databases, or third-party frameworks. 
+
+Preserve my exact UI layout, visual design, colors, CSS styles, and navigation header styling.
+
+1. Exact Header Navigation Bar (matches image provided):
+   - Render the exact header tabs in order: [Games], [Apps], [Shop], [Card Collection], [Discs], [Media Player], and [Connect].
+   - Match the screenshot styling: Dark background, bold white text, smooth rounded blue pill highlight for the active tab (e.g., `#3b82f6` button with rounded corners).
+
+2. Tab Content Implementation (Under the Hood Refactor):
+   - [Games]: Contain all interactive JavaScript canvas games (Snake, Clicker, Dodge, etc.) directly in the script tag.
+   - [Apps]: Embedded client-side utility tools (calculator, note taker, timer, drawing canvas).
+   - [Shop]: Currency shop to purchase unlocked themes, custom badges, and media player skins using earned game points.
+   - [Card Collection]: Grid view to open card packs and view owned trading cards stored in `localStorage`.
+   - [Discs]: Collection/inventory view for unlocked music tracks or game discs.
+   - [Media Player]: Pure HTML5 audio/video player UI capable of playing local files or embedded Base64/Blob media without external network calls.
+   - [Connect]: Refactor into a local-only, serverless WebRTC video call and messaging hub.
+
+3. Under-the-Hood "Connect" Method (Local WebRTC):
+   - Dual HTML5 `<video>` tags for local camera and remote peer video streams.
+   - Manual Copy/Paste SDP Offer & Answer textareas with ICE candidates for direct serverless signaling over local Wi-Fi.
+   - Integrated `RTCDataChannel` text chat box to send real-time chat messages directly peer-to-peer without passing through a backend server.
+
+4. Data Engine:
+   - Use browser `localStorage` to manage all user state (currency, unlocked items, high scores, cards, and active theme) so the entire site persists locally offline without requiring Render or PostgreSQL.

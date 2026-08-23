@@ -1,0 +1,36 @@
+# Local dev files
+dynamix.db
+*.db
+docs/uploads/*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg-info/
+.pytest_cache/
+
+# Replit
+.pythonlibs/
+.config/
+.cache/
+
+# Generated standalone downloads stay in the Replit project, not GitHub.
+attached_assets/Aerodynamix-Standalone.html
+attached_assets/Aerodynamix-Standalone.zip
+/aerodynamix-one-file.html
+/aerodynamix-games-offline.html
+/aerodynamix-lite-tips.html
+attached_assets/aerodynamix-lite-new.html
+attached_assets/aerodynamix-lite-new.zip
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

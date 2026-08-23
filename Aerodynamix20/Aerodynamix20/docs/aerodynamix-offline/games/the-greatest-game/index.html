@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <title>THE GREATEST GAME OF ALL TIME</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body {
+      background: #f4f0e5;
+      color: #050505;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    .boot {
+      position: fixed;
+      z-index: 10;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background: #020202;
+      color: #fff;
+      transition: opacity .8s ease, visibility .8s ease;
+    }
+    .boot.done { opacity: 0; visibility: hidden; pointer-events: none; }
+    .boot::before, .boot::after {
+      position: absolute;
+      inset: -30%;
+      content: "";
+      background: conic-gradient(from 0deg, #ff2d55, #ffcc00, #44ff88, #27c7ff, #a855f7, #ff2d55);
+      filter: blur(35px);
+      opacity: .7;
+      animation: spin 2.4s linear infinite;
+    }
+    .boot::after {
+      opacity: .32;
+      animation-direction: reverse;
+      animation-duration: 1.3s;
+      transform: scale(.72);
+    }
+    .boot-panel {
+      position: relative;
+      z-index: 1;
+      width: min(680px, 86vw);
+      padding: clamp(1.3rem, 5vw, 3.5rem);
+      border: 2px solid #fff;
+      background: #050505eF;
+      box-shadow: 0 0 0 10px #05050580, 0 0 55px #fff, 18px 18px 0 #ff2d55, -18px -18px 0 #27c7ff;
+      text-align: center;
+      transform: rotate(-1.5deg);
+      animation: panelJolt .16s steps(2) infinite alternate;
+    }
+    .boot-kicker {
+      margin: 0 0 .65rem;
+      color: #ffdf3f;
+      font: 900 clamp(.65rem, 2vw, .9rem)/1.2 Arial, sans-serif;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+    }
+    .boot-title {
+      margin: 0;
+      font: 900 clamp(1.5rem, 6vw, 4.2rem)/.9 Impact, Haettenschweiler, "Arial Black", sans-serif;
+      letter-spacing: -.04em;
+      text-transform: uppercase;
+      text-shadow: 4px 4px #ff2d55, -4px -4px #27c7ff;
+      animation: chromatic .22s steps(2) infinite;
+    }
+    .boot-status {
+      min-height: 1.4em;
+      margin: 1.5rem 0 .7rem;
+      font: 700 clamp(.7rem, 2vw, .95rem)/1.4 monospace;
+    }
+    .boot-bar {
+      height: 1rem;
+      padding: 2px;
+      border: 2px solid #fff;
+      text-align: left;
+    }
+    .boot-bar span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #ff2d55, #ffdf3f, #27c7ff);
+      animation: progress 3.4s linear forwards;
+    }
+    .boot-flash {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: #fff;
+      opacity: 0;
+      animation: flash .7s steps(2) 3.25s;
+    }
+    .arena {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      isolation: isolate;
+      background: #fff;
+    }
+    .customizer {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 5;
+      width: min(240px, calc(100vw - 2rem));
+      padding: .85rem;
+      border: 1px solid #0002;
+      border-radius: 12px;
+      background: #fffffff2;
+      box-shadow: 0 8px 24px #00000014;
+      color: #111;
+      font: 600 .72rem/1.35 Arial, sans-serif;
+    }
+    .customizer h2 {
+      margin: 0 0 .6rem;
+      font: 800 .72rem/1 Arial, sans-serif;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .customizer label {
+      display: block;
+      margin: .55rem 0 .25rem;
+      color: #444;
+      font-size: .68rem;
+    }
+    .customizer select,
+    .customizer input[type="color"] {
+      width: 100%;
+      height: 2rem;
+      border: 1px solid #0003;
+      border-radius: 6px;
+      color: #111;
+      background: #fff;
+      font: 600 .75rem Arial, sans-serif;
+    }
+    .customizer input[type="color"] {
+      padding: .18rem;
+      cursor: pointer;
+    }
+    .color-presets {
+      display: flex;
+      gap: .4rem;
+      margin-top: .4rem;
+    }
+    .color-preset {
+      width: 1.35rem;
+      height: 1.35rem;
+      padding: 0;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 0 1px #0004;
+      cursor: pointer;
+    }
+    .color-preset:focus-visible,
+    .customizer select:focus-visible,
+    .customizer input:focus-visible,
+    .customizer-reset:focus-visible {
+      outline: 2px solid #2474d8;
+      outline-offset: 2px;
+    }
+    .customizer-reset {
+      width: 100%;
+      margin-top: .7rem;
+      padding: .45rem;
+      border: 1px solid #0003;
+      border-radius: 6px;
+      color: #111;
+      background: #fff;
+      font: 700 .68rem Arial, sans-serif;
+      cursor: pointer;
+    }
+    .customizer-reset:hover { background: #f1f1f1; }
+    .dvd-title {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: max-content;
+      max-width: 92vw;
+      padding: .1em .18em .14em;
+      color: var(--title-color, #050505);
+      font-family: var(--title-font, Georgia, "Times New Roman", serif);
+      font-size: clamp(1.25rem, 3.5vw, 3.5rem);
+      font-weight: 900;
+      line-height: .95;
+      font-style: italic;
+      letter-spacing: -.06em;
+      text-align: center;
+      text-shadow: none;
+      white-space: nowrap;
+      user-select: none;
+      will-change: transform;
+    }
+    @media (max-width: 640px) {
+      .dvd-title { max-width: 95vw; font-size: clamp(.9rem, 4.8vw, 2rem); letter-spacing: -.08em; }
+      .customizer { top: .65rem; right: .65rem; padding: .7rem; }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes panelJolt { from { transform: rotate(-1.5deg) translate(0); } to { transform: rotate(1.5deg) translate(3px, -2px); } }
+    @keyframes chromatic { 0%, 100% { filter: none; } 50% { filter: hue-rotate(45deg) saturate(1.8); } }
+    @keyframes progress { to { width: 100%; } }
+    @keyframes flash { 0% { opacity: 0; } 15% { opacity: .95; } 100% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      .boot::before, .boot::after, .boot-panel, .boot-title, .boot-bar span { animation-duration: .01ms; animation-iteration-count: 1; }
+      .boot-bar span { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <section class="boot" id="boot" aria-label="Game boot sequence">
+    <div class="boot-panel">
+      <p class="boot-kicker">Aerodynamix presents</p>
+      <h1 class="boot-title">THE GREATEST GAME<br>OF ALL TIME</h1>
+      <p class="boot-status" id="boot-status">CALIBRATING GREATNESS...</p>
+      <div class="boot-bar" aria-hidden="true"><span></span></div>
+    </div>
+    <div class="boot-flash"></div>
+  </section>
+  <main class="arena" aria-label="The greatest game arena">
+    <aside class="customizer" aria-label="Title customization">
+      <h2>Customize greatness</h2>
+      <label for="font-choice">Font</label>
+      <select id="font-choice">
+        <option value="Georgia, 'Times New Roman', serif">Elegant Serif</option>
+        <option value="Baskerville, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif">Classic Baskerville</option>
+        <option value="'Courier New', Courier, monospace">Retro Typewriter</option>
+        <option value="Arial, Helvetica, sans-serif">Clean Sans</option>
+        <option value="Impact, Haettenschweiler, 'Arial Black', sans-serif">Maximum Impact</option>
+        <option value="'Comic Sans MS', 'Comic Sans', cursive">Questionable Comic</option>
+      </select>
+      <label for="color-choice">Color</label>
+      <input id="color-choice" type="color" value="#050505" aria-label="Choose title color">
+      <div class="color-presets" aria-label="Color presets">
+        <button class="color-preset" type="button" data-color="#050505" aria-label="Black" style="background:#050505"></button>
+        <button class="color-preset" type="button" data-color="#d62828" aria-label="Red" style="background:#d62828"></button>
+        <button class="color-preset" type="button" data-color="#1464c0" aria-label="Blue" style="background:#1464c0"></button>
+        <button class="color-preset" type="button" data-color="#6a35a8" aria-label="Purple" style="background:#6a35a8"></button>
+        <button class="color-preset" type="button" data-color="#17824b" aria-label="Green" style="background:#17824b"></button>
+      </div>
+      <button class="customizer-reset" id="customizer-reset" type="button">Reset greatness</button>
+    </aside>
+    <div class="dvd-title" id="dvd-title">THE GREATEST GAME OF ALL TIME</div>
+  </main>
+  <script>
+    (() => {
+      const boot = document.getElementById('boot');
+      const status = document.getElementById('boot-status');
+      const title = document.getElementById('dvd-title');
+      const fontChoice = document.getElementById('font-choice');
+      const colorChoice = document.getElementById('color-choice');
+      const resetButton = document.getElementById('customizer-reset');
+      const presets = [...document.querySelectorAll('.color-preset')];
+      const storageKey = 'greatestGameCustomization';
+      const defaults = { font: fontChoice.value, color: '#050505' };
+      const saved = (() => {
+        try { return JSON.parse(localStorage.getItem(storageKey) || '{}'); }
+        catch (error) { return {}; }
+      })();
+      const validFonts = [...fontChoice.options].map(option => option.value);
+      const validColors = /^#[0-9a-f]{6}$/i;
+      function saveCustomization() {
+        localStorage.setItem(storageKey, JSON.stringify({
+          font: fontChoice.value,
+          color: colorChoice.value
+        }));
+      }
+      function applyCustomization() {
+        title.style.setProperty('--title-font', fontChoice.value);
+        title.style.setProperty('--title-color', colorChoice.value);
+        saveCustomization();
+      }
+      if (validFonts.includes(saved.font)) fontChoice.value = saved.font;
+      if (validColors.test(saved.color || '')) colorChoice.value = saved.color;
+      fontChoice.addEventListener('change', applyCustomization);
+      colorChoice.addEventListener('input', applyCustomization);
+      presets.forEach(preset => preset.addEventListener('click', () => {
+        colorChoice.value = preset.dataset.color;
+        applyCustomization();
+      }));
+      resetButton.addEventListener('click', () => {
+        fontChoice.value = defaults.font;
+        colorChoice.value = defaults.color;
+        applyCustomization();
+      });
+      applyCustomization();
+      const messages = [
+        'CALIBRATING GREATNESS...',
+        'POLISHING THE PIXELS...',
+        'ASKING THE UNIVERSE FOR PERMISSION...',
+        'LOADING ABSOLUTELY EVERYTHING...',
+        'FINALIZING THE GREATEST GAME...'
+      ];
+      let messageIndex = 0;
+      const messageTimer = setInterval(() => {
+        status.textContent = messages[++messageIndex % messages.length];
+      }, 620);
+      setTimeout(() => {
+        clearInterval(messageTimer);
+        status.textContent = 'GREATNESS LOADED.';
+        boot.classList.add('done');
+      }, 3900);
+
+      let x = 36;
+      let y = 36;
+      // The greatest game deserves a leisurely, highly visible pace.
+      let vx = .18;
+      let vy = .14;
+      let last = performance.now();
+      function bounce(now) {
+        const elapsed = Math.min(32, now - last);
+        last = now;
+        const maxX = Math.max(0, window.innerWidth - title.offsetWidth - 8);
+        const maxY = Math.max(0, window.innerHeight - title.offsetHeight - 8);
+        x += vx * elapsed;
+        y += vy * elapsed;
+        if (x <= 8 || x >= maxX) { x = Math.max(8, Math.min(maxX, x)); vx *= -1; }
+        if (y <= 8 || y >= maxY) { y = Math.max(8, Math.min(maxY, y)); vy *= -1; }
+        title.style.transform = `translate(${x}px, ${y}px)`;
+        requestAnimationFrame(bounce);
+      }
+      requestAnimationFrame(bounce);
+    })();
+  </script>
+</body>
+</html>

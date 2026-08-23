@@ -1,0 +1,974 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap');
+
+body {
+    background-color: #000000;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* Lite Mode: disable heavy visual effects */
+body.lite-mode * {
+    animation: none !important;
+    transition: none !important;
+    backdrop-filter: none !important;
+}
+body.lite-mode nav {
+    backdrop-filter: none !important;
+}
+body.lite-mode #games img {
+    transform: none !important;
+    filter: none !important;
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    backdrop-filter: blur(10px) saturate(200%) brightness(70%);
+    color: #fff;
+    display: flex;
+    height: 7vw;
+    width: 100%;
+    align-items: center;
+    justify-content: left;
+    padding: 0 1%;
+    z-index: 5;
+    margin: auto;
+}
+
+nav img {
+    height: 80%;
+    width: auto;
+    margin-right: 1%;
+    border-radius: 1vw;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 5px 5px 10px rgba(53, 53, 53, 0.459);
+}
+
+nav h1 {
+    flex: 0 0 auto;
+    min-width: max-content;
+    white-space: nowrap;
+    font-size: clamp(1.45rem, 2.35vw, 2.35rem);
+    font-weight: 800;
+    margin-right: 1%;
+}
+
+/* Keep the expanded seven-link navigation from colliding with the brand. */
+nav > div,
+.collection-nav-links,
+.discs-nav-links {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+nav > div::-webkit-scrollbar,
+.collection-nav-links::-webkit-scrollbar,
+.discs-nav-links::-webkit-scrollbar {
+    display: none;
+}
+
+nav > div a,
+.collection-nav-links a,
+.discs-nav-links a {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: clamp(.62rem, .78vw, .82rem) !important;
+    padding: .45rem .72rem !important;
+    color: #fff !important;
+}
+
+nav > div a.active,
+.collection-nav-links a.active,
+.discs-nav-links a.active {
+    color: #fff !important;
+    background: #2c7ffc !important;
+    border-color: rgba(255,255,255,.35) !important;
+}
+
+/* Monetization and collectible systems have been retired. */
+nav a[href$="shop.html"],
+nav a[href$="card-collection.html"],
+nav a[href$="discs.html"],
+#disc-nav-widget {
+    display: none !important;
+}
+
+.logo-a {
+    position: relative;
+    display: inline-block;
+}
+
+.content {
+    flex-direction: column;
+    align-items: left;
+    padding: 7vw;
+    padding-top: 8vw;
+}
+
+.content hr {
+    border: 0;
+    height: 4px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgb(255, 255, 255), rgba(0, 0, 0, 0));
+    margin: 1vw 0;
+}
+
+.search {
+    display: flex;
+    user-select: none;
+    margin-top: 2.5vw;
+    margin-left: 1.2vw;
+}
+ 
+.search input {
+    background-color: #222222;
+    border: none;
+    border-radius: 1vw 0 0 1vw;
+    color: #fff;
+    font-size: 1.5vw;
+    font-weight: 600;
+    padding: 0.8vw 1.5vw;
+    font-family: 'Montserrat', sans-serif;
+    z-index: 1;
+    outline: none;
+}
+ 
+.search input::placeholder {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.5vw;
+}
+ 
+.search button {
+    background-color: #fff;
+    border: none;
+    border-radius: 0 1vw 1vw 0;
+    color:#222222;
+    font-size: 1.5vw;
+    font-weight: 600;
+    padding: 0.8vw 1vw;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    z-index: 1;
+    transition: .3s all ease;
+}
+ 
+#games {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: .6vw;
+    padding-bottom: 5vw;
+    visibility: visible;
+    opacity: 1;
+    transition: opacity .12s ease;
+}
+
+@keyframes gamesReveal {
+    from { opacity: 0.99; }
+    to { opacity: 1; }
+}
+ 
+#games img {    height: 15.6vw;
+    width: 15.6vw;
+    border-radius: 1vw;
+    margin: .5vw;
+    cursor: pointer;
+    user-select: none;
+    transition: transform .2s;
+}
+ 
+#games img:hover {
+    transform: scale(1.01);
+}
+
+ #games .prototype-game-tile {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     width: 15.6vw;
+     height: 15.6vw;
+     margin: .5vw;
+     color: rgba(255, 255, 255, .72);
+     background: #0b1220;
+     border: 1px solid rgba(164, 216, 255, .2);
+     border-radius: 1vw;
+     text-decoration: none;
+     font-size: clamp(14px, 1.4vw, 22px);
+     font-weight: 800;
+     letter-spacing: .16em;
+     transition: transform .2s, border-color .2s, color .2s;
+ }
+
+ #games .prototype-game-tile:hover {
+     color: #fff;
+     border-color: rgba(164, 216, 255, .65);
+     transform: scale(1.01);
+ }
+
+.featured {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1vw;
+    margin: 1%;
+    margin-top: 6vw;
+}
+
+.featured h1 {
+    font-size: 2.8vw;
+    font-weight: 800;
+    margin: 0 0 1.2vw 0;
+    text-align: center;
+    color: #fff;
+    letter-spacing: 0.35em;
+    text-indent: 0.35em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #2c7ffc 0%, #a855f7 50%, #ff6b6b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(44,127,252,0.4));
+}
+
+.featured .games-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 1vw;
+    width: 100%;
+}
+
+.featured img {
+    height: 16vw;
+    width: 16vw;
+    border-radius: 1.2vw;
+    cursor: pointer;
+    user-select: none;
+    transition: all .2s;
+}
+
+.featured img:hover {
+    transform: scale(1.05);
+    filter: brightness(50%);
+}
+
+.featured a {
+    display: inline-block;
+    position: relative;
+    color: #2c7ffc;
+    text-decoration: none;
+}
+
+.featured .play-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.featured a:hover .play-button {
+    opacity: 1;
+    pointer-events: none;
+}
+
+.featured .play-button i {
+    font-size: 4vw;
+    text-shadow: 0 0 60px #2c7ffc;
+}
+/* Black background for logo */
+nav img {
+    background-color: #000000;
+    padding: 0.3vw;
+    box-sizing: border-box;
+    border-radius: 1vw;
+}
+
+.rainbow-text {
+    background: linear-gradient(to right, #ef5350, #f48fb1, #7e57c2, #2196f3, #26c6da, #43a047, #eeff41, #f9a825, #ff5722);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: rainbow-animation 2s linear infinite;
+    font-weight: bold;
+    font-size: 1.2rem;
+    display: block;
+    margin-top: 15px;
+    text-shadow: none !important;
+}
+
+/* ── Dynamix Discs nav widget ─────────────────────────────────────────────── */
+.disc-nav-widget {
+    position: absolute;
+    /* Sit below the nav instead of competing with the Settings button. */
+    right: 1.5vw;
+    top: calc(100% + 0.75rem);
+    transform: none;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 0.6vw;
+    background: rgba(10, 14, 24, 0.88);
+    border: 1px solid rgba(44, 127, 252, 0.32);
+    border-radius: 0.75rem;
+    padding: 0.45rem 0.75rem;
+    backdrop-filter: blur(10px);
+    font-family: 'Montserrat', sans-serif;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+}
+
+.disc-balance {
+    display: flex;
+    align-items: center;
+    gap: 0.35vw;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85vw;
+}
+
+.disc-balance .disc-icon {
+    width: 2.2vw;
+    height: 2.2vw;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+}
+
+.disc-balance .disc-unlimited {
+    color: #7db8ff;
+}
+
+.disc-balance .disc-login {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.7vw;
+    font-weight: 600;
+}
+
+.disc-claim-btn {
+    background: linear-gradient(135deg, #2c7ffc 0%, #1a5fd0 100%);
+    border: none;
+    border-radius: 0.4vw;
+    color: #fff;
+    padding: 0.35vw 0.6vw;
+    font-size: 0.7vw;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2vw;
+}
+
+.disc-claim-btn:hover {
+    filter: brightness(1.15);
+    transform: translateY(-1px);
+}
+
+.disc-claim-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+}
+
+.disc-icon {
+    width: 32px;
+    height: 32px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    object-fit: cover;
+    vertical-align: middle;
+}
+
+/* Keep every Dynamix Disc asset round, including inline-sized page artwork. */
+img[src$="disc.png"] {
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.disc-icon.sm {
+    width: 26px;
+    height: 26px;
+}
+
+.disc-icon.lg {
+    width: 64px;
+    height: 64px;
+}
+
+@media (max-width: 768px) {
+    .disc-nav-widget {
+        right: 2vw;
+        top: calc(100% + 0.5rem);
+        padding: 0.45rem 0.7rem;
+        gap: 1.5vw;
+    }
+    .disc-balance {
+        font-size: 2.5vw;
+    }
+    .disc-balance .disc-icon {
+        width: 6vw;
+        height: 6vw;
+    }
+    .disc-claim-btn {
+        font-size: 2.2vw;
+        padding: 1vw 1.5vw;
+    }
+}
+
+@keyframes rainbow-animation {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+/* ── Mobile experience ─────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+    html {
+        overflow-x: hidden;
+    }
+
+    body {
+        min-width: 0;
+        overflow-x: hidden;
+    }
+
+    nav {
+        height: auto;
+        min-height: 64px;
+        padding: .55rem .7rem .45rem;
+        gap: .45rem;
+        flex-wrap: wrap;
+        align-content: center;
+        background: rgba(4, 10, 22, .94);
+    }
+
+    nav img {
+        width: 43px;
+        height: 43px;
+        flex: 0 0 43px;
+        margin-right: 0;
+        border-radius: 10px;
+        padding: 3px;
+    }
+
+    nav h1 {
+        margin: 0;
+        font-size: 1rem;
+        letter-spacing: .04em;
+        white-space: nowrap;
+    }
+
+    nav > div,
+    .collection-nav-links,
+    .discs-nav-links {
+        order: 3;
+        flex: 1 0 100% !important;
+        width: 100%;
+        min-width: 0;
+        justify-content: flex-start !important;
+        gap: .2rem !important;
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding: .15rem 0 .05rem;
+    }
+
+    nav > div::-webkit-scrollbar,
+    .collection-nav-links::-webkit-scrollbar,
+    .discs-nav-links::-webkit-scrollbar {
+        display: none;
+    }
+
+    nav > div a,
+    .collection-nav-links a,
+    .discs-nav-links a {
+        flex: 0 0 auto;
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: .55rem .72rem !important;
+        border-radius: 9px !important;
+        font-size: .72rem !important;
+        white-space: nowrap;
+    }
+
+    nav > a,
+    .collection-nav-settings,
+    .discs-nav-settings {
+        margin: 0 0 0 auto !important;
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+        padding: .55rem .75rem !important;
+        border-radius: 9px !important;
+        font-size: .72rem !important;
+        white-space: nowrap;
+    }
+
+    .content {
+        padding: 5.6rem .8rem 4rem;
+    }
+
+    .featured {
+        margin: 5.5rem 0 1.2rem;
+        padding: .6rem 0;
+    }
+
+    .featured h1 {
+        font-size: 1.35rem;
+        margin-bottom: .8rem;
+    }
+
+    .featured .games-row {
+        gap: .55rem;
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding: 0 .8rem .4rem;
+        scroll-snap-type: x proximity;
+    }
+
+    .featured .games-row a {
+        flex: 0 0 72vw;
+        scroll-snap-align: start;
+    }
+
+    .featured img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        border-radius: 14px;
+    }
+
+    .featured .play-button {
+        opacity: 1;
+        font-size: 2rem;
+    }
+
+    .search {
+        width: 100%;
+        margin: 1rem 0 .8rem;
+    }
+
+    .search input {
+        min-width: 0;
+        flex: 1;
+        padding: .8rem 1rem;
+        font-size: 1rem;
+        border-radius: 12px 0 0 12px;
+    }
+
+    .search input::placeholder {
+        font-size: 1rem;
+    }
+
+    .search button {
+        min-width: 52px;
+        padding: .8rem 1rem;
+        font-size: 1rem;
+        border-radius: 0 12px 12px 0;
+    }
+
+    #games {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .55rem;
+        margin-top: .4rem;
+        padding-bottom: 3rem;
+    }
+
+    #games a {
+        min-width: 0;
+    }
+
+    #games img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        margin: 0;
+        border-radius: 12px;
+    }
+
+     #games .prototype-game-tile {
+         width: 100%;
+         height: auto;
+         aspect-ratio: 1 / 1;
+         margin: 0;
+         border-radius: 12px;
+         font-size: 15px;
+     }
+
+    .disc-nav-widget {
+        right: .7rem;
+        top: calc(100% + .45rem);
+        max-width: calc(100vw - 1.4rem);
+        padding: .45rem .6rem;
+        gap: .5rem;
+    }
+
+    .disc-balance {
+        font-size: .72rem;
+    }
+
+    .disc-balance .disc-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .disc-claim-btn {
+        min-height: 34px;
+        padding: .45rem .6rem;
+        font-size: .68rem;
+    }
+
+    .shop-page,
+    .collection-page {
+        padding: 6.3rem .85rem 5rem;
+    }
+
+    .shop-heading,
+    .collection-heading {
+        margin-bottom: 1.5rem;
+        padding: 1.35rem 1.1rem;
+        border-radius: 18px;
+    }
+
+    .shop-heading h1,
+    .collection-heading h1 {
+        font-size: 2rem;
+    }
+
+    .shop-heading p,
+    .collection-heading p {
+        font-size: .85rem;
+    }
+
+    .shop-section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: .35rem;
+    }
+
+    .shop-grid,
+    .collection-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .65rem;
+    }
+
+    .shop-card-body {
+        min-height: 96px;
+        padding: .7rem;
+        gap: .55rem;
+    }
+
+    .shop-card h2 {
+        font-size: .75rem;
+    }
+
+    .shop-buy,
+    .sell-card {
+        min-height: 42px;
+        padding: .65rem .45rem;
+    }
+
+    .card-pack-inner {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.5rem 1rem;
+        text-align: center;
+    }
+
+    .pack-art {
+        width: 128px;
+        height: 172px;
+        transform: scale(.9);
+    }
+
+    .pack-copy h2 {
+        font-size: 1.2rem;
+    }
+
+    .pack-copy p {
+        font-size: .82rem;
+    }
+
+    .pack-price {
+        justify-content: center;
+        font-size: .8rem;
+    }
+
+    .pack-buy {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .collection-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .collection-card-body {
+        padding: .65rem;
+    }
+
+    .collection-card h3 {
+        font-size: .75rem;
+    }
+
+    .discs-page {
+        min-height: 100svh;
+        padding: 8.2rem .8rem 4rem;
+    }
+
+    .discs-panel {
+        padding: 2rem 1rem 1.5rem;
+        border-radius: 20px;
+    }
+
+    .discs-panel h1 {
+        font-size: 2.25rem;
+    }
+
+    .discs-panel p {
+        font-size: .82rem;
+    }
+
+    .daily-disc {
+        width: min(58vw, 210px);
+        height: min(58vw, 210px);
+        margin: 1.5rem auto 1.2rem;
+    }
+
+    .daily-claim-button {
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        margin-top: 1.2rem;
+    }
+}
+
+@media (max-width: 380px) {
+    nav h1 {
+        font-size: .86rem;
+    }
+
+    nav > a,
+    .collection-nav-settings,
+    .discs-nav-settings {
+        padding-inline: .55rem !important;
+    }
+
+    #games,
+    .shop-grid,
+    .collection-grid {
+        gap: .4rem;
+    }
+}
+
+/* ── Phone landscape mode ──────────────────────────────────────────────── */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 600px) {
+    nav {
+        min-height: 52px;
+        height: 52px;
+        flex-wrap: nowrap;
+        padding: .35rem .65rem;
+        gap: .4rem;
+    }
+
+    nav img {
+        width: 38px;
+        height: 38px;
+        flex-basis: 38px;
+    }
+
+    nav h1 {
+        font-size: .9rem;
+    }
+
+    nav > div,
+    .collection-nav-links,
+    .discs-nav-links {
+        order: initial;
+        flex: 1 1 auto !important;
+        width: auto;
+        padding: 0;
+    }
+
+    nav > div a,
+    .collection-nav-links a,
+    .discs-nav-links a {
+        min-height: 34px;
+        padding: .4rem .58rem !important;
+        font-size: .66rem !important;
+    }
+
+    nav > a,
+    .collection-nav-settings,
+    .discs-nav-settings {
+        min-height: 34px;
+        padding: .4rem .62rem !important;
+        font-size: .66rem !important;
+    }
+
+    .content {
+        padding: 4.4rem .8rem 2rem;
+    }
+
+    .featured {
+        margin-top: 4.3rem;
+        margin-bottom: .6rem;
+    }
+
+    .featured h1 {
+        font-size: 1.05rem;
+        margin-bottom: .45rem;
+    }
+
+    .featured .games-row {
+        gap: .5rem;
+    }
+
+    .featured .games-row a {
+        flex-basis: 30vw;
+    }
+
+    .search {
+        margin: .6rem 0;
+    }
+
+    #games {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: .45rem;
+    }
+
+    .shop-page,
+    .collection-page {
+        padding: 4.5rem .8rem 3rem;
+    }
+
+    .shop-heading,
+    .collection-heading {
+        margin-bottom: 1rem;
+        padding: 1rem 1.2rem;
+    }
+
+    .shop-heading h1,
+    .collection-heading h1 {
+        font-size: 1.55rem;
+    }
+
+    .shop-heading p,
+    .collection-heading p {
+        font-size: .75rem;
+    }
+
+    .shop-grid,
+    .collection-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: .5rem;
+    }
+
+    .shop-card-body {
+        min-height: 74px;
+        padding: .55rem;
+    }
+
+    .shop-card h2,
+    .collection-card h3 {
+        font-size: .68rem;
+    }
+
+    .shop-buy,
+    .sell-card {
+        min-height: 34px;
+        padding: .4rem .3rem;
+        font-size: .62rem;
+    }
+
+    .card-pack-inner {
+        flex-direction: row;
+        gap: 1rem;
+        padding: 1rem 1.3rem;
+        text-align: left;
+    }
+
+    .pack-art {
+        width: 90px;
+        height: 122px;
+    }
+
+    .pack-copy h2 {
+        font-size: 1rem;
+    }
+
+    .pack-copy p {
+        font-size: .7rem;
+    }
+
+    .pack-buy {
+        width: auto;
+        min-width: 145px;
+    }
+
+    .discs-page {
+        min-height: 100svh;
+        padding: 4.7rem .8rem 2rem;
+    }
+
+    .discs-panel {
+        display: grid;
+        grid-template-columns: minmax(150px, 30vw) 1fr;
+        align-items: center;
+        column-gap: 1.2rem;
+        max-width: 760px;
+        padding: 1.25rem 1.5rem;
+        text-align: left;
+    }
+
+    .discs-panel h1,
+    .discs-panel > p {
+        grid-column: 1 / -1;
+        text-align: center;
+    }
+
+    .discs-panel h1 {
+        font-size: 1.8rem;
+        margin-bottom: .2rem;
+    }
+
+    .discs-panel > p {
+        font-size: .72rem;
+    }
+
+    .daily-disc {
+        grid-row: 3 / span 4;
+        width: min(28vw, 170px);
+        height: min(28vw, 170px);
+        margin: .7rem auto;
+    }
+
+    .daily-reward-label,
+    .disc-balance-large,
+    .daily-claim-button,
+    .daily-note {
+        grid-column: 2;
+    }
+
+    .daily-reward-label {
+        align-self: end;
+    }
+
+    .daily-claim-button {
+        width: 100%;
+        min-width: 0;
+        margin-top: .8rem;
+    }
+
+    .daily-note {
+        margin-top: .5rem !important;
+    }
+}

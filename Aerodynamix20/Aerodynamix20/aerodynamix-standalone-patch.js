@@ -1,0 +1,1319 @@
+/* Aerodynamix standalone enhancement layer.
+ * This runs after the self-contained export and keeps its media player and
+ * embedded fallbacks while replacing the shell around them.
+ */
+(function () {
+  'use strict';
+
+  var SETTINGS_KEY = 'aerodynamixStandaloneSettings';
+  var CONNECT_ORIGIN = 'https://aerodynamix20.onrender.com';
+  var DB_NAME = 'aerodynamixStandaloneLibrary';
+  var DB_STORE = 'games';
+  var DEFAULT_PUBLIC_ROOT = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/';
+  var CLOAK_PRESETS = {
+    google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
+    deltaMath: { title: 'DeltaMath', path: 'attached_assets/delta-math-grad-cap.png' },
+    classroom: { title: 'Google Classroom', path: 'attached_assets/google-classroom-chalkboard.jpg' }
+  };
+  var settings = readSettings();
+  var builtInGames = [];
+  var customGames = [];
+  var objectUrls = [];
+  var libraryLoadVersion = 0;
+  var effectTimer = null;
+  var effectLayer = null;
+
+  var themes = {
+    black: {
+      label: 'Black',
+      background: '#030509',
+      image: 'radial-gradient(ellipse at 50% 130%, rgba(44,127,252,.32), transparent 65%)',
+      color: '#ffffff',
+      accent: '#2c7ffc'
+    },
+    'frutiger-aero': {
+      label: 'Frutiger Aero',
+      background: '#87ceeb',
+      image: '',
+      color: '#002244',
+      accent: '#0879bd'
+    },
+    purple: {
+      label: 'Midnight Purple',
+      background: '#180826',
+      image: 'radial-gradient(ellipse at 50% 130%, rgba(160,80,255,.42), transparent 65%)',
+      color: '#f0e0ff',
+      accent: '#9333ea'
+    },
+    blue: {
+      label: 'Genesis Blue',
+      background: '#040d24',
+      image: 'radial-gradient(ellipse at 50% 130%, rgba(59,130,246,.45), transparent 65%)',
+      color: '#e0f0ff',
+      accent: '#3b82f6'
+    },
+    christmas: {
+      label: 'Christmas',
+      background: '#0a180d',
+      image: 'radial-gradient(ellipse at 50% 120%, rgba(180,40,40,.22), transparent 55%)',
+      color: '#fcebd4',
+      accent: '#c41e3a'
+    },
+    'bubble-gum-pink': {
+      label: 'Bubble Gum Pink',
+      background: '#ff69b4',
+      image: 'radial-gradient(circle at 18% 8%, rgba(255,255,255,.28), transparent 30%)',
+      color: '#ffffff',
+      accent: '#ff1493'
+    },
+    'blood-red': {
+      label: 'Blood Red',
+      background: '#3b050b',
+      image: 'radial-gradient(ellipse at 50% 130%, rgba(239,35,60,.58), transparent 65%)',
+      color: '#fff1f2',
+      accent: '#ef233c'
+    },
+    'citrus-orange': {
+      label: 'Citrus Orange',
+      background: '#4a1d00',
+      image: 'radial-gradient(ellipse at 50% 130%, rgba(255,122,0,.6), transparent 65%)',
+      color: '#fff4e8',
+      accent: '#ff7a00'
+    },
+    'golden-yellow': {
+      label: 'Golden Yellow',
+      background: '#493800',
+      image: 'radial-gradient(ellipse at 50% 130%, rgba(255,208,0,.58), transparent 65%)',
+      color: '#fffbea',
+      accent: '#ffd000'
+    },
+    'emerald-green': {
+      label: 'Emerald Green',
+      background: '#022b19',
+      image: 'radial-gradient(ellipse at 50% 130%, rgba(0,200,83,.58), transparent 65%)',
+      color: '#ecfff4',
+      accent: '#00c853'
+    }
+  };
+
+  function readSettings() {
+    try {
+      return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') || {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function saveSettings() {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch (error) {}
+  }
+
+  function injectStyles() {
+    var style = document.createElement('style');
+    style.id = 'aerodynamix-standalone-styles';
+    style.textContent = `
+      :root {
+        --standalone-accent: #2c7ffc;
+        --standalone-bg: #030509;
+        --standalone-text: #fff;
+        --standalone-panel: rgba(7,18,38,.88);
+        --standalone-line: rgba(130,185,255,.23);
+      }
+      body.aerodynamix-standalone {
+        color: var(--standalone-text);
+        transition: background-color .35s ease, background-image .35s ease, color .35s ease;
+      }
+      body.aerodynamix-standalone .lite-label,
+      body.aerodynamix-standalone #settingsPanel {
+        display: none !important;
+      }
+      .settings-nav.active {
+        box-shadow: 0 0 0 2px rgba(255,255,255,.18), 0 8px 25px color-mix(in srgb, var(--standalone-accent) 45%, transparent);
+      }
+      #aeroSettingsView {
+        display: none;
+        min-height: 100vh;
+        padding: clamp(110px, 10vw, 150px) 20px 80px;
+        box-sizing: border-box;
+        color: var(--standalone-text);
+      }
+      #aeroSettingsView.active {
+        display: block;
+        animation: aeroViewIn .24s ease both;
+      }
+      .aero-settings-shell {
+        width: min(1060px, 100%);
+        margin: 0 auto;
+      }
+      .aero-settings-title {
+        margin-bottom: 24px;
+      }
+      .aero-kicker {
+        color: var(--standalone-accent);
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+      }
+      .aero-settings-title h2 {
+        margin: 7px 0 8px;
+        font-size: clamp(2rem, 5vw, 4rem);
+        letter-spacing: -.055em;
+      }
+      .aero-muted {
+        color: color-mix(in srgb, var(--standalone-text) 66%, transparent);
+        font-size: .9rem;
+        line-height: 1.55;
+      }
+      .aero-settings-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
+        gap: 18px;
+        align-items: start;
+      }
+      .aero-settings-card {
+        padding: 24px;
+        border: 1px solid var(--standalone-line);
+        border-radius: 22px;
+        background: var(--standalone-panel);
+        box-shadow: 0 24px 70px rgba(0,0,0,.3);
+        backdrop-filter: blur(18px);
+      }
+      .aero-settings-card h3 {
+        margin: 0 0 6px;
+        font-size: 1.18rem;
+      }
+      .aero-theme-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .aero-theme-button,
+      .aero-button,
+      .aero-icon-button {
+        border: 1px solid var(--standalone-line);
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+      }
+      .aero-theme-button {
+        min-height: 82px;
+        padding: 14px;
+        border-radius: 13px;
+        background-color: var(--theme-color);
+        background-size: cover;
+        background-position: center;
+        color: var(--theme-text, #fff);
+        text-align: left;
+        font-weight: 800;
+        position: relative;
+        overflow: hidden;
+        text-shadow: 0 2px 8px rgba(0,0,0,.45);
+      }
+      .aero-theme-button::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,.2), transparent 48%);
+        pointer-events: none;
+      }
+      .aero-theme-button:hover,
+      .aero-button:hover {
+        transform: translateY(-2px);
+        border-color: var(--standalone-accent);
+      }
+      .aero-theme-button.active {
+        outline: 2px solid var(--standalone-accent);
+        outline-offset: 2px;
+        box-shadow: 0 12px 34px color-mix(in srgb, var(--standalone-accent) 28%, transparent);
+      }
+      .aero-setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--standalone-line);
+      }
+      .aero-setting-row:last-of-type {
+        border-bottom: 0;
+      }
+      .aero-switch {
+        width: 48px;
+        height: 27px;
+        flex: 0 0 auto;
+        border: 0;
+        border-radius: 999px;
+        background: #35475b;
+        cursor: pointer;
+        position: relative;
+      }
+      .aero-switch::after {
+        content: '';
+        position: absolute;
+        left: 3px;
+        top: 3px;
+        width: 21px;
+        height: 21px;
+        border-radius: 50%;
+        background: #e8f4ff;
+        transition: transform .2s ease;
+      }
+      .aero-switch.on {
+        background: var(--standalone-accent);
+      }
+      .aero-switch.on::after {
+        transform: translateX(21px);
+      }
+      .aero-label {
+        display: block;
+        margin: 20px 0 7px;
+        font-size: .78rem;
+        font-weight: 800;
+        letter-spacing: .04em;
+      }
+      .aero-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 13px;
+        border: 1px solid var(--standalone-line);
+        border-radius: 11px;
+        background: rgba(0,0,0,.26);
+        color: inherit;
+        font: inherit;
+        outline: 0;
+      }
+      .aero-input:focus {
+        border-color: var(--standalone-accent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--standalone-accent) 18%, transparent);
+      }
+      .aero-button {
+        padding: 11px 15px;
+        border-radius: 11px;
+        background: var(--standalone-accent);
+        color: #04101f;
+        font-weight: 800;
+      }
+      .aero-button.secondary {
+        background: rgba(255,255,255,.08);
+        color: inherit;
+      }
+      .aero-plus {
+        display: grid !important;
+        min-height: 210px;
+        place-items: center;
+        border: 1px dashed var(--standalone-accent) !important;
+        background: color-mix(in srgb, var(--standalone-accent) 8%, rgba(3,5,9,.72)) !important;
+        color: var(--standalone-accent);
+        cursor: pointer;
+      }
+      .aero-plus-inner {
+        display: grid;
+        place-items: center;
+        gap: 10px;
+        text-align: center;
+      }
+      .aero-plus-mark {
+        display: grid;
+        width: 56px;
+        height: 56px;
+        place-items: center;
+        border: 1px solid currentColor;
+        border-radius: 16px;
+        font-size: 2rem;
+        line-height: 1;
+      }
+      .aero-plus strong {
+        font-size: .88rem;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+      .aero-custom-card {
+        position: relative;
+      }
+      .aero-custom-card .thumb-placeholder {
+        width: 100%;
+        aspect-ratio: 16/9;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(145deg, color-mix(in srgb, var(--standalone-accent) 32%, #071226), #030509);
+        color: #fff;
+        font-size: 2rem;
+        font-weight: 900;
+      }
+      .aero-delete {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 2;
+        padding: 6px 9px;
+        border: 1px solid rgba(255,255,255,.28);
+        border-radius: 9px;
+        background: rgba(3,5,9,.82);
+        color: #fff;
+        cursor: pointer;
+      }
+      #aeroImportModal {
+        position: fixed;
+        inset: 0;
+        z-index: 10060;
+        display: grid;
+        place-items: center;
+        padding: 14px;
+        background: rgba(1,5,13,.76);
+        backdrop-filter: blur(10px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .2s ease;
+      }
+      #aeroImportModal.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .aero-modal {
+        width: min(520px, 100%);
+        padding: 25px;
+        box-sizing: border-box;
+        border: 1px solid rgba(130,185,255,.34);
+        border-radius: 22px;
+        background: #0a1830;
+        color: #eef7ff;
+        box-shadow: 0 30px 100px rgba(0,0,0,.72);
+        transform: translateY(12px);
+        transition: transform .2s ease;
+      }
+      #aeroImportModal.open .aero-modal {
+        transform: none;
+      }
+      .aero-modal-head,
+      .aero-modal-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .aero-modal-head h3 {
+        margin: 4px 0 0;
+        font-size: 1.45rem;
+      }
+      .aero-icon-button {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: rgba(255,255,255,.07);
+      }
+      .aero-form {
+        display: grid;
+        gap: 15px;
+        margin-top: 20px;
+      }
+      .aero-form label {
+        font-size: .79rem;
+        font-weight: 800;
+      }
+      .aero-form input[type="file"] {
+        display: block;
+        width: 100%;
+        margin-top: 8px;
+        color: #b7cae0;
+      }
+      .aero-modal-actions {
+        justify-content: flex-end;
+        margin-top: 6px;
+      }
+      #aeroToast {
+        position: fixed;
+        left: 50%;
+        bottom: 22px;
+        z-index: 10100;
+        max-width: min(420px, calc(100% - 30px));
+        padding: 12px 16px;
+        border: 1px solid rgba(130,185,255,.3);
+        border-radius: 12px;
+        background: rgba(7,18,38,.96);
+        color: #fff;
+        box-shadow: 0 14px 44px rgba(0,0,0,.55);
+        opacity: 0;
+        transform: translate(-50%, 16px);
+        pointer-events: none;
+        transition: opacity .18s ease, transform .18s ease;
+      }
+      #aeroToast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      #aeroThemeEffects {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .aero-bubble {
+        position: absolute;
+        top: -90px;
+        border: 1px solid rgba(255,255,255,.7);
+        border-radius: 50%;
+        background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.96), rgba(165,220,255,.42) 42%, rgba(70,160,235,.08) 72%);
+        box-shadow: inset -3px -4px 10px rgba(255,255,255,.78), 0 9px 24px rgba(0,100,190,.15);
+        animation: aeroBubbleFall var(--duration) linear forwards;
+        pointer-events: auto;
+        cursor: pointer;
+      }
+      .aero-snow {
+        position: absolute;
+        top: -12px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.9);
+        filter: blur(var(--blur));
+        animation: aeroSnowFall var(--duration) linear infinite;
+      }
+      body.aero-reduce-effects *,
+      body.aero-reduce-effects *::before,
+      body.aero-reduce-effects *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
+      @keyframes aeroViewIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: none; }
+      }
+      @keyframes aeroBubbleFall {
+        from { transform: translate3d(0,0,0); opacity: .85; }
+        to { transform: translate3d(var(--drift), 115vh, 0); opacity: .3; }
+      }
+      @keyframes aeroSnowFall {
+        from { transform: translate3d(0,-5vh,0); }
+        to { transform: translate3d(var(--drift), 110vh,0); }
+      }
+      @media (max-width: 760px) {
+        .aero-settings-grid { grid-template-columns: 1fr; }
+        .aero-theme-grid { grid-template-columns: 1fr 1fr; }
+        .aero-settings-card { padding: 18px; }
+        #aeroSettingsView { padding-left: 14px; padding-right: 14px; }
+      }
+      @media (max-width: 480px) {
+        .aero-theme-grid { grid-template-columns: 1fr; }
+        .aero-setting-row { align-items: flex-start; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+      }
+      #aeroConnectView {
+        display: none;
+        min-height: 100vh;
+        padding: clamp(86px, 8vw, 118px) 0 0;
+        box-sizing: border-box;
+      }
+      #aeroConnectView.active {
+        display: block;
+        animation: aeroViewIn .24s ease both;
+      }
+      .aero-connect-shell {
+        width: 100%;
+        margin: 0 auto;
+      }
+      .aero-connect-empty {
+        display: grid;
+        place-items: center;
+        min-height: 420px;
+        padding: 30px;
+        text-align: center;
+        border: 1px dashed var(--standalone-line);
+        border-radius: 22px;
+        background: var(--standalone-panel);
+      }
+      .aero-connect-empty[hidden],
+      .aero-connect-iframe[hidden] { display: none !important; }
+      .aero-connect-empty h2 { margin: 0 0 10px; }
+      .aero-connect-empty p { max-width: 620px; margin: 0 auto 18px; }
+      .aero-connect-error { color: #ff8791; }
+      .aero-connect-page {
+        min-height: calc(100vh - 118px);
+        background: var(--standalone-bg);
+        color: var(--standalone-text);
+      }
+      .aero-connect-page .dc-container {
+        padding-top: clamp(22px, 3vw, 42px);
+      }
+      .aero-connect-page .dc-header h1 {
+        color: var(--standalone-text);
+        background: none;
+        -webkit-text-fill-color: currentColor;
+      }
+      .aero-connect-page .dc-card {
+        border-color: color-mix(in srgb, var(--standalone-accent) 32%, transparent);
+      }
+      .aero-connect-page .dc-btn,
+      .aero-connect-page .dc-page-tab.active {
+        background: var(--standalone-accent);
+      }
+      @media (max-width: 620px) {
+        .aero-connect-page { min-height: calc(100vh - 78px); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function createMarkup() {
+    var nav = document.querySelector('.real-nav');
+    var navLinks = nav && nav.querySelector('.nav-links');
+    if (navLinks && !document.getElementById('connectNav')) {
+      var connectNav = document.createElement('a');
+      connectNav.id = 'connectNav';
+      connectNav.href = '#';
+      connectNav.title = 'Dynamix Connect';
+      connectNav.textContent = 'Connect';
+      navLinks.insertBefore(connectNav, navLinks.firstChild ? navLinks.firstChild.nextSibling : null);
+    }
+    var settingsView = document.createElement('main');
+    settingsView.id = 'aeroSettingsView';
+    settingsView.innerHTML = `
+      <div class="aero-settings-shell">
+        <header class="aero-settings-title">
+          <div class="aero-kicker">Aerodynamix settings</div>
+          <h2>Make it yours.</h2>
+          <p class="aero-muted">Themes and preferences are saved in this browser and restored the next time you open this file.</p>
+        </header>
+        <div class="aero-settings-grid">
+          <section class="aero-settings-card">
+            <h3>Choose Theme</h3>
+            <p class="aero-muted">The complete Aerodynamix visual collection, including its original animated effects.</p>
+            <div class="aero-theme-grid" id="aeroThemeGrid"></div>
+          </section>
+          <section class="aero-settings-card">
+            <h3>Experience</h3>
+            <p class="aero-muted">Control privacy, performance, and where downloaded files load built-in games from.</p>
+            <div class="aero-setting-row">
+              <div>
+                <strong>Tab Cloak</strong>
+                <div class="aero-muted">Choose a familiar school tab title and icon. Enabled by default.</div>
+              </div>
+              <button class="aero-switch" id="aeroCloakToggle" type="button" aria-label="Toggle Tab Cloak"></button>
+            </div>
+            <label class="aero-label" for="aeroCloakPreset">Cloak preset</label>
+            <select class="aero-input" id="aeroCloakPreset">
+              <option value="google">Google · G favicon</option>
+              <option value="deltaMath">DeltaMath · grad cap</option>
+              <option value="classroom">Google Classroom · chalkboard</option>
+            </select>
+            <div class="aero-setting-row">
+              <div>
+                <strong>Reduce effects</strong>
+                <div class="aero-muted">Disable bubbles, snow, and most motion.</div>
+              </div>
+              <button class="aero-switch" id="aeroEffectsToggle" type="button" aria-label="Toggle reduced effects"></button>
+            </div>
+            <label class="aero-label" for="aeroSourceOrigin">Game library URL for downloaded copies</label>
+            <p class="aero-muted">Downloaded copies use the official Aerodynamix game library automatically. Change this only if you want to use another published copy of the site.</p>
+            <input class="aero-input" id="aeroSourceOrigin" type="url" inputmode="url" placeholder="https://your-aerodynamix-site.example/">
+            <button class="aero-button secondary" id="aeroSaveOrigin" type="button" style="margin-top:10px">Save game source</button>
+          </section>
+        </div>
+      </div>
+    `;
+    if (nav && nav.parentNode) {
+      nav.parentNode.insertBefore(settingsView, nav.nextSibling);
+    } else {
+      document.body.prepend(settingsView);
+    }
+
+    var connectView = document.createElement('main');
+    connectView.id = 'aeroConnectView';
+    connectView.innerHTML = `
+      <div class="aero-connect-shell">
+        <div id="aeroConnectEmpty" class="aero-connect-empty">
+          <div>
+            <div class="aero-kicker">Dynamix Connect</div>
+            <h2>Connect to the community</h2>
+            <p class="aero-muted">Loading the Aerodynamix community…</p>
+          </div>
+        </div>
+        <div id="aeroConnectPage" hidden></div>
+      </div>
+    `;
+    if (nav && nav.parentNode) {
+      nav.parentNode.insertBefore(connectView, nav.nextSibling);
+    } else {
+      document.body.prepend(connectView);
+    }
+
+    var modal = document.createElement('div');
+    modal.id = 'aeroImportModal';
+    modal.setAttribute('aria-hidden', 'true');
+    modal.innerHTML = `
+      <section class="aero-modal" role="dialog" aria-modal="true" aria-labelledby="aeroImportTitle">
+        <header class="aero-modal-head">
+          <div>
+            <div class="aero-kicker">Personal library</div>
+            <h3 id="aeroImportTitle">Add your own game</h3>
+          </div>
+          <button class="aero-icon-button" id="aeroImportClose" type="button" aria-label="Close">×</button>
+        </header>
+        <p class="aero-muted">Choose a self-contained HTML game and an optional thumbnail. Both files stay in this browser.</p>
+        <form class="aero-form" id="aeroImportForm">
+          <label>
+            Game title
+            <input class="aero-input" id="aeroGameTitle" maxlength="80" placeholder="My game">
+          </label>
+          <label>
+            HTML game file
+            <input id="aeroGameFile" type="file" accept=".html,.htm,text/html" required>
+          </label>
+          <label>
+            Thumbnail (optional)
+            <input id="aeroGameThumb" type="file" accept="image/*">
+          </label>
+          <div class="aero-modal-actions">
+            <button class="aero-button secondary" id="aeroImportCancel" type="button">Cancel</button>
+            <button class="aero-button" type="submit">Add to library</button>
+          </div>
+        </form>
+      </section>
+    `;
+    document.body.appendChild(modal);
+
+    var toast = document.createElement('div');
+    toast.id = 'aeroToast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    document.body.appendChild(toast);
+  }
+
+  function toast(message) {
+    var element = document.getElementById('aeroToast');
+    if (!element) return;
+    element.textContent = message;
+    element.classList.add('show');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(function () {
+      element.classList.remove('show');
+    }, 2600);
+  }
+
+  function getManifest() {
+    try {
+      var manifest = window.eval('GAMES');
+      return Array.isArray(manifest) ? manifest : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function getSiteBase() {
+    if (location.protocol === 'http:' || location.protocol === 'https:') {
+      if (
+        location.hostname.endsWith('github.io') &&
+        location.pathname.includes('/Aerodynamix/Aerodynamix20/Aerodynamix20/')
+      ) {
+        return DEFAULT_PUBLIC_ROOT;
+      }
+      return location.origin.replace(/\/?$/, '/');
+    }
+    return (settings.sourceOrigin || DEFAULT_PUBLIC_ROOT).replace(/\/?$/, '/');
+  }
+
+  function resolveSitePath(path) {
+    if (!path) return '';
+    if (/^(https?:|blob:|data:)/i.test(path)) return path;
+    var base = getSiteBase();
+    if (!base) return '';
+    var normalizedPath = path.replace(/^\/+/, '');
+    if (
+      base === DEFAULT_PUBLIC_ROOT &&
+      /^(games|images|sounds)\//.test(normalizedPath)
+    ) {
+      normalizedPath = 'docs/' + normalizedPath;
+    }
+    if (normalizedPath.endsWith('/')) normalizedPath += 'index.html';
+    try {
+      return new URL(normalizedPath, base).href;
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function getFallbackContent(game) {
+    if (!game || !game.content) return '';
+    if (/^(data:|blob:|https?:)/i.test(game.content)) return game.content;
+    return URL.createObjectURL(new Blob([game.content], { type: 'text/html' }));
+  }
+
+  function openGame(game) {
+    var gamePath = game.game || game.gamePath || game.path || '';
+    var url = game.url || resolveSitePath(gamePath);
+
+    if (!url && location.protocol === 'file:' && gamePath) {
+      showView('settings');
+      var originInput = document.getElementById('aeroSourceOrigin');
+      if (originInput) originInput.focus();
+      toast('Enter the published Aerodynamix URL to load built-in games.');
+      return;
+    }
+
+    if (!url) url = getFallbackContent(game);
+    if (!url) {
+      toast('This game does not have a playable file.');
+      return;
+    }
+
+    var player = document.getElementById('player');
+    var frame = document.getElementById('frame');
+    var playing = document.getElementById('playing');
+    if (!player || !frame) return;
+
+    if (playing) playing.textContent = game.title || 'Game';
+    if (game.custom === true) {
+      frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-pointer-lock');
+    } else {
+      frame.removeAttribute('sandbox');
+    }
+    frame.src = url;
+    player.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function createCard(game, isCustom) {
+    var article = document.createElement('article');
+    article.className = 'card' + (isCustom ? ' aero-custom-card' : '');
+
+    if (game.thumb) {
+      var image = document.createElement('img');
+      image.className = 'thumb';
+      image.src = game.thumb;
+      image.alt = game.title || 'Game';
+      image.loading = 'lazy';
+      article.appendChild(image);
+    } else {
+      var placeholder = document.createElement('div');
+      placeholder.className = 'thumb-placeholder';
+      placeholder.textContent = (game.title || 'A').slice(0, 1).toUpperCase();
+      article.appendChild(placeholder);
+    }
+
+    var title = document.createElement('h2');
+    title.textContent = game.title || 'Untitled game';
+    article.appendChild(title);
+    article.addEventListener('click', function () {
+      openGame(game);
+    });
+
+    if (isCustom) {
+      var remove = document.createElement('button');
+      remove.className = 'aero-delete';
+      remove.type = 'button';
+      remove.textContent = 'Remove';
+      remove.setAttribute('aria-label', 'Remove ' + (game.title || 'custom game'));
+      remove.addEventListener('click', function (event) {
+        event.stopPropagation();
+        if (window.confirm('Remove "' + (game.title || 'this game') + '" from your library?')) {
+          removeCustomGame(game.id);
+        }
+      });
+      article.appendChild(remove);
+    }
+    return article;
+  }
+
+  function createAddCard() {
+    var article = document.createElement('article');
+    article.className = 'card aero-plus';
+    article.setAttribute('role', 'button');
+    article.tabIndex = 0;
+    article.innerHTML = `
+      <div class="aero-plus-inner">
+        <span class="aero-plus-mark" aria-hidden="true">+</span>
+        <strong>Add your game</strong>
+      </div>
+    `;
+    article.addEventListener('click', showImport);
+    article.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        showImport();
+      }
+    });
+    return article;
+  }
+
+  function drawLibrary() {
+    var grid = document.getElementById('grid');
+    if (!grid) return;
+    var input = document.getElementById('search');
+    var query = ((input && input.value) || '').trim().toLowerCase();
+    var combined = builtInGames.concat(customGames);
+    var visible = combined.filter(function (game) {
+      return (game.title || '').toLowerCase().includes(query);
+    });
+
+    grid.innerHTML = '';
+    grid.appendChild(createAddCard());
+    visible.forEach(function (game) {
+      grid.appendChild(createCard(game, game.custom === true));
+    });
+
+    var count = document.getElementById('count');
+    if (count) count.textContent = visible.length + ' OF ' + combined.length + ' GAMES';
+    var empty = document.getElementById('empty');
+    if (empty) empty.style.display = visible.length ? 'none' : 'block';
+  }
+
+  function wireFeaturedGames() {
+    var featured = document.getElementById('featured');
+    if (!featured) return;
+    featured.querySelectorAll('[data-i]').forEach(function (card) {
+      card.onclick = function () {
+        var game = builtInGames[Number(card.dataset.i)];
+        if (game) openGame(game);
+      };
+    });
+  }
+
+  function openDatabase() {
+    return new Promise(function (resolve, reject) {
+      var request = indexedDB.open(DB_NAME, 1);
+      request.onupgradeneeded = function () {
+        if (!request.result.objectStoreNames.contains(DB_STORE)) {
+          request.result.createObjectStore(DB_STORE, { keyPath: 'id', autoIncrement: true });
+        }
+      };
+      request.onsuccess = function () { resolve(request.result); };
+      request.onerror = function () { reject(request.error); };
+    });
+  }
+
+  function requestResult(request) {
+    return new Promise(function (resolve, reject) {
+      request.onsuccess = function () { resolve(request.result); };
+      request.onerror = function () { reject(request.error); };
+    });
+  }
+
+  function transactionComplete(transaction) {
+    return new Promise(function (resolve, reject) {
+      transaction.oncomplete = function () { resolve(); };
+      transaction.onerror = function () { reject(transaction.error); };
+      transaction.onabort = function () { reject(transaction.error); };
+    });
+  }
+
+  function revokeObjectUrls() {
+    objectUrls.forEach(function (url) {
+      try { URL.revokeObjectURL(url); } catch (error) {}
+    });
+    objectUrls = [];
+  }
+
+  async function loadCustomGames() {
+    var loadVersion = ++libraryLoadVersion;
+    try {
+      var database = await openDatabase();
+      var request = database.transaction(DB_STORE, 'readonly').objectStore(DB_STORE).getAll();
+      var records = await requestResult(request);
+      if (loadVersion !== libraryLoadVersion) return;
+      revokeObjectUrls();
+      customGames = records.map(function (record) {
+        var gameUrl = URL.createObjectURL(record.html);
+        objectUrls.push(gameUrl);
+        var thumbUrl = '';
+        if (record.thumbnail) {
+          thumbUrl = URL.createObjectURL(record.thumbnail);
+          objectUrls.push(thumbUrl);
+        }
+        return {
+          id: record.id,
+          title: record.title,
+          url: gameUrl,
+          thumb: thumbUrl,
+          custom: true
+        };
+      });
+      drawLibrary();
+    } catch (error) {
+      toast('Custom game storage is unavailable in this browser.');
+    }
+  }
+
+  async function addCustomGame(record) {
+    try {
+      var database = await openDatabase();
+      var transaction = database.transaction(DB_STORE, 'readwrite');
+      transaction.objectStore(DB_STORE).add(record);
+      await transactionComplete(transaction);
+      await loadCustomGames();
+      toast('Game added to your library.');
+    } catch (error) {
+      toast('That game could not be saved.');
+    }
+  }
+
+  async function removeCustomGame(id) {
+    try {
+      var database = await openDatabase();
+      var transaction = database.transaction(DB_STORE, 'readwrite');
+      transaction.objectStore(DB_STORE).delete(id);
+      await transactionComplete(transaction);
+      await loadCustomGames();
+      toast('Game removed.');
+    } catch (error) {
+      toast('That game could not be removed.');
+    }
+  }
+
+  function showImport() {
+    var modal = document.getElementById('aeroImportModal');
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    setTimeout(function () {
+      document.getElementById('aeroGameTitle').focus();
+    }, 40);
+  }
+
+  function hideImport() {
+    var modal = document.getElementById('aeroImportModal');
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  function showView(view) {
+    var gamesView = document.querySelector('main.content');
+    var mediaView = document.getElementById('mediaView');
+    var settingsView = document.getElementById('aeroSettingsView');
+    var connectView = document.getElementById('aeroConnectView');
+    if (gamesView) gamesView.style.display = view === 'games' ? 'block' : 'none';
+    if (mediaView) mediaView.classList.toggle('active', view === 'media');
+    if (settingsView) settingsView.classList.toggle('active', view === 'settings');
+    if (connectView) connectView.classList.toggle('active', view === 'connect');
+
+    document.querySelectorAll('.nav-links a, .settings-nav').forEach(function (link) {
+      link.classList.remove('active');
+    });
+    var active = view === 'settings'
+      ? document.getElementById('settingsToggle')
+      : document.getElementById(view + 'Nav');
+    if (active) active.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function getConnectOrigin() {
+    return CONNECT_ORIGIN;
+  }
+
+  var connectMounted = false;
+  function loadConnectFrame() {
+    var page = document.getElementById('aeroConnectPage');
+    var empty = document.getElementById('aeroConnectEmpty');
+    if (!page || !empty || connectMounted) return;
+    try {
+      var template = document.getElementById('aeroConnectMarkup');
+      var styles = document.getElementById('aeroConnectStyles');
+      var client = document.getElementById('aeroConnectClient');
+      if (!template || !styles || !client) throw new Error('Connect assets missing');
+      page.appendChild(template.content.cloneNode(true));
+      if (!document.getElementById('aeroConnectPageStyles')) {
+        var style = document.createElement('style');
+        style.id = 'aeroConnectPageStyles';
+        style.textContent = styles.textContent;
+        document.head.appendChild(style);
+      }
+      page.hidden = false;
+      empty.hidden = true;
+      connectMounted = true;
+      (new Function(client.textContent))();
+    } catch (error) {
+      page.hidden = true;
+      empty.hidden = false;
+      empty.querySelector('p').textContent = 'Dynamix Connect could not be loaded right now.';
+      empty.querySelector('p').classList.add('aero-connect-error');
+    }
+  }
+
+  function getFrutigerImage() {
+    var url = resolveSitePath('images/frutiger-aero-bg.jpg');
+    return url ? "url('" + url.replace(/'/g, '%27') + "')" : themes['frutiger-aero'].image;
+  }
+
+  function applyTheme(name, quiet) {
+    var selected = themes[name] || themes.black;
+    settings.theme = themes[name] ? name : 'black';
+    saveSettings();
+    document.body.classList.add('aerodynamix-standalone');
+    document.body.dataset.aeroTheme = settings.theme;
+    document.body.style.backgroundColor = selected.background;
+    document.body.style.backgroundImage = name === 'frutiger-aero' ? getFrutigerImage() : selected.image;
+    document.body.style.backgroundSize = name === 'frutiger-aero' ? 'cover' : '';
+    document.body.style.backgroundPosition = name === 'frutiger-aero' ? 'center' : '';
+    document.body.style.backgroundAttachment = 'fixed';
+    document.documentElement.style.setProperty('--standalone-bg', selected.background);
+    document.documentElement.style.setProperty('--standalone-text', selected.color);
+    document.documentElement.style.setProperty('--standalone-accent', selected.accent);
+    document.querySelectorAll('.aero-theme-button').forEach(function (button) {
+      button.classList.toggle('active', button.dataset.theme === settings.theme);
+    });
+    syncThemeEffects();
+    if (!quiet) toast(selected.label + ' theme applied.');
+  }
+
+  function standaloneIcon() {
+    return 'data:image/svg+xml,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' +
+      '<rect width="64" height="64" rx="16" fill="#071226"/>' +
+      '<path d="M13 49 29 13h8l15 36h-9l-3-8H25l-3 8zm15-16h9l-4-11z" fill="#55a7ff"/>' +
+      '</svg>'
+    );
+  }
+
+  function applyCloak(enabled) {
+    settings.cloak = enabled;
+    saveSettings();
+    var preset = CLOAK_PRESETS[settings.cloakPreset] || CLOAK_PRESETS.google;
+    document.title = enabled ? preset.title : 'Aerodynamix';
+    var icon = document.querySelector('link[rel~="icon"]');
+    if (!icon) {
+      icon = document.createElement('link');
+      icon.rel = 'icon';
+      document.head.appendChild(icon);
+    }
+    icon.href = enabled
+      ? (preset.icon || resolveSitePath(preset.path) || standaloneIcon())
+      : standaloneIcon();
+    var toggle = document.getElementById('aeroCloakToggle');
+    if (toggle) toggle.classList.toggle('on', enabled);
+    var select = document.getElementById('aeroCloakPreset');
+    if (select) select.value = settings.cloakPreset || 'google';
+  }
+
+  function createEffectLayer() {
+    var layer = document.createElement('div');
+    layer.id = 'aeroThemeEffects';
+    document.body.appendChild(layer);
+    effectLayer = layer;
+    return layer;
+  }
+
+  function stopThemeEffects() {
+    clearInterval(effectTimer);
+    effectTimer = null;
+    if (effectLayer) effectLayer.remove();
+    effectLayer = null;
+  }
+
+  function spawnBubble() {
+    if (!effectLayer || effectLayer.childElementCount > 26) return;
+    var bubble = document.createElement('button');
+    var size = Math.round(22 + Math.random() * 52);
+    bubble.className = 'aero-bubble';
+    bubble.type = 'button';
+    bubble.tabIndex = -1;
+    bubble.setAttribute('aria-label', 'Pop bubble');
+    bubble.style.left = Math.round(Math.random() * 94) + 'vw';
+    bubble.style.width = size + 'px';
+    bubble.style.height = size + 'px';
+    bubble.style.setProperty('--duration', (5 + Math.random() * 6).toFixed(2) + 's');
+    bubble.style.setProperty('--drift', Math.round(-35 + Math.random() * 70) + 'px');
+    bubble.onclick = function () {
+      bubble.style.transform = 'scale(1.35)';
+      bubble.style.opacity = '0';
+      setTimeout(function () { bubble.remove(); }, 140);
+    };
+    bubble.onanimationend = function () { bubble.remove(); };
+    effectLayer.appendChild(bubble);
+  }
+
+  function spawnSnow() {
+    if (!effectLayer) return;
+    for (var index = 0; index < 55; index += 1) {
+      var flake = document.createElement('span');
+      var size = 2 + Math.random() * 5;
+      flake.className = 'aero-snow';
+      flake.style.left = Math.random() * 100 + 'vw';
+      flake.style.width = size + 'px';
+      flake.style.height = size + 'px';
+      flake.style.opacity = (.35 + Math.random() * .6).toFixed(2);
+      flake.style.setProperty('--blur', Math.random() > .72 ? '1px' : '0');
+      flake.style.setProperty('--duration', (5 + Math.random() * 7).toFixed(2) + 's');
+      flake.style.setProperty('--drift', Math.round(-45 + Math.random() * 90) + 'px');
+      flake.style.animationDelay = (-Math.random() * 10).toFixed(2) + 's';
+      effectLayer.appendChild(flake);
+    }
+  }
+
+  function syncThemeEffects() {
+    stopThemeEffects();
+    document.body.classList.toggle('aero-reduce-effects', settings.reduceEffects === true);
+    var toggle = document.getElementById('aeroEffectsToggle');
+    if (toggle) toggle.classList.toggle('on', settings.reduceEffects === true);
+    if (settings.reduceEffects) return;
+
+    if (settings.theme === 'frutiger-aero') {
+      createEffectLayer();
+      spawnBubble();
+      effectTimer = setInterval(spawnBubble, 520);
+    } else if (settings.theme === 'christmas') {
+      createEffectLayer();
+      spawnSnow();
+    }
+  }
+
+  function renderThemeButtons() {
+    var container = document.getElementById('aeroThemeGrid');
+    Object.keys(themes).forEach(function (name) {
+      var theme = themes[name];
+      var button = document.createElement('button');
+      button.className = 'aero-theme-button';
+      button.type = 'button';
+      button.dataset.theme = name;
+      button.style.setProperty('--theme-color', theme.background);
+      button.style.setProperty('--theme-text', theme.color);
+      if (name === 'frutiger-aero') {
+        var image = resolveSitePath('images/frutiger-aero-btn-bg.png');
+        if (image) button.style.backgroundImage = "url('" + image.replace(/'/g, '%27') + "')";
+      }
+      button.textContent = theme.label;
+      button.onclick = function () { applyTheme(name, false); };
+      container.appendChild(button);
+    });
+  }
+
+  function updateConnectionStatus() {
+    var status = document.getElementById('offlineStatus');
+    if (status) status.textContent = navigator.onLine ? 'Online' : 'Offline';
+  }
+
+  function wireEvents() {
+    var gamesNav = document.getElementById('gamesNav');
+    var mediaNav = document.getElementById('mediaNav');
+    var connectNav = document.getElementById('connectNav');
+    var settingsNav = document.getElementById('settingsToggle');
+    if (gamesNav) gamesNav.onclick = function (event) {
+      event.preventDefault();
+      showView('games');
+    };
+    if (mediaNav) mediaNav.onclick = function (event) {
+      event.preventDefault();
+      showView('media');
+    };
+    if (connectNav) connectNav.onclick = function (event) {
+      event.preventDefault();
+      showView('connect');
+      loadConnectFrame();
+    };
+    if (settingsNav) {
+      settingsNav.textContent = 'Settings';
+      settingsNav.onclick = function (event) {
+        event.preventDefault();
+        showView('settings');
+      };
+    }
+
+    var search = document.getElementById('search');
+    if (search) search.oninput = drawLibrary;
+    var searchButton = document.getElementById('searchButton');
+    if (searchButton) searchButton.onclick = drawLibrary;
+
+    document.getElementById('aeroCloakToggle').onclick = function () {
+      applyCloak(!settings.cloak);
+    };
+    document.getElementById('aeroCloakPreset').onchange = function (event) {
+      if (!CLOAK_PRESETS[event.target.value]) return;
+      settings.cloakPreset = event.target.value;
+      saveSettings();
+      if (settings.cloak) applyCloak(true);
+    };
+    document.getElementById('aeroEffectsToggle').onclick = function () {
+      settings.reduceEffects = !settings.reduceEffects;
+      saveSettings();
+      syncThemeEffects();
+      toast(settings.reduceEffects ? 'Visual effects reduced.' : 'Full visual effects restored.');
+    };
+
+    var origin = document.getElementById('aeroSourceOrigin');
+    origin.value = settings.sourceOrigin || (location.protocol === 'file:' ? DEFAULT_PUBLIC_ROOT : '');
+    document.getElementById('aeroSaveOrigin').onclick = function () {
+      var value = origin.value.trim();
+      if (value && !/^https?:\/\//i.test(value)) {
+        toast('Use a complete http:// or https:// URL.');
+        origin.focus();
+        return;
+      }
+      settings.sourceOrigin = value.replace(/\/?$/, '/');
+      saveSettings();
+      applyTheme(settings.theme || 'black', true);
+      toast(value ? 'Game source saved.' : 'Saved game source cleared.');
+    };
+
+    var importModal = document.getElementById('aeroImportModal');
+    document.getElementById('aeroImportClose').onclick = hideImport;
+    document.getElementById('aeroImportCancel').onclick = hideImport;
+    importModal.onclick = function (event) {
+      if (event.target === importModal) hideImport();
+    };
+    document.getElementById('aeroImportForm').onsubmit = function (event) {
+      event.preventDefault();
+      var html = document.getElementById('aeroGameFile').files[0];
+      var thumbnail = document.getElementById('aeroGameThumb').files[0] || null;
+      var titleInput = document.getElementById('aeroGameTitle');
+      if (!html) return;
+      var title = titleInput.value.trim() || html.name.replace(/\.(html?|HTML?)$/, '');
+      addCustomGame({ title: title, html: html, thumbnail: thumbnail });
+      hideImport();
+      event.target.reset();
+    };
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && importModal.classList.contains('open')) hideImport();
+    });
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+    window.addEventListener('beforeunload', revokeObjectUrls);
+  }
+
+  function rebrand() {
+    document.querySelectorAll('.lite-label').forEach(function (label) { label.remove(); });
+    var heading = document.querySelector('.real-nav h1');
+    if (heading) heading.textContent = 'AERODYNAMIX';
+    document.body.dataset.originalTitle = 'Aerodynamix';
+  }
+
+  function init() {
+    if (document.getElementById('aerodynamix-standalone-styles')) return;
+    injectStyles();
+    createMarkup();
+    rebrand();
+    renderThemeButtons();
+    wireEvents();
+    builtInGames = getManifest();
+    window.openGame = openGame;
+    wireFeaturedGames();
+    if (settings.cloak === undefined) settings.cloak = true;
+    if (!settings.cloakPreset) settings.cloakPreset = 'google';
+    if (!settings.theme) settings.theme = 'black';
+    saveSettings();
+    applyCloak(settings.cloak);
+    applyTheme(settings.theme, true);
+    updateConnectionStatus();
+    drawLibrary();
+    loadCustomGames();
+    var params = new URLSearchParams(location.search);
+    var requestedView = params.get('view');
+    var validView = requestedView === 'media' || requestedView === 'settings' || requestedView === 'connect'
+      ? requestedView
+      : 'games';
+    showView(validView);
+    if (validView === 'connect') loadConnectFrame();
+    var requestedGame = Number(params.get('game'));
+    if (params.has('game') && Number.isInteger(requestedGame) && builtInGames[requestedGame]) {
+      setTimeout(function () { openGame(builtInGames[requestedGame]); }, 0);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();

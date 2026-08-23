@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071226">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Aerodynamix">
+    <title>Game - Aerodynamix</title>
+    <script src="tab-cloak.js"></script>
+    <script src="discs.js" defer></script>
+    <script src="auth-overlay.js" defer></script>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        html, body {
+            background-color: #000000;
+            color: #fff;
+            overflow-y: auto;
+            height: auto;
+        }
+
+        .game-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            height: 7vw;
+            padding: 0 1%;
+            backdrop-filter: blur(10px) saturate(200%) brightness(70%);
+        }
+
+        .game-header img {
+            height: 80%;
+            width: auto;
+            margin-right: 1%;
+            border-radius: 1vw;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 5px 5px 10px rgba(53, 53, 53, 0.459);
+            background-color: #000000;
+            padding: 0.3vw;
+            box-sizing: border-box;
+        }
+
+        .game-header h1 {
+            font-size: 2vw;
+            font-weight: 800;
+            margin-right: 1%;
+            margin: 0;
+        }
+
+        .header-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.5vw;
+        }
+        .back-button {
+            color: #fff;
+            text-decoration: none;
+            padding: 0.5vw 1vw;
+            background-color: #2c7ffc;
+            border-radius: 0.5vw;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-size: 1vw;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .back-button:hover {
+            background-color: #1e5bc4;
+            transform: scale(1.05);
+        }
+        .keyboard-button {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+        }
+
+        .game-container {
+            margin-top: 7vw;
+            width: 100%;
+            height: calc(100vh - 7vw + 120px);
+            min-height: calc(100vh - 7vw + 120px);
+            border: 0.5vw solid #000;
+            box-sizing: border-box;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            transition: height 0.3s ease, min-height 0.3s ease;
+        }
+        .game-container.footer-visible {
+            height: calc(100vh - 7vw - 72px + 120px);
+            min-height: calc(100vh - 7vw - 72px + 120px);
+        }
+
+        .game-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .virtual-keyboard {
+            position: fixed;
+            left: 50%;
+            bottom: 0;
+            z-index: 25;
+            display: none;
+            width: min(860px, calc(100vw - 1rem));
+            max-height: min(58vh, 430px);
+            padding: .7rem;
+            box-sizing: border-box;
+            transform: translate(-50%, 0);
+            overflow-y: auto;
+            border: 1px solid rgba(130, 183, 255, .34);
+            border-bottom: 0;
+            border-radius: 16px 16px 0 0;
+            background: rgba(5, 11, 24, .97);
+            box-shadow: 0 -18px 55px rgba(0, 0, 0, .6);
+            backdrop-filter: blur(18px);
+            font-family: 'Montserrat', sans-serif;
+            touch-action: manipulation;
+        }
+        .virtual-keyboard.open { display: block; }
+        .game-container.keyboard-reserved {
+            height: calc(100vh - var(--game-header-height, 7vw) - var(--virtual-keyboard-height, 0px));
+            min-height: calc(100vh - var(--game-header-height, 7vw) - var(--virtual-keyboard-height, 0px));
+        }
+        .virtual-keyboard-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .6rem;
+            margin-bottom: .55rem;
+            color: #cfe3ff;
+            font-size: .68rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+        .virtual-keyboard-more {
+            flex: 0 0 auto;
+            padding: .28rem .5rem;
+            border: 1px solid rgba(130, 183, 255, .28);
+            border-radius: 6px;
+            color: #cfe3ff;
+            background: rgba(44, 127, 252, .14);
+            font: 800 .57rem 'Montserrat', sans-serif;
+            letter-spacing: .02em;
+            cursor: pointer;
+            text-transform: none;
+        }
+        .virtual-keyboard-more:hover {
+            background: rgba(44, 127, 252, .3);
+            border-color: rgba(130, 183, 255, .55);
+        }
+        .virtual-keyboard:not(.expanded) .full-keyboard-layout,
+        .virtual-keyboard.expanded .compact-keyboard-layout {
+            display: none;
+        }
+        .compact-keyboard-layout .virtual-keyboard-row {
+            margin-top: .3rem;
+        }
+        .virtual-keyboard-title span:last-child {
+            color: rgba(255, 255, 255, .46);
+            font-size: .58rem;
+            font-weight: 600;
+            letter-spacing: .02em;
+            text-transform: none;
+        }
+        .virtual-keyboard-row {
+            display: flex;
+            gap: .3rem;
+            margin-top: .3rem;
+        }
+        .virtual-key {
+            flex: 1 1 0;
+            min-width: 0;
+            min-height: 38px;
+            padding: .35rem .25rem;
+            border: 1px solid rgba(255, 255, 255, .13);
+            border-radius: 7px;
+            color: #eaf3ff;
+            background: linear-gradient(180deg, rgba(43, 62, 92, .96), rgba(19, 31, 55, .96));
+            box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .28);
+            font: 800 .68rem 'Montserrat', sans-serif;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+        }
+        .virtual-key:active,
+        .virtual-key.pressed,
+        .virtual-key.latched {
+            border-color: #7db8ff;
+            color: #fff;
+            background: linear-gradient(180deg, #2c7ffc, #174ea8);
+            box-shadow: 0 0 0 2px rgba(44, 127, 252, .2), inset 0 -1px 0 rgba(0, 0, 0, .24);
+            transform: translateY(1px);
+        }
+        .virtual-key.wide { flex-grow: 1.7; }
+        .virtual-key.extra-wide { flex-grow: 3.8; }
+        .virtual-key.arrow-key { flex-grow: .8; }
+        .virtual-key.small-label { font-size: .57rem; }
+        .virtual-keyboard-hint {
+            margin: .55rem 0 0;
+            color: rgba(255, 255, 255, .4);
+            font-size: .58rem;
+            text-align: center;
+        }
+
+        .game-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            display: none;
+            align-items: center;
+            gap: 20px;
+            padding: 12px 30px;
+            background: rgba(10,10,10,0.97);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid #222;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        @media (max-width: 700px) {
+            .game-header {
+                height: 58px;
+                padding: 0 .65rem;
+            }
+            .game-header img {
+                width: 40px;
+                height: 40px;
+                margin-right: .45rem;
+                border-radius: 9px;
+                padding: 3px;
+            }
+            .game-header h1 {
+                max-width: 42vw;
+                overflow: hidden;
+                font-size: .9rem;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .header-actions {
+                gap: .35rem;
+            }
+            .back-button {
+                min-height: 38px;
+                padding: .55rem .7rem;
+                border-radius: 9px;
+                font-size: .72rem;
+            }
+            .keyboard-button span { display: none; }
+            .keyboard-button { padding-inline: .72rem; }
+            .game-container,
+            .game-container.footer-visible {
+                margin-top: 58px;
+                height: calc(100svh - 58px);
+                min-height: calc(100svh - 58px);
+                border-width: 2px;
+            }
+            .virtual-keyboard {
+                width: calc(100vw - .5rem);
+                max-height: min(61vh, 440px);
+                padding: .5rem;
+                border-radius: 14px 14px 0 0;
+            }
+            .virtual-key {
+                min-height: 40px;
+                font-size: .65rem;
+            }
+            .virtual-keyboard-hint { display: none; }
+        }
+
+        @media (max-width: 900px) and (orientation: landscape) and (max-height: 600px) {
+            .game-header {
+                height: 48px;
+                padding: 0 .55rem;
+            }
+            .game-header img {
+                width: 34px;
+                height: 34px;
+            }
+            .game-header h1 {
+                font-size: .78rem;
+            }
+            .back-button {
+                min-height: 32px;
+                padding: .4rem .6rem;
+                font-size: .65rem;
+            }
+            .game-container,
+            .game-container.footer-visible {
+                margin-top: 48px;
+                height: calc(100svh - 48px);
+                min-height: calc(100svh - 48px);
+            }
+        }
+
+        /* Phone player layout: keep the controls reachable without wasting
+           the viewport on a desktop-sized header. */
+        @media (max-width: 700px) {
+            .game-header {
+                height: calc(58px + env(safe-area-inset-top));
+                min-height: calc(58px + env(safe-area-inset-top));
+                padding: max(6px, env(safe-area-inset-top)) .7rem .45rem;
+                gap: .55rem;
+                background: rgba(5, 11, 24, .97);
+                border-bottom: 1px solid rgba(130, 183, 255, .16);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+            }
+
+            .game-header img {
+                width: 38px;
+                height: 38px;
+                flex: 0 0 38px;
+                margin-right: 0;
+                border-radius: 9px;
+                padding: 0;
+            }
+
+            .game-header h1 {
+                min-width: 0;
+                max-width: 43vw;
+                margin: 0;
+                overflow: hidden;
+                font-size: clamp(.82rem, 4vw, 1rem);
+                letter-spacing: .025em;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .header-actions {
+                gap: .4rem;
+            }
+
+            .back-button {
+                min-height: 38px;
+                padding: .5rem .65rem;
+                border-radius: 9px;
+                font-size: .7rem;
+                white-space: nowrap;
+            }
+
+            .game-container,
+            .game-container.footer-visible {
+                margin-top: calc(58px + env(safe-area-inset-top));
+                height: calc(100svh - 58px - env(safe-area-inset-top));
+                min-height: calc(100svh - 58px - env(safe-area-inset-top));
+                border-width: 2px;
+            }
+            .game-container.keyboard-reserved {
+                height: calc(100svh - 58px - env(safe-area-inset-top) - var(--virtual-keyboard-height, 0px));
+                min-height: calc(100svh - 58px - env(safe-area-inset-top) - var(--virtual-keyboard-height, 0px));
+            }
+        }
+
+        @media (max-width: 900px) and (orientation: landscape) and (max-height: 600px) {
+            .game-header {
+                height: calc(46px + env(safe-area-inset-top));
+                min-height: calc(46px + env(safe-area-inset-top));
+                padding: max(4px, env(safe-area-inset-top)) .6rem .3rem;
+            }
+
+            .game-header img {
+                width: 32px;
+                height: 32px;
+                flex-basis: 32px;
+            }
+
+            .game-header h1 {
+                max-width: 35vw;
+                font-size: .76rem;
+            }
+
+            .back-button {
+                min-height: 31px;
+                padding: .35rem .55rem;
+                font-size: .62rem;
+            }
+            .keyboard-button { padding-inline: .58rem; }
+
+            .game-container,
+            .game-container.footer-visible {
+                margin-top: calc(46px + env(safe-area-inset-top));
+                height: calc(100svh - 46px - env(safe-area-inset-top));
+                min-height: calc(100svh - 46px - env(safe-area-inset-top));
+            }
+            .game-container.keyboard-reserved {
+                height: calc(100svh - 46px - env(safe-area-inset-top) - var(--virtual-keyboard-height, 0px));
+                min-height: calc(100svh - 46px - env(safe-area-inset-top) - var(--virtual-keyboard-height, 0px));
+            }
+            .virtual-keyboard {
+                max-height: min(72vh, 330px);
+                padding: .35rem;
+            }
+            .virtual-keyboard-title { margin-bottom: .25rem; }
+            .virtual-keyboard-row { gap: .2rem; margin-top: .2rem; }
+            .virtual-key { min-height: 30px; padding: .2rem .12rem; font-size: .55rem; }
+            .virtual-keyboard-more { padding: .2rem .35rem; font-size: .5rem; }
+        }
+        .game-footer.visible { display: flex; }
+
+        .game-footer .gf-art {
+            width: 52px; height: 52px; border-radius: 6px;
+            object-fit: cover; flex-shrink: 0; background: #222;
+            opacity: 0.3; transition: opacity 0.3s;
+        }
+        .game-footer .gf-art.active { opacity: 1; }
+
+        .game-footer .gf-info {
+            flex-shrink: 0; width: 180px;
+            min-width: 0;
+        }
+        .game-footer .gf-info .gf-track {
+            font-size: 0.85rem; font-weight: 700;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            color: #fff;
+        }
+        .game-footer .gf-info .gf-album {
+            font-size: 0.72rem; color: #888;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .game-footer .gf-controls {
+            display: flex; align-items: center; gap: 18px;
+            flex-shrink: 0;
+        }
+        .game-footer .gf-controls button {
+            background: none; border: none; color: #ccc;
+            cursor: pointer; font-size: 1.1rem; transition: color 0.2s;
+            padding: 4px;
+        }
+        .game-footer .gf-controls button:hover { color: #fff; }
+        .game-footer .gf-controls button.play-pause {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: #fff; color: #000;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+        }
+        .game-footer .gf-controls button.play-pause:hover { background: #ddd; }
+
+        .game-footer .gf-progress {
+            flex: 1; display: flex; flex-direction: column; gap: 4px;
+            min-width: 0;
+        }
+        .game-footer .gf-progress input {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 4px; background: #333; border-radius: 2px;
+            cursor: pointer; outline: none;
+        }
+        .game-footer .gf-progress input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px; height: 10px; background: #fff; border-radius: 50%;
+        }
+        .game-footer .gf-progress .gf-times {
+            display: flex; justify-content: space-between;
+            font-size: 0.65rem; color: #888;
+        }
+
+        .game-footer .gf-volume {
+            display: flex; align-items: center; gap: 8px;
+            flex-shrink: 0;
+        }
+        .game-footer .gf-volume i {
+            font-size: 0.75rem; color: #888;
+        }
+        .game-footer .gf-volume input {
+            -webkit-appearance: none; appearance: none;
+            width: 60px; height: 4px; background: #333; border-radius: 2px;
+            cursor: pointer;
+        }
+        .game-footer .gf-volume input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px; height: 10px; background: #fff; border-radius: 50%;
+        }
+        .game-footer .gf-game-volume {
+            display: flex; align-items: center; gap: 8px;
+            flex-shrink: 0;
+        }
+        .game-footer .gf-game-volume input {
+            -webkit-appearance: none; appearance: none;
+            width: 60px; height: 4px; background: #333; border-radius: 2px;
+            cursor: pointer;
+        }
+        .game-footer .gf-game-volume input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px; height: 10px; background: #fff; border-radius: 50%;
+        }
+
+        .game-footer .gf-extras {
+            display: flex; align-items: center; gap: 10px;
+            flex-shrink: 0;
+        }
+        .game-footer .gf-extras button {
+            background: none; border: none; color: #ccc;
+            cursor: pointer; font-size: 1rem; transition: color 0.2s;
+        }
+        .game-footer .gf-extras button:hover { color: #fff; }
+        .game-footer .gf-extras button.lyrics-btn {
+            font-size: 0.8rem; padding: 6px 10px;
+            border-radius: 6px; border: 1px solid #444;
+            background: transparent; color: #aaa;
+        }
+        .game-footer .gf-extras button.lyrics-btn:hover { color: #fff; border-color: #666; }
+        .game-footer .gf-extras button.fullscreen-btn {
+            font-size: 0.85rem; font-weight: 600;
+            padding: 6px 14px; border-radius: 6px;
+            border: 1px solid #444; background: transparent;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .game-footer .gf-extras button.fullscreen-btn:hover { color: #fff; border-color: #666; background: #222; }
+
+    </style>
+</head>
+<body>
+    <div class="game-header">
+        <img src="images/logo.gif" alt="logo" onclick="goHome()">
+        <h1><span class="logo-a" id="logo-a">A</span>ERODYNAMIX</h1>
+        <div class="header-actions">
+            <button class="back-button keyboard-button" id="keyboard-toggle" type="button" aria-expanded="false" aria-controls="virtual-keyboard" title="Open on-screen keyboard"><i class="fa-solid fa-keyboard"></i><span>Keys</span></button>
+            <button class="back-button" onclick="toggleFullscreen()" title="Fullscreen"><i class="fa-solid fa-expand" id="fs-icon-header"></i></button>
+            <button class="back-button" onclick="goHome()">← Back Home</button>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <iframe id="gameFrame"></iframe>
+    </div>
+
+    <section class="virtual-keyboard" id="virtual-keyboard" aria-label="On-screen keyboard">
+        <div class="virtual-keyboard-title">
+            <span><i class="fa-solid fa-keyboard"></i> On-screen keyboard</span>
+            <button class="virtual-keyboard-more" id="virtual-keyboard-more" type="button" aria-expanded="false">More keys</button>
+        </div>
+        <div class="compact-keyboard-layout">
+            <div class="virtual-keyboard-row">
+                <button class="virtual-key small-label wide" type="button" data-key="Escape" data-code="Escape">Esc</button>
+                <button class="virtual-key" type="button" data-key="w" data-code="KeyW">W</button>
+                <button class="virtual-key arrow-key" type="button" data-key="ArrowUp" data-code="ArrowUp">↑</button>
+                <button class="virtual-key small-label wide" type="button" data-key="Enter" data-code="Enter">Enter</button>
+            </div>
+            <div class="virtual-keyboard-row">
+                <button class="virtual-key small-label wide" type="button" data-key="Control" data-code="ControlLeft" data-latch="true">Ctrl</button>
+                <button class="virtual-key" type="button" data-key="a" data-code="KeyA">A</button>
+                <button class="virtual-key" type="button" data-key="s" data-code="KeyS">S</button>
+                <button class="virtual-key" type="button" data-key="d" data-code="KeyD">D</button>
+                <button class="virtual-key small-label wide" type="button" data-key="Shift" data-code="ShiftLeft" data-latch="true">Shift</button>
+            </div>
+            <div class="virtual-keyboard-row">
+                <button class="virtual-key extra-wide" type="button" data-key=" " data-code="Space">Space</button>
+                <button class="virtual-key arrow-key" type="button" data-key="ArrowLeft" data-code="ArrowLeft">←</button>
+                <button class="virtual-key arrow-key" type="button" data-key="ArrowDown" data-code="ArrowDown">↓</button>
+                <button class="virtual-key arrow-key" type="button" data-key="ArrowRight" data-code="ArrowRight">→</button>
+            </div>
+        </div>
+        <div class="full-keyboard-layout">
+        <div class="virtual-keyboard-row">
+            <button class="virtual-key small-label wide advanced-key" type="button" data-key="Escape" data-code="Escape">Esc</button>
+            <button class="virtual-key advanced-key" type="button" data-key="F1" data-code="F1">F1</button>
+            <button class="virtual-key advanced-key" type="button" data-key="F2" data-code="F2">F2</button>
+            <button class="virtual-key advanced-key" type="button" data-key="F3" data-code="F3">F3</button>
+            <button class="virtual-key advanced-key" type="button" data-key="F4" data-code="F4">F4</button>
+            <button class="virtual-key advanced-key" type="button" data-key="F5" data-code="F5">F5</button>
+            <button class="virtual-key advanced-key" type="button" data-key="F6" data-code="F6">F6</button>
+            <button class="virtual-key advanced-key" type="button" data-key="F7" data-code="F7">F7</button>
+            <button class="virtual-key advanced-key" type="button" data-key="F8" data-code="F8">F8</button>
+            <button class="virtual-key advanced-key" type="button" data-key="F9" data-code="F9">F9</button>
+            <button class="virtual-key advanced-key" type="button" data-key="F10" data-code="F10">F10</button>
+        </div>
+        <div class="virtual-keyboard-row advanced-keyboard-row">
+            <button class="virtual-key advanced-key" type="button" data-key="1" data-code="Digit1">1</button>
+            <button class="virtual-key advanced-key" type="button" data-key="2" data-code="Digit2">2</button>
+            <button class="virtual-key advanced-key" type="button" data-key="3" data-code="Digit3">3</button>
+            <button class="virtual-key advanced-key" type="button" data-key="4" data-code="Digit4">4</button>
+            <button class="virtual-key advanced-key" type="button" data-key="5" data-code="Digit5">5</button>
+            <button class="virtual-key advanced-key" type="button" data-key="6" data-code="Digit6">6</button>
+            <button class="virtual-key advanced-key" type="button" data-key="7" data-code="Digit7">7</button>
+            <button class="virtual-key advanced-key" type="button" data-key="8" data-code="Digit8">8</button>
+            <button class="virtual-key advanced-key" type="button" data-key="9" data-code="Digit9">9</button>
+            <button class="virtual-key advanced-key" type="button" data-key="0" data-code="Digit0">0</button>
+            <button class="virtual-key small-label wide advanced-key" type="button" data-key="Backspace" data-code="Backspace">Delete</button>
+        </div>
+        <div class="virtual-keyboard-row">
+            <button class="virtual-key small-label wide advanced-key" type="button" data-key="Tab" data-code="Tab">Tab</button>
+            <button class="virtual-key" type="button" data-key="q" data-code="KeyQ">Q</button>
+            <button class="virtual-key" type="button" data-key="w" data-code="KeyW">W</button>
+            <button class="virtual-key" type="button" data-key="e" data-code="KeyE">E</button>
+            <button class="virtual-key advanced-key" type="button" data-key="r" data-code="KeyR">R</button>
+            <button class="virtual-key advanced-key" type="button" data-key="t" data-code="KeyT">T</button>
+            <button class="virtual-key advanced-key" type="button" data-key="y" data-code="KeyY">Y</button>
+            <button class="virtual-key advanced-key" type="button" data-key="u" data-code="KeyU">U</button>
+            <button class="virtual-key advanced-key" type="button" data-key="i" data-code="KeyI">I</button>
+            <button class="virtual-key advanced-key" type="button" data-key="o" data-code="KeyO">O</button>
+            <button class="virtual-key advanced-key" type="button" data-key="p" data-code="KeyP">P</button>
+            <button class="virtual-key small-label wide" type="button" data-key="Enter" data-code="Enter">Enter</button>
+        </div>
+        <div class="virtual-keyboard-row">
+            <button class="virtual-key small-label wide advanced-key" type="button" data-key="CapsLock" data-code="CapsLock">Caps</button>
+            <button class="virtual-key" type="button" data-key="a" data-code="KeyA">A</button>
+            <button class="virtual-key" type="button" data-key="s" data-code="KeyS">S</button>
+            <button class="virtual-key" type="button" data-key="d" data-code="KeyD">D</button>
+            <button class="virtual-key advanced-key" type="button" data-key="f" data-code="KeyF">F</button>
+            <button class="virtual-key advanced-key" type="button" data-key="g" data-code="KeyG">G</button>
+            <button class="virtual-key advanced-key" type="button" data-key="h" data-code="KeyH">H</button>
+            <button class="virtual-key advanced-key" type="button" data-key="j" data-code="KeyJ">J</button>
+            <button class="virtual-key advanced-key" type="button" data-key="k" data-code="KeyK">K</button>
+            <button class="virtual-key advanced-key" type="button" data-key="l" data-code="KeyL">L</button>
+            <button class="virtual-key small-label wide advanced-key" type="button" data-key="'" data-code="Quote">'</button>
+        </div>
+        <div class="virtual-keyboard-row">
+            <button class="virtual-key small-label wide" type="button" data-key="Shift" data-code="ShiftLeft" data-latch="true">Shift</button>
+            <button class="virtual-key advanced-key" type="button" data-key="z" data-code="KeyZ">Z</button>
+            <button class="virtual-key advanced-key" type="button" data-key="x" data-code="KeyX">X</button>
+            <button class="virtual-key advanced-key" type="button" data-key="c" data-code="KeyC">C</button>
+            <button class="virtual-key advanced-key" type="button" data-key="v" data-code="KeyV">V</button>
+            <button class="virtual-key advanced-key" type="button" data-key="b" data-code="KeyB">B</button>
+            <button class="virtual-key advanced-key" type="button" data-key="n" data-code="KeyN">N</button>
+            <button class="virtual-key advanced-key" type="button" data-key="m" data-code="KeyM">M</button>
+            <button class="virtual-key advanced-key" type="button" data-key="," data-code="Comma">,</button>
+            <button class="virtual-key advanced-key" type="button" data-key="." data-code="Period">.</button>
+            <button class="virtual-key small-label wide" type="button" data-key="Shift" data-code="ShiftRight" data-latch="true">Shift</button>
+        </div>
+        <div class="virtual-keyboard-row">
+            <button class="virtual-key small-label wide" type="button" data-key="Control" data-code="ControlLeft" data-latch="true">Ctrl</button>
+            <button class="virtual-key small-label wide advanced-key" type="button" data-key="Alt" data-code="AltLeft" data-latch="true">Alt</button>
+            <button class="virtual-key extra-wide" type="button" data-key=" " data-code="Space">Space</button>
+            <button class="virtual-key small-label wide advanced-key" type="button" data-key="Alt" data-code="AltRight" data-latch="true">Alt</button>
+            <button class="virtual-key arrow-key" type="button" data-key="ArrowLeft" data-code="ArrowLeft">←</button>
+            <button class="virtual-key arrow-key" type="button" data-key="ArrowDown" data-code="ArrowDown">↓</button>
+            <button class="virtual-key arrow-key" type="button" data-key="ArrowUp" data-code="ArrowUp">↑</button>
+            <button class="virtual-key arrow-key" type="button" data-key="ArrowRight" data-code="ArrowRight">→</button>
+        </div>
+        </div>
+        <p class="virtual-keyboard-hint">Tap the keyboard button again to close it. Keys are sent directly to the game.</p>
+    </section>
+
+    <div class="game-footer" id="game-footer">
+        <img class="gf-art" id="gf-art" src="images/music/yeezus.jpg" alt="">
+        <div class="gf-info">
+            <div class="gf-track" id="gf-track">—</div>
+            <div class="gf-album" id="gf-album">—</div>
+        </div>
+        <div class="gf-controls">
+            <button id="gf-prev" onclick="AeroMusic.prevTrack()"><i class="fa-solid fa-backward-step"></i></button>
+            <button class="play-pause" id="gf-play" onclick="AeroMusic.togglePlayPause()"><i class="fa-solid fa-play"></i></button>
+            <button id="gf-next" onclick="AeroMusic.nextTrack()"><i class="fa-solid fa-forward-step"></i></button>
+        </div>
+        <div class="gf-progress">
+            <input type="range" id="gf-seek" min="0" max="100" step="0.1" value="0">
+            <div class="gf-times">
+                <span id="gf-current">0:00</span>
+                <span id="gf-total">0:00</span>
+            </div>
+        </div>
+        <div class="gf-volume">
+            <i class="fa-solid fa-volume-low"></i>
+            <input type="range" id="gf-music-vol" min="0" max="1" step="0.01" value="1">
+        </div>
+        <div class="gf-game-volume">
+            <i class="fa-solid fa-gamepad" style="font-size:0.75rem; color:#888;"></i>
+            <input type="range" id="gf-game-vol" min="0" max="1" step="0.01" value="1" title="Game volume">
+        </div>
+        <div class="gf-extras">
+            <button class="lyrics-btn" id="gf-lyrics" onclick="AeroMusic.toggleMiniLyrics()"><i class="fa-solid fa-microphone-lines"></i></button>
+            <button class="fullscreen-btn" id="gf-fullscreen" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i> Fullscreen</button>
+        </div>
+    </div>
+
+    <script src="music-player.js"></script>
+    <script>
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+
+        // Get the game parameter from URL
+        const params = new URLSearchParams(window.location.search);
+        const gamePath = params.get('game');
+        const standaloneMode = params.get('standalone') === '1';
+        const gameFrame = document.getElementById('gameFrame');
+
+        if (!gamePath) {
+            goHome();
+        }
+
+        function isPaid() { return sessionStorage.getItem('authorized') === 'true'; }
+        function isFreeTrial() { return sessionStorage.getItem('free_trial') === 'true'; }
+
+        function loadGame() {
+            if (gamePath) {
+                // Flask serves static files but does not automatically resolve
+                // directory URLs to their index.html file. Most bundled games
+                // are linked as games/<name>/, so make that explicit for the
+                // iframe instead of producing a 404.
+                gameFrame.src = gamePath.endsWith('/') ? `${gamePath}index.html` : gamePath;
+            }
+        }
+
+        // ─── On-screen keyboard ─────────────────────────────────────────────
+        // All games are hosted in this shared frame. Dispatching bubbling
+        // KeyboardEvents at the iframe's focused element lets canvas, DOM, and
+        // window-level game controls receive the same keydown/keyup pair that
+        // a physical keyboard would produce.
+        const keyboardToggle = document.getElementById('keyboard-toggle');
+        const virtualKeyboard = document.getElementById('virtual-keyboard');
+        const keyboardMore = document.getElementById('virtual-keyboard-more');
+        const virtualKeys = [...document.querySelectorAll('.virtual-key')];
+        const heldVirtualKeys = new Map();
+        const latchedVirtualKeys = new Set();
+        const VIRTUAL_KEY_CODES = {
+            Backspace: 8, Tab: 9, Enter: 13, Shift: 16, Control: 17, Alt: 18,
+            Escape: 27, Space: 32, ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39,
+            ArrowDown: 40, CapsLock: 20, Delete: 46,
+            "'": 222
+        };
+
+        function legacyKeyCode(key, code) {
+            if (VIRTUAL_KEY_CODES[key]) return VIRTUAL_KEY_CODES[key];
+            if (/^Key[A-Z]$/.test(code)) return code.charCodeAt(3);
+            if (/^Digit[0-9]$/.test(code)) return code.charCodeAt(5);
+            if (key === ',') return 188;
+            if (key === '.') return 190;
+            if (/^F(10|[1-9])$/.test(key)) return 111 + Number(key.slice(1));
+            return 0;
+        }
+
+        function getKeyboardTarget() {
+            try {
+                const frameWindow = gameFrame.contentWindow;
+                const target = frameWindow.document.activeElement || frameWindow.document.body;
+                frameWindow.focus();
+                if (target && typeof target.focus === 'function') target.focus();
+                return { frameWindow, target };
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function modifierIsActive(name) {
+            return virtualKeys.some(button => {
+                if (button.dataset.key !== name) return false;
+                const code = button.dataset.code;
+                return heldVirtualKeys.has(code) || latchedVirtualKeys.has(code);
+            });
+        }
+
+        function dispatchVirtualKey(type, key, code) {
+            const destination = getKeyboardTarget();
+            if (!destination) return;
+            const event = new destination.frameWindow.KeyboardEvent(type, {
+                key,
+                code,
+                location: code.endsWith('Left') ? 1 : code.endsWith('Right') ? 2 : 0,
+                bubbles: true,
+                cancelable: true,
+                composed: true,
+                repeat: false,
+                shiftKey: modifierIsActive('Shift'),
+                ctrlKey: modifierIsActive('Control'),
+                altKey: modifierIsActive('Alt'),
+                metaKey: modifierIsActive('Meta')
+            });
+            const keyCode = legacyKeyCode(key, code);
+            try {
+                Object.defineProperties(event, {
+                    keyCode: { configurable: true, get: () => keyCode },
+                    which: { configurable: true, get: () => keyCode },
+                    charCode: { configurable: true, get: () => type === 'keypress' ? keyCode : 0 }
+                });
+            } catch (error) {
+                // Some browser implementations expose these as non-configurable.
+            }
+            destination.target.dispatchEvent(event);
+        }
+
+        function releaseVirtualKey(button) {
+            const code = button.dataset.code;
+            const state = heldVirtualKeys.get(code);
+            if (!state) return;
+            dispatchVirtualKey('keyup', state.key, state.code);
+            heldVirtualKeys.delete(code);
+            button.classList.remove('pressed');
+        }
+
+        function releaseAllVirtualKeys(clearLatches = false) {
+            [...heldVirtualKeys.values()].forEach(state => {
+                dispatchVirtualKey('keyup', state.key, state.code);
+            });
+            heldVirtualKeys.clear();
+            virtualKeys.forEach(button => button.classList.remove('pressed'));
+            if (clearLatches) {
+                latchedVirtualKeys.clear();
+                virtualKeys.forEach(button => button.classList.remove('latched'));
+            }
+        }
+
+        function syncKeyboardLayout() {
+            const gameContainer = document.querySelector('.game-container');
+            if (!gameContainer) return;
+            const isOpen = virtualKeyboard.classList.contains('open');
+            if (!isOpen || document.fullscreenElement) {
+                gameContainer.classList.remove('keyboard-reserved');
+                gameContainer.style.removeProperty('--virtual-keyboard-height');
+                return;
+            }
+            const keyboardHeight = Math.ceil(virtualKeyboard.getBoundingClientRect().height);
+            gameContainer.style.setProperty('--virtual-keyboard-height', `${keyboardHeight}px`);
+            gameContainer.classList.add('keyboard-reserved');
+        }
+
+        function closeVirtualKeyboard() {
+            releaseAllVirtualKeys(true);
+            virtualKeyboard.classList.remove('open');
+            virtualKeyboard.classList.remove('expanded');
+            keyboardToggle.setAttribute('aria-expanded', 'false');
+            keyboardMore.setAttribute('aria-expanded', 'false');
+            keyboardMore.textContent = 'More keys';
+            syncKeyboardLayout();
+        }
+
+        keyboardToggle.addEventListener('click', () => {
+            const opening = !virtualKeyboard.classList.contains('open');
+            if (opening) {
+                virtualKeyboard.classList.add('open');
+                keyboardToggle.setAttribute('aria-expanded', 'true');
+                requestAnimationFrame(syncKeyboardLayout);
+            } else {
+                closeVirtualKeyboard();
+            }
+        });
+
+        keyboardMore.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            const expanded = !virtualKeyboard.classList.contains('expanded');
+            virtualKeyboard.classList.toggle('expanded', expanded);
+            keyboardMore.setAttribute('aria-expanded', String(expanded));
+            keyboardMore.textContent = expanded ? 'Fewer keys' : 'More keys';
+            requestAnimationFrame(syncKeyboardLayout);
+        });
+
+        if (window.ResizeObserver) {
+            new ResizeObserver(syncKeyboardLayout).observe(virtualKeyboard);
+        }
+        window.addEventListener('resize', syncKeyboardLayout);
+        window.addEventListener('orientationchange', () => requestAnimationFrame(syncKeyboardLayout));
+
+        virtualKeys.forEach(button => {
+            button.addEventListener('pointerdown', event => {
+                event.preventDefault();
+                button.setPointerCapture?.(event.pointerId);
+                const key = button.dataset.key;
+                const code = button.dataset.code;
+                if (button.dataset.latch === 'true') {
+                    if (latchedVirtualKeys.has(code)) {
+                        dispatchVirtualKey('keyup', key, code);
+                        latchedVirtualKeys.delete(code);
+                        button.classList.remove('latched');
+                    } else {
+                        latchedVirtualKeys.add(code);
+                        button.classList.add('latched');
+                        dispatchVirtualKey('keydown', key, code);
+                    }
+                    return;
+                }
+                if (heldVirtualKeys.has(code)) return;
+                heldVirtualKeys.set(code, { key, code });
+                button.classList.add('pressed');
+                dispatchVirtualKey('keydown', key, code);
+            });
+            button.addEventListener('pointerup', event => {
+                event.preventDefault();
+                if (button.dataset.latch !== 'true') releaseVirtualKey(button);
+            });
+            button.addEventListener('pointercancel', () => {
+                if (button.dataset.latch !== 'true') releaseVirtualKey(button);
+            });
+            button.addEventListener('lostpointercapture', () => {
+                if (button.dataset.latch !== 'true') releaseVirtualKey(button);
+            });
+        });
+
+        window.addEventListener('blur', () => releaseAllVirtualKeys(true));
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) releaseAllVirtualKeys(true);
+        });
+        gameFrame.addEventListener('load', () => releaseAllVirtualKeys(true));
+
+        function isGamePurchased() {
+            if (!window.AeroDiscs || !window.AeroDiscs.getPurchasedGames) return false;
+            const purchased = window.AeroDiscs.getPurchasedGames();
+            return purchased.some(game => window.AeroDiscs.gameIdsMatch(game, gamePath));
+        }
+
+        async function syncPurchasedGames() {
+            try {
+                const res = await fetch('/api/discs/purchased-games', { credentials: 'same-origin' });
+                const data = await res.json();
+                if (!data.games || !Array.isArray(data.games)) return;
+                const existing = (window.AeroDiscs && window.AeroDiscs.getPurchasedGames) ? window.AeroDiscs.getPurchasedGames() : [];
+                let changed = false;
+                data.games.forEach(g => {
+                    if (!existing.includes(g)) {
+                        existing.push(g);
+                        changed = true;
+                    }
+                });
+                if (changed) {
+                    localStorage.setItem('aerodynamixPurchasedGames', JSON.stringify(existing));
+                }
+            } catch (e) {
+                console.error('Could not sync purchased games', e);
+            }
+        }
+
+        async function checkGameAccess() {
+            // All games are free; retain this function for the existing load
+            // sequence and standalone query parameter.
+            if (gamePath) {
+                loadGame();
+                return;
+            }
+            // Legacy access checks are retained only for compatibility.
+            await syncPurchasedGames();
+            if (isGamePurchased()) loadGame();
+            else window.location.href = 'shop.html?unlock=nextbot';
+        }
+
+        window.addEventListener('aerodynamixAuthorized', checkGameAccess);
+        window.addEventListener('aerodynamixFreeTrial', checkGameAccess);
+        if (standaloneMode || isPaid() || isFreeTrial()) checkGameAccess();
+
+        function toggleFullscreen() {
+            const container = document.querySelector('.game-container');
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                if (virtualKeyboard.classList.contains('open')) closeVirtualKeyboard();
+                container.requestFullscreen();
+            }
+        }
+        document.addEventListener('fullscreenchange', () => {
+            const fsActive = !!document.fullscreenElement;
+            if (fsActive && virtualKeyboard.classList.contains('open')) closeVirtualKeyboard();
+            const footerIcon = document.getElementById('gf-fullscreen').querySelector('i');
+            const headerIcon = document.getElementById('fs-icon-header');
+            if (footerIcon) footerIcon.className = fsActive ? 'fa-solid fa-compress' : 'fa-solid fa-expand';
+            if (headerIcon) headerIcon.className = fsActive ? 'fa-solid fa-compress' : 'fa-solid fa-expand';
+            // Hide header/footer in fullscreen for maximum immersion
+            document.querySelector('.game-header').style.display = fsActive ? 'none' : 'flex';
+            const footer = document.getElementById('game-footer');
+            if (footer && !window.AeroMusic?.getState?.().playing) {
+                footer.style.display = fsActive ? 'none' : '';
+            }
+            // Adjust container margin when header hidden
+            const gameContainer = document.querySelector('.game-container');
+            gameContainer.style.marginTop = fsActive ? '0' : '7vw';
+            gameContainer.style.height = fsActive ? '100vh' : '';
+            gameContainer.style.minHeight = fsActive ? '100vh' : '';
+        });
+
+        // Sync footer with music player
+        function syncFooter() {
+            const footer = document.getElementById('game-footer');
+            const gameContainer = document.querySelector('.game-container');
+            if (!window.AeroMusic) return;
+            const st = AeroMusic.getState();
+            const hasMusic = st.src && st.src !== window.location.href && st.playing;
+            if (hasMusic) {
+                footer.classList.add('visible');
+                gameContainer.classList.add('footer-visible');
+                const art = document.getElementById('gf-art');
+                if (st.art) {
+                    art.src = st.art;
+                    art.classList.add('active');
+                } else {
+                    art.classList.remove('active');
+                }
+                document.getElementById('gf-track').textContent = st.title || '—';
+                document.getElementById('gf-album').textContent = st.album || '—';
+                const playIcon = document.getElementById('gf-play').querySelector('i');
+                playIcon.className = st.playing ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+                document.getElementById('gf-music-vol').value = st.volume || 1;
+            } else {
+                footer.classList.remove('visible');
+                gameContainer.classList.remove('footer-visible');
+            }
+        }
+
+        // Music controls
+        const gfSeek = document.getElementById('gf-seek');
+        let gfSeeking = false;
+        gfSeek.addEventListener('mousedown', () => { gfSeeking = true; });
+        gfSeek.addEventListener('change', () => {
+            if (window.AeroMusic) AeroMusic.doSeek(gfSeek.value);
+            gfSeeking = false;
+        });
+        document.getElementById('gf-music-vol').addEventListener('input', function() {
+            if (window.AeroMusic) AeroMusic.setVolume(this.value);
+        });
+
+        // ─── Game Volume Controller ─────────────────────────────
+        let gameVolInjector = null;
+        function setGameVolume(level) {
+            const iframe = document.getElementById('gameFrame');
+            if (!iframe || !iframe.contentWindow) return;
+            const win = iframe.contentWindow;
+            try {
+                // 1. Patch Web Audio API — wrap all AudioContexts with a master gain
+                if (!win.__aeroAudioPatched) {
+                    win.__aeroAudioPatched = true;
+                    win.__aeroMasterGain = 1;
+                    const OrigCtx = win.AudioContext || win.webkitAudioContext;
+                    if (OrigCtx) {
+                        win.AudioContext = function(...args) {
+                            const ctx = new OrigCtx(...args);
+                            const gain = ctx.createGain();
+                            gain.gain.value = win.__aeroMasterGain;
+                            // Intercept destination connection
+                            const origConnect = ctx.destination.connect;
+                            const origDisconnect = ctx.destination.disconnect;
+                            // Redirect all destination audio through our gain node
+                            // We can't replace destination, but we can monkey-patch createBufferSource, oscillator, etc.
+                            const _connect = AudioNode.prototype.connect;
+                            AudioNode.prototype.connect = function(dest, out, inCh) {
+                                if (dest === ctx.destination) {
+                                    return _connect.call(this, gain, out, inCh);
+                                }
+                                return _connect.call(this, dest, out, inCh);
+                            };
+                            gain.connect(ctx.destination);
+                            ctx.__aeroGain = gain;
+                            return ctx;
+                        };
+                        win.AudioContext.prototype = OrigCtx.prototype;
+                        if (win.webkitAudioContext) win.webkitAudioContext = win.AudioContext;
+                    }
+                }
+                win.__aeroMasterGain = parseFloat(level);
+                // Update existing patched contexts
+                if (win.AudioContext) {
+                    // Walk all objects in window looking for AudioContexts with our gain
+                    // Simplest: iterate all globals
+                    Object.keys(win).forEach(k => {
+                        try {
+                            const v = win[k];
+                            if (v && v.__aeroGain) v.__aeroGain.gain.value = win.__aeroMasterGain;
+                        } catch(e){}
+                    });
+                }
+
+                // 2. HTML5 audio/video elements — catch existing + future
+                if (!win.__aeroMediaPatched) {
+                    win.__aeroMediaPatched = true;
+                    // Patch element creation so new audio/video get volume set
+                    const origCreate = win.document.createElement;
+                    win.document.createElement = function(tag) {
+                        const el = origCreate.call(win.document, tag);
+                        if (tag.toLowerCase() === 'audio' || tag.toLowerCase() === 'video') {
+                            el.volume = win.__aeroMasterGain !== undefined ? win.__aeroMasterGain : 1;
+                            // Also watch for volume changes by the game
+                            const origVol = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'volume');
+                            if (origVol && origVol.set) {
+                                Object.defineProperty(el, 'volume', {
+                                    get() { return origVol.get.call(this); },
+                                    set(v) {
+                                        // Store the game's intended volume, apply our multiplier
+                                        this.__aeroGameVol = v;
+                                        const applied = v * (win.__aeroMasterGain !== undefined ? win.__aeroMasterGain : 1);
+                                        origVol.set.call(this, applied);
+                                    },
+                                    configurable: true
+                                });
+                            }
+                        }
+                        return el;
+                    };
+                    // Patch existing elements
+                    const patchMedia = () => {
+                        win.document.querySelectorAll('audio, video').forEach(el => {
+                            if (!el.__aeroPatched) {
+                                el.__aeroPatched = true;
+                                el.volume = win.__aeroMasterGain !== undefined ? win.__aeroMasterGain : 1;
+                            }
+                        });
+                    };
+                    patchMedia();
+                    const mo = new win.MutationObserver(patchMedia);
+                    mo.observe(win.document, { childList: true, subtree: true });
+                }
+
+                // Re-apply to existing media elements when slider moves
+                win.document.querySelectorAll('audio, video').forEach(el => {
+                    const gameIntended = el.__aeroGameVol !== undefined ? el.__aeroGameVol : el.volume;
+                    el.__aeroGameVol = gameIntended;
+                    el.volume = gameIntended * win.__aeroMasterGain;
+                });
+
+            } catch (e) {
+                // cross-origin or other restriction
+            }
+        }
+
+        // Run injection once iframe loads, then on every slider move
+        document.getElementById('gameFrame').addEventListener('load', function() {
+            const sliderVal = document.getElementById('gf-game-vol').value;
+            setGameVolume(sliderVal);
+        });
+        document.getElementById('gf-game-vol').addEventListener('input', function() {
+            setGameVolume(this.value);
+        });
+
+        // Fullscreen icon swap
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.getElementById('gf-fullscreen').querySelector('i');
+            icon.className = document.fullscreenElement ? 'fa-solid fa-compress' : 'fa-solid fa-expand';
+        });
+
+        // Periodically sync footer
+        setInterval(() => {
+            if (window.AeroMusic) {
+                const st = AeroMusic.getState();
+                if (!gfSeeking) gfSeek.value = ((st.currentTime / (st.duration || 1)) * 100) || 0;
+                const fmt = (s) => {
+                    if (isNaN(s)) return '0:00';
+                    const m = Math.floor(s/60), sec = Math.floor(s%60).toString().padStart(2,'0');
+                    return `${m}:${sec}`;
+                };
+                document.getElementById('gf-current').textContent = fmt(st.currentTime);
+                document.getElementById('gf-total').textContent = fmt(st.duration || 0);
+                const playIcon = document.getElementById('gf-play').querySelector('i');
+                playIcon.className = st.playing ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+                syncFooter();
+            }
+        }, 500);
+
+        // Initial sync
+        setTimeout(syncFooter, 100);
+
+        // Apply theme styling to header
+        function applyHeaderTheme(theme) {
+            const header = document.querySelector('.game-header');
+            const backButton = document.querySelector('.back-button');
+
+            if (theme === 'black') {
+                header.style.backgroundColor = 'transparent';
+                if (sessionStorage.getItem('authorized') === 'true') {
+                    document.body.style.backgroundColor = '#030509';
+                    document.body.style.backgroundImage = 'radial-gradient(ellipse at 50% 130%, rgba(44,127,252,0.32) 0%, rgba(44,127,252,0.08) 40%, transparent 65%), radial-gradient(ellipse at 20% 0%, rgba(44,127,252,0.10) 0%, transparent 35%)';
+                    document.body.style.backgroundSize = 'cover';
+                    document.body.style.backgroundAttachment = 'fixed';
+                    document.body.style.backgroundRepeat = 'no-repeat';
+                    backButton.style.background = 'linear-gradient(135deg, #2c7ffc 0%, #1a5fd0 100%)';
+                    backButton.style.boxShadow = '0 6px 20px rgba(44,127,252,0.3)';
+                    backButton.style.color = '#fff';
+                } else {
+                    document.body.style.backgroundImage = 'none';
+                    document.body.style.backgroundColor = '#1b1b1b';
+                    backButton.style.backgroundColor = '#2c7ffc';
+                    backButton.style.color = '#fff';
+                }
+            } else if (theme === 'frutiger-aero') {
+                header.style.backgroundColor = 'transparent';
+                backButton.style.background = 'linear-gradient(135deg, rgba(0,70,140,0.75) 0%, rgba(0,40,90,0.85) 100%)';
+                backButton.style.color = '#fff';
+                backButton.style.backdropFilter = 'blur(12px)';
+                backButton.style.boxShadow = '0 8px 24px rgba(0,40,90,0.3)';
+                document.body.style.backgroundColor = '#87CEEB';
+                document.body.style.backgroundImage = "url('images/frutiger-aero-bg.jpg')";
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundAttachment = 'fixed';
+                document.body.style.color = '#002244';
+            } else if (theme === 'purple') {
+                header.style.backgroundColor = 'transparent';
+                backButton.style.background = 'linear-gradient(135deg, #9333ea 0%, #6b21a8 100%)';
+                backButton.style.color = '#fff';
+                backButton.style.boxShadow = '0 8px 28px rgba(147,51,234,0.4), 0 0 0 1px rgba(147,51,234,0.25)';
+                document.body.style.backgroundColor = '#180826';
+                document.body.style.backgroundImage = 'radial-gradient(ellipse at 50% 130%, rgba(160,80,255,0.42) 0%, rgba(140,50,255,0.12) 45%, transparent 65%), radial-gradient(ellipse at 80% 0%, rgba(200,100,255,0.18) 0%, transparent 35%)';
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundAttachment = 'fixed';
+                document.body.style.backgroundRepeat = 'no-repeat';
+            } else if (theme === 'blue') {
+                header.style.backgroundColor = 'transparent';
+                backButton.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+                backButton.style.color = '#fff';
+                backButton.style.boxShadow = '0 8px 28px rgba(59,130,246,0.4), 0 0 0 1px rgba(59,130,246,0.25)';
+                document.body.style.backgroundColor = '#040d24';
+                document.body.style.backgroundImage = 'radial-gradient(ellipse at 50% 130%, rgba(59,130,246,0.45) 0%, rgba(44,127,252,0.12) 45%, transparent 65%), radial-gradient(ellipse at 20% 0%, rgba(96,165,250,0.18) 0%, transparent 35%)';
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundAttachment = 'fixed';
+                document.body.style.backgroundRepeat = 'no-repeat';
+            } else if (theme === 'christmas') {
+                header.style.backgroundColor = 'transparent';
+                backButton.style.background = 'linear-gradient(135deg, #b92e40 0%, #8a1c28 100%)';
+                backButton.style.color = '#fff';
+                backButton.style.boxShadow = '0 6px 20px rgba(185,46,64,0.3)';
+                document.body.style.backgroundColor = '#0a180d';
+                document.body.style.backgroundImage = 'radial-gradient(ellipse at 50% 120%, rgba(180,40,40,0.15) 0%, transparent 55%)';
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundAttachment = 'fixed';
+                document.body.style.backgroundRepeat = 'no-repeat';
+                document.body.style.color = '#fcebd4';
+            }
+        }
+
+        var isTrial = sessionStorage.getItem('authorized') !== 'true';
+        var savedTheme = isTrial ? 'black' : (localStorage.getItem('aerodynamixTheme') || 'black');
+        applyHeaderTheme(savedTheme);
+    </script>
+    <div style="height: 120px;"></div>
+    <script src="script.js"></script>
+    <script src="bubble-overlay.js"></script>
+    <script src="snow-overlay.js"></script>
+    <script src="mobile-nav.js"></script>
+</body>
+</html>

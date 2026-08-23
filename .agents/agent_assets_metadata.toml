@@ -1,0 +1,102 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "nvAiWSyEnZ65IX2IE3F7_"
+uri = "file://mall-lowpoly.glb"
+type = "unspecified"
+title = "Low-Poly Mall GLB"
+description = "A Chromebook-friendly abandoned mall model with storefronts and signs, food court counters and tables, escalator stairs, benches, kiosks, planters, trash cans, skylights, and hanging accent signs."
+logical_id = "87e10072-31d3-4f85-9d0c-6119fe45ae21"
+
+[[outputs]]
+id = "B7nl27FcuNGNgtj6c2t5g"
+uri = "file://Aerodynamix20/Aerodynamix20/docs/games/nextbot/dora-viewer.html"
+type = "text"
+title = "Dora model viewer"
+description = "Open this interactive viewer to rotate and inspect Dora with the updated non-T-pose arms."
+logical_id = "60944fd3-7dab-4ee5-8c17-2e6b83149ac4"
+
+[[outputs]]
+id = "obrgqnyqz-4eRtOJGeRbT"
+uri = "file://Aerodynamix20/Aerodynamix20/aerodynamix-games-offline.html"
+type = "text"
+title = "Aerodynamix Lite — restored legacy version"
+description = "Restored pre-fresh-start Aerodynamix Lite games-and-media export. It is also available at /aerodynamix-lite/ and remains available at /aerodynamix-games-offline.html."
+logical_id = "3836cc52-96a3-4442-b73b-80392ac50491"
+
+[[outputs]]
+id = "XsvoVa5PHcupT3lxf806D"
+uri = "file://Aerodynamix20/Aerodynamix20/docs/aerodynamix-lite-connect/index.html"
+type = "text"
+title = "Aerodynamix Lite Connect — Standalone WebRTC Version"
+description = "Self-contained single-file offline-first WebRTC app with Host/Join manual SDP signaling, local camera/mic feeds, peer-to-peer data channel chat, synchronized app state, responsive dark UI, and no external dependencies."
+logical_id = "25f67350-86d7-4165-bcae-b86327fdf5d6"
+
+[[outputs]]
+id = "I2UzgEVWtkaJQ2Z4b2lyN"
+uri = "file://Aerodynamix20/Aerodynamix20/docs/aerodynamix-refactor/index.html"
+type = "text"
+title = "Aerodynamix standalone refactor"
+description = "Single-file standalone Aerodynamix site shell with Games, Apps, Shop, Cards, Discs, Media Player, Connect, real game links, starter-pack audio, and site texture preload."
+logical_id = "725e1884-83f9-451d-8bba-478fce0bdc0c"
+
+[[outputs]]
+id = "cBbbriU0QSHOAEvvSCDUe"
+uri = "file://Aerodynamix20/Aerodynamix20/aerodynamix-offline-bundle.zip"
+type = "unspecified"
+title = "Aerodynamix complete offline bundle"
+description = "Complete 309 MB bundle containing the UI, real game code/assets, all site artwork, Music Starter Pack audio, standalone game frame, and serve.py launcher."
+logical_id = "e25bd4f4-d5a1-4bcd-b547-eac42d2fbb90"
+
+[[outputs]]
+id = "SyiqIgwaQxZZX8EanYtqE"
+uri = "file://Aerodynamix20/Aerodynamix20/aerodynamix-one-file.html"
+type = "text"
+title = "Aerodynamix corrected one-file export"
+description = "Single-file export with the password screen removed, Shop secret unlock sequence ↑ ↓ 2005, persistent full unlocks, and separate Apps utility cards matching the Canvas layout."
+logical_id = "cbef54fe-9868-4ee3-acf4-ff2689f53531"
+
+[[outputs]]
+id = "Y17f6IFum7WptLE7d_v14"
+uri = "file://Aerodynamix20/Aerodynamix20/aerodynamix-lite-ai.js"
+type = "unspecified"
+title = "Aerodynamix Lite — Tips AI enhancement"
+description = "Adds the Tips button, local AI page, cached SmolLM model loading, quick prompts, and local math answers to the preserved Lite HTML export. The complete enhanced Lite page is available at /aerodynamix-lite/."
+logical_id = "83e04d32-cbf0-4fc6-892e-1c8107b7f6db"
+
+[[outputs]]
+id = "PoTl_soqiWCMlNLp-WoxZ"
+uri = "file://Aerodynamix20/Aerodynamix20/aerodynamix-lite-tips.html"
+type = "text"
+title = "Aerodynamix Lite — Settings and Themes"
+description = "Standalone Lite export with AI/Tips removed, a dedicated Settings page, saved tab-cloak preference, Frutiger Aero bubbles, Christmas snow, and persistent themes."
+logical_id = "689b77f5-27ba-4dda-b097-f3439bfce7e0"
+
+[[outputs]]
+id = "f0LoFsDZTAzF5fB61njhy"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/aerodynamix-lite-new.zip"
+type = "unspecified"
+title = "Aerodynamix Lite — Updated Download"
+description = "Compressed standalone Lite HTML export with the restored 45-game library and embedded Magnolia media-player patch. Extract the ZIP, then open aerodynamix-lite-new.html."
+logical_id = "32b15aa6-b609-4fb2-afb3-4ae3df8041b4"
+content_hash = "sha256:41c52f1d1155657346d6aabe411cd678bf1794204d5efa16864cd40aeb2db4d0"
+size = 104066672
+mtime_ms = 1787189686835
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/32b15aa6-b609-4fb2-afb3-4ae3df8041b4/9df95119-a60a-42e1-b18f-08370bfdd83c"
+storage_version_token = "1787189693246186"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "OUcqo39-ZzjufcksC-bGV"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone.zip"
+type = "unspecified"
+title = "Aerodynamix Standalone — Nextbot removed"
+description = "Rebuilt standalone package with Nextbot completely removed from the game listings and launchable pages."
+logical_id = "e8f0abb1-2319-4efb-94c1-a9b5ca27b42e"
+content_hash = "sha256:b593d3d4e1f59d37b7468438e4f58c128fc8edb60d5690d34a7424c7fd6df676"
+size = 104188733
+mtime_ms = 1787462487468
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/e8f0abb1-2319-4efb-94c1-a9b5ca27b42e/97e549ee-a48b-4567-83eb-40141d50ae38"
+storage_version_token = "1787462535624384"
+content_type = "application/octet-stream"
