@@ -1497,6 +1497,7 @@
     document.documentElement.style.setProperty('--standalone-bg', selected.background);
     document.documentElement.style.setProperty('--standalone-text', selected.color);
     document.documentElement.style.setProperty('--standalone-accent', selected.accent);
+    applyClockDisplay();
     document.querySelectorAll('.aero-theme-button').forEach(function (button) {
       button.classList.toggle('active', button.dataset.theme === settings.theme);
     });
@@ -1811,7 +1812,7 @@
     var params = new URLSearchParams(location.search);
     var requestedView = params.get('view');
     var validView = requestedView === 'media' || requestedView === 'settings' || requestedView === 'connect' ||
-      requestedView === 'apps' || requestedView === 'drawing'
+      requestedView === 'apps' || requestedView === 'drawing' || requestedView === 'clock'
       ? requestedView
       : 'games';
     showView(validView);
