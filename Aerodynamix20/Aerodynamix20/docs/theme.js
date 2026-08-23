@@ -11,6 +11,7 @@
         var navElements = document.querySelectorAll('nav');
         var navLinks = document.querySelectorAll('nav a');
         var h1Elements   = document.querySelectorAll('h1');
+        body.dataset.theme = theme;
 
         /* reset styles so switching themes never leaves leftovers */
         body.style.backgroundImage    = 'none';
@@ -119,6 +120,16 @@
             if (settingsButton) { settingsButton.style.background = '#ff1493'; settingsButton.style.color = '#fff'; settingsButton.style.border = '2px solid #ffb6d9'; settingsButton.style.boxShadow = '0 8px 28px rgba(128,0,64,0.3)'; }
             h1Elements.forEach(function (h) { h.style.color = '#ffffff'; });
         }
+
+        /* Shared overlays, including the clock easter egg, follow the active theme. */
+        document.documentElement.style.setProperty('--aero-clock-bg', body.style.backgroundColor || '#030509');
+        var clockAccents = {
+            black: '#2c7ffc', 'frutiger-aero': '#0879bd', purple: '#9333ea',
+            blue: '#3b82f6', christmas: '#c41e3a', 'bubble-gum-pink': '#ff1493',
+            'blood-red': '#ef233c', 'citrus-orange': '#ff7a00', 'golden-yellow': '#ffd000',
+            'emerald-green': '#00c853'
+        };
+        document.documentElement.style.setProperty('--aero-clock-accent', clockAccents[theme] || '#2c7ffc');
 
     };
 
