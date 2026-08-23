@@ -77,6 +77,39 @@
   let pendingCandidates = [];
   let remoteDescriptionReady = false;
   let iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
+  const standaloneAudioOnly = window.location.protocol === 'file:' || !!window.AERO_CONNECT_ORIGIN;
+  let walkieChannel = null;
+  let walkieRecorder = null;
+  let walkieChunks = [];
+  let walkieAudioContext = null;
+  let micBlocked = false;
+
+  // A blob relaunch can help browsers that treat the original local document
+  // unusually, but it cannot override Chromium's secure-origin policy.
+  if (standaloneAudioOnly && window.location.protocol === 'file:') {
+    const connectContainer = document.querySelector('.dc-container');
+    if (connectContainer && !document.getElementById('dc-file-mic-banner')) {
+      const banner = document.createElement('div');
+      banner.id = 'dc-file-mic-banner';
+      banner.className = 'dc-card';
+      banner.innerHTML = '<strong>Using Connect from a downloaded file?</strong><p style="margin:.45rem 0 .75rem;color:rgba(255,255,255,.7)">Try opening a temporary copy before starting a voice call. Chromium may still require the HTTPS website version.</p>';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'dc-btn';
+      button.textContent = 'Relaunch for Mic Access';
+      button.addEventListener('click', () => {
+        try {
+          const copyUrl = URL.createObjectURL(new Blob([document.documentElement.outerHTML], { type: 'text/html' }));
+          const opened = window.open(copyUrl, '_blank', 'noopener');
+          if (!opened) window.location.href = copyUrl;
+        } catch (error) {
+          alert('Could not relaunch this file. Open the HTTPS website version for voice calling.');
+        }
+      });
+      banner.appendChild(button);
+      connectContainer.prepend(banner);
+    }
+  }
 
   // ── API helper ──────────────────────────────────────────────────────────────
   async function api(path, options = {}) {
