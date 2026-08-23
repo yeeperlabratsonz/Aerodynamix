@@ -49,9 +49,9 @@ def build_connect_assets() -> tuple[str, str]:
     client = client.replace(
         "  async function api(path, options = {}) {\n"
         "    const res = await fetch(path, { credentials: 'same-origin', ...options });",
-        "  const CONNECT_ORIGIN = " + repr(CONNECT_ORIGIN) + ";\n\n"
+        "  window.AERO_CONNECT_ORIGIN = " + repr(CONNECT_ORIGIN) + ";\n\n"
         "  async function api(path, options = {}) {\n"
-        "    const res = await fetch(new URL(path, CONNECT_ORIGIN).href, { credentials: 'include', ...options });",
+        "    const res = await fetch(new URL(path, window.AERO_CONNECT_ORIGIN).href, { credentials: 'include', ...options });",
     )
     return markup, styles, client
 

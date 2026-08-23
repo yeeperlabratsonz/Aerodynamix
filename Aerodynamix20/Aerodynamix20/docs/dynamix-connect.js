@@ -86,6 +86,19 @@
     return data;
   }
 
+  // API media paths are returned as root-relative URLs. Resolve them against
+  // the live service when Connect is mounted inside a standalone file.
+  function assetUrl(path) {
+    if (!path) return '';
+    if (/^(https?:|blob:|data:)/i.test(path)) return path;
+    const origin = window.AERO_CONNECT_ORIGIN || window.location.origin;
+    try {
+      return new URL(path, `${origin.replace(/\/?$/, '/')}`).href;
+    } catch (e) {
+      return path;
+    }
+  }
+
   // ── Session check ───────────────────────────────────────────────────────────
   async function checkMe() {
     try {
@@ -131,7 +144,8 @@
 
   function applyAvatarStyle(el, pfpUrl, offsetX, offsetY, username) {
     if (pfpUrl) {
-      el.style.backgroundImage = `url('${pfpUrl}?t=${Date.now()}')`;
+      const resolvedUrl = assetUrl(pfpUrl);
+      el.style.backgroundImage = `url('${resolvedUrl}${resolvedUrl.includes('?') ? '&' : '?'}t=${Date.now()}')`;
       el.style.backgroundPosition = `${offsetX}% ${offsetY}%`;
       el.style.backgroundSize = 'cover';
       el.textContent = '';
@@ -145,7 +159,7 @@
 
   function verifiedBadge(isVerified) {
     return isVerified
-      ? '<img class="dc-verified-badge" src="attached_assets/verified-badge.png" title="Verified" alt="Verified">'
+      ? `<img class="dc-verified-badge" src="${escapeHtml(assetUrl('attached_assets/verified-badge.png'))}" title="Verified" alt="Verified">`
       : '';
   }
 
@@ -292,7 +306,7 @@
       feed.innerHTML = data.posts.map(post => {
         const canDelete    = currentUser && currentUser.id === post.user_id;
         const avatarInline = post.pfp_url
-          ? `style="background-image:url('${escapeHtml(post.pfp_url)}');background-position:${post.pfp_offset_x || 50}% ${post.pfp_offset_y || 50}%;background-size:cover;"`
+          ? `style="background-image:url('${escapeHtml(assetUrl(post.pfp_url))}');background-position:${post.pfp_offset_x || 50}% ${post.pfp_offset_y || 50}%;background-size:cover;"`
           : '';
         const initials     = post.pfp_url ? '' : post.username.slice(0, 2).toUpperCase();
         const commentCount = post.comment_count || 0;
@@ -309,7 +323,7 @@
               ${canDelete ? `<button class="dc-post-delete" data-delete="${post.id}"><i class="fas fa-trash"></i></button>` : ''}
             </div>
             <div class="dc-post-text">${escapeHtml(post.text)}</div>
-            ${post.image_url ? `<img class="dc-post-image" src="${escapeHtml(post.image_url)}" alt="Post image">` : ''}
+            ${post.image_url ? `<img class="dc-post-image" src="${escapeHtml(assetUrl(post.image_url))}" alt="Post image">` : ''}
             <div class="dc-post-footer">
               <button class="dc-comment-toggle" data-post-id="${post.id}">
                 <i class="fas fa-comment"></i>
@@ -438,8 +452,8 @@
       pfpOffsetY = (currentUser && currentUser.pfp_offset_y != null) ? currentUser.pfp_offset_y : 50;
 
       if (currentUser && currentUser.pfp_url) {
-        pfpObjectUrl = currentUser.pfp_url;
-        pfpCropCircle.style.backgroundImage    = `url('${currentUser.pfp_url}?t=${Date.now()}')`;
+        pfpObjectUrl = assetUrl(currentUser.pfp_url);
+        pfpCropCircle.style.backgroundImage    = `url('${pfpObjectUrl}${pfpObjectUrl.includes('?') ? '&' : '?'}t=${Date.now()}')`;
         pfpCropCircle.style.backgroundPosition = `${pfpOffsetX}% ${pfpOffsetY}%`;
         pfpCropCircle.style.backgroundSize     = 'cover';
         pfpCropCircle.style.cursor = 'grab';
@@ -652,7 +666,7 @@
         profileViewPosts.innerHTML = data.posts.map(post => `
           <div class="dc-post">
             <div class="dc-post-text">${escapeHtml(post.text)}</div>
-            ${post.image_url ? `<img class="dc-post-image" src="${escapeHtml(post.image_url)}" alt="Post image">` : ''}
+            ${post.image_url ? `<img class="dc-post-image" src="${escapeHtml(assetUrl(post.image_url))}" alt="Post image">` : ''}
             <div class="dc-post-time dc-profile-post-time">${formatTime(post.created_at)}</div>
           </div>
         `).join('');
@@ -1018,7 +1032,7 @@
 
   function renderComment(c) {
     const avatarInline = c.pfp_url
-      ? `style="background-image:url('${escapeHtml(c.pfp_url)}');background-position:${c.pfp_offset_x || 50}% ${c.pfp_offset_y || 50}%;background-size:cover;"`
+      ? `style="background-image:url('${escapeHtml(assetUrl(c.pfp_url))}');background-position:${c.pfp_offset_x || 50}% ${c.pfp_offset_y || 50}%;background-size:cover;"`
       : '';
     const initials = c.pfp_url ? '' : (c.username || '??').slice(0, 2).toUpperCase();
     const canDel   = currentUser && currentUser.id === c.user_id;
@@ -1079,7 +1093,7 @@
           reqList.innerHTML = data.requests.map(r => {
             const u = r.user;
             const av = u.pfp_url
-              ? `style="background-image:url('${escapeHtml(u.pfp_url)}');background-position:${u.pfp_offset_x}% ${u.pfp_offset_y}%;background-size:cover;"`
+              ? `style="background-image:url('${escapeHtml(assetUrl(u.pfp_url))}');background-position:${u.pfp_offset_x}% ${u.pfp_offset_y}%;background-size:cover;"`
               : '';
             return `
               <div class="dc-person-row">
@@ -1121,7 +1135,7 @@
           friendsList.innerHTML = data.friends.map(f => {
             const u = f.user;
             const av = u.pfp_url
-              ? `style="background-image:url('${escapeHtml(u.pfp_url)}');background-position:${u.pfp_offset_x}% ${u.pfp_offset_y}%;background-size:cover;"`
+              ? `style="background-image:url('${escapeHtml(assetUrl(u.pfp_url))}');background-position:${u.pfp_offset_x}% ${u.pfp_offset_y}%;background-size:cover;"`
               : '';
             return `
               <div class="dc-person-row">
@@ -1443,7 +1457,7 @@
         listEl.innerHTML = convos.map(c => {
           const u = c.user;
           const av = u.pfp_url
-            ? `style="background-image:url('${escapeHtml(u.pfp_url)}');background-position:${u.pfp_offset_x}% ${u.pfp_offset_y}%;background-size:cover;"`
+            ? `style="background-image:url('${escapeHtml(assetUrl(u.pfp_url))}');background-position:${u.pfp_offset_x}% ${u.pfp_offset_y}%;background-size:cover;"`
             : '';
           const initials = u.pfp_url ? '' : u.username.slice(0, 2).toUpperCase();
           const isActive = activeDmPeer === u.username;
