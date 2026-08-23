@@ -742,34 +742,120 @@
     setUsernameWithBadge(videoPeer, peerUsername, peerIsVerified);
     videoStatus.textContent = status || 'Connecting…';
     setVideoError('');
+    if (standaloneAudioOnly) {
+      const stage = document.querySelector('.dc-video-stage');
+      if (stage) stage.style.display = 'none';
+      if (toggleCameraBtn) toggleCameraBtn.style.display = 'none';
+      const hint = document.querySelector('.dc-call-hint');
+      if (hint) hint.textContent = 'Voice call';
+    }
     videoModal.classList.remove('hidden');
   }
 
   async function getMedia() {
     if (localStream) return localStream;
-    if (window.location.protocol === 'file:' || !window.isSecureContext) {
-      throw new Error('Camera and microphone access requires HTTPS. Chromebook blocks camera permissions for downloaded HTML files; open the website version of Dynamix Connect to make a video call.');
-    }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      throw new Error('Video calling is not supported by this browser.');
+      micBlocked = true;
+      return null;
     }
     try {
-      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      localVideo.srcObject = localStream;
-      localVideo.play().catch(() => {});
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      micBlocked = false;
       return localStream;
     } catch (e) {
+      micBlocked = true;
       const messages = {
-        NotAllowedError: 'Camera and microphone access was blocked. In Android site settings, allow Camera and Microphone, then try again.',
-        PermissionDeniedError: 'Camera and microphone access was denied. Allow both permissions for this site, then try again.',
-        NotFoundError: 'No camera or microphone was found. Check that both are connected and not being used by another app.',
-        NotReadableError: 'The camera or microphone is already being used by another app. Close other camera or call apps and try again.',
-        OverconstrainedError: 'This device could not provide the requested camera and microphone. Check the device settings and try again.',
-        SecurityError: 'Camera calling requires a secure HTTPS page. Reopen Dynamix Connect using its HTTPS address.'
+        NotAllowedError: 'Microphone access was blocked. Voice calling will use Hold to Speak if the microphone becomes available.',
+        PermissionDeniedError: 'Microphone access was denied. Voice calling will use Hold to Speak if the microphone becomes available.',
+        NotFoundError: 'No microphone was found. Check the device settings.',
+        NotReadableError: 'The microphone is already being used by another app.',
+        SecurityError: 'Microphone calling requires HTTPS. The downloaded file may use Hold to Speak only if Chromium permits microphone capture.'
       };
-      const detail = messages[e.name] || 'The camera and microphone could not be started. Check browser permissions and try again.';
-      throw new Error(detail);
+      if (videoError) setVideoError(messages[e.name] || 'Microphone access failed. You can try Hold to Speak.');
+      return null;
     }
+  }
+
+  function setupWalkieChannel(channel) {
+    walkieChannel = channel;
+    channel.binaryType = 'arraybuffer';
+    channel.onopen = () => {
+      if (micBlocked) videoStatus.textContent = 'Connected · Hold to Speak';
+    };
+    channel.onclose = () => { if (walkieChannel === channel) walkieChannel = null; };
+    channel.onerror = () => { if (micBlocked) setVideoError('Walkie-Talkie mode is unavailable.'); };
+    channel.onmessage = async event => {
+      if (!(event.data instanceof ArrayBuffer)) return;
+      try {
+        walkieAudioContext = walkieAudioContext || new AudioContext();
+        const buffer = await walkieAudioContext.decodeAudioData(event.data.slice(0));
+        const source = walkieAudioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(walkieAudioContext.destination);
+        source.start();
+      } catch (error) {
+        setVideoError('Received voice audio could not be played.');
+      }
+    };
+  }
+
+  function ensureWalkieButton() {
+    if (!standaloneAudioOnly || document.getElementById('dc-walkie-btn')) return;
+    const controls = document.querySelector('.dc-call-controls');
+    if (!controls) return;
+    const button = document.createElement('button');
+    button.id = 'dc-walkie-btn';
+    button.type = 'button';
+    button.className = 'dc-call-control';
+    button.innerHTML = '<i class="fas fa-microphone"></i><span>Hold to Speak</span>';
+    const start = event => { event.preventDefault(); startWalkieRecording(button); };
+    const stop = event => { event.preventDefault(); stopWalkieRecording(button); };
+    button.addEventListener('pointerdown', start);
+    button.addEventListener('pointerup', stop);
+    button.addEventListener('pointercancel', stop);
+    button.addEventListener('pointerleave', stop);
+    controls.insertBefore(button, endCallBtn || null);
+  }
+
+  async function startWalkieRecording(button) {
+    if (walkieRecorder) return;
+    if (!walkieChannel || walkieChannel.readyState !== 'open') {
+      setVideoError('Wait for the call to connect before speaking.');
+      return;
+    }
+    const stream = localStream || await getMedia();
+    if (!stream) {
+      setVideoError('Microphone access is still blocked. Hold to Speak needs microphone permission too.');
+      return;
+    }
+    if (!window.MediaRecorder) {
+      setVideoError('This browser does not support Walkie-Talkie recording.');
+      return;
+    }
+    try {
+      walkieChunks = [];
+      walkieRecorder = new MediaRecorder(stream);
+      walkieRecorder.ondataavailable = event => { if (event.data.size) walkieChunks.push(event.data); };
+      walkieRecorder.onstop = async () => {
+        const blob = new Blob(walkieChunks, { type: walkieRecorder.mimeType || 'audio/webm' });
+        walkieChunks = [];
+        if (walkieChannel && walkieChannel.readyState === 'open') walkieChannel.send(await blob.arrayBuffer());
+        walkieRecorder = null;
+      };
+      walkieRecorder.start();
+      button.classList.add('is-off');
+      button.querySelector('span').textContent = 'Speaking…';
+    } catch (error) {
+      walkieRecorder = null;
+      setVideoError('Could not start Walkie-Talkie recording.');
+    }
+  }
+
+  function stopWalkieRecording(button) {
+    if (walkieRecorder && walkieRecorder.state !== 'inactive') walkieRecorder.stop();
+    button.classList.remove('is-off');
+    const label = button.querySelector('span');
+    if (label) label.textContent = 'Hold to Speak';
   }
 
   async function loadIceConfig() {
@@ -784,6 +870,14 @@
   function createPeer() {
     if (peerConnection) return peerConnection;
     peerConnection = new RTCPeerConnection({ iceServers });
+    if (standaloneAudioOnly) {
+      if (currentUser && activeCall && currentUser.id === activeCall.caller_id) {
+        setupWalkieChannel(peerConnection.createDataChannel('walkie-talkie'));
+      } else {
+        peerConnection.ondatachannel = event => setupWalkieChannel(event.channel);
+      }
+      ensureWalkieButton();
+    }
     peerConnection.onicecandidate = event => {
       if (event.candidate && activeCall) {
         sendSignal('candidate', event.candidate.toJSON()).catch(console.error);
