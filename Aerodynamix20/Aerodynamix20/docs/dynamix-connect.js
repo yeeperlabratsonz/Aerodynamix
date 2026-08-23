@@ -82,6 +82,7 @@
   let walkieRecorder = null;
   let walkieChunks = [];
   let walkieAudioContext = null;
+  let remoteAudio = null;
   let micBlocked = false;
 
   // A blob relaunch can help browsers that treat the original local document
@@ -108,6 +109,13 @@
       });
       banner.appendChild(button);
       connectContainer.prepend(banner);
+    }
+  }
+  if (standaloneAudioOnly) {
+    if (profileCallBtn) profileCallBtn.innerHTML = '<i class="fas fa-phone"></i> Voice Call';
+    if (incomingCallerName) {
+      const incomingHint = incomingCallerName.closest('.dc-modal-content')?.querySelector('.dc-call-hint');
+      if (incomingHint) incomingHint.textContent = 'Incoming voice call';
     }
   }
 
@@ -884,6 +892,15 @@
       }
     };
     peerConnection.ontrack = event => {
+      if (standaloneAudioOnly) {
+        remoteAudio = remoteAudio || document.createElement('audio');
+        remoteAudio.autoplay = true;
+        remoteAudio.playsInline = true;
+        remoteAudio.srcObject = event.streams[0];
+        remoteAudio.play().catch(() => {});
+        videoStatus.textContent = 'Connected';
+        return;
+      }
       remoteVideo.srcObject = event.streams[0];
       remotePlaceholder.classList.add('hidden');
       videoStatus.textContent = 'Connected';
@@ -968,6 +985,10 @@
       if (data.calls && data.calls.length) {
         incomingCall = data.calls[0];
         setUsernameWithBadge(incomingCallerName, incomingCall.caller_username, incomingCall.caller_is_verified);
+        if (standaloneAudioOnly) {
+          const hint = incomingCallerName.closest('.dc-modal-content')?.querySelector('.dc-call-hint');
+          if (hint) hint.textContent = 'Incoming voice call';
+        }
         incomingModal.classList.remove('hidden');
       }
     } catch (e) {
@@ -1023,6 +1044,17 @@
       localStream.getTracks().forEach(track => track.stop());
       localStream = null;
     }
+    if (walkieRecorder && walkieRecorder.state !== 'inactive') walkieRecorder.stop();
+    walkieRecorder = null;
+    walkieChunks = [];
+    if (walkieChannel) {
+      walkieChannel.close();
+      walkieChannel = null;
+    }
+    if (remoteAudio) {
+      remoteAudio.srcObject = null;
+      remoteAudio = null;
+    }
     if (localVideo) localVideo.srcObject = null;
     if (remoteVideo) remoteVideo.srcObject = null;
     if (remotePlaceholder) remotePlaceholder.classList.remove('hidden');
@@ -1051,6 +1083,7 @@
     toggleMicBtn.innerHTML = `<i class="fas fa-microphone${track.enabled ? '' : '-slash'}"></i>`;
   });
   if (toggleCameraBtn) toggleCameraBtn.addEventListener('click', () => {
+    if (standaloneAudioOnly) return;
     const track = localStream && localStream.getVideoTracks()[0];
     if (!track) return;
     track.enabled = !track.enabled;
