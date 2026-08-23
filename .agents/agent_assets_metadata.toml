@@ -100,3 +100,17 @@ mtime_ms = 1787462487468
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/e8f0abb1-2319-4efb-94c1-a9b5ca27b42e/97e549ee-a48b-4567-83eb-40141d50ae38"
 storage_version_token = "1787462535624384"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "ywN-s0LcTllcUwzAc1ct6"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone.html.xz"
+type = "unspecified"
+title = "Corrected Aerodynamix Standalone file"
+description = "Compressed corrected standalone HTML. Extract it to restore Aerodynamix-Standalone.html with working profile pictures, verified badges, and post images."
+logical_id = "ae04ad62-fd44-429f-aa16-32aac6830f40"
+content_hash = "sha256:423241f9ae93048c9e1d5a182301a289e46479138402e9296fe76c1bf6bcddf2"
+size = 91797044
+mtime_ms = 1787465549852
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/ae04ad62-fd44-429f-aa16-32aac6830f40/b4dcf0a0-fb05-4007-b326-308d5a92afa4"
+storage_version_token = "1787465558763254"
+content_type = "application/octet-stream"
