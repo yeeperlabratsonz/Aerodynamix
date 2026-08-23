@@ -573,6 +573,14 @@
         display: block;
         animation: aeroViewIn .24s ease both;
       }
+      #aeroAppsView,
+      #aeroDrawingView {
+        display: none;
+      }
+      #aeroAppsView.active,
+      #aeroDrawingView.active {
+        display: block;
+      }
       .aero-connect-shell {
         width: 100%;
         margin: 0 auto;
@@ -657,6 +665,14 @@
       connectNav.textContent = 'Connect';
       navLinks.insertBefore(connectNav, navLinks.firstChild ? navLinks.firstChild.nextSibling : null);
     }
+    if (navLinks && !document.getElementById('appsNav')) {
+      var appsNav = document.createElement('a');
+      appsNav.id = 'appsNav';
+      appsNav.href = '#';
+      appsNav.title = 'Apps';
+      appsNav.textContent = 'Apps';
+      navLinks.insertBefore(appsNav, document.getElementById('mediaNav') || null);
+    }
     var settingsView = document.createElement('main');
     settingsView.id = 'aeroSettingsView';
     settingsView.innerHTML = `
@@ -728,6 +744,20 @@
     } else {
       document.body.prepend(connectView);
     }
+
+    var appsView = document.createElement('main');
+    appsView.id = 'aeroAppsView';
+    var appsTemplate = document.getElementById('aeroAppsMarkup');
+    appsView.innerHTML = appsTemplate ? appsTemplate.innerHTML : '<main class="apps-page"><h1 class="apps-title">Apps</h1></main>';
+    if (nav && nav.parentNode) nav.parentNode.insertBefore(appsView, nav.nextSibling);
+    else document.body.prepend(appsView);
+
+    var drawingView = document.createElement('main');
+    drawingView.id = 'aeroDrawingView';
+    var drawingTemplate = document.getElementById('aeroDrawingMarkup');
+    drawingView.innerHTML = drawingTemplate ? drawingTemplate.innerHTML : '<main class="drawing-page"></main>';
+    if (nav && nav.parentNode) nav.parentNode.insertBefore(drawingView, nav.nextSibling);
+    else document.body.prepend(drawingView);
 
     var modal = document.createElement('div');
     modal.id = 'aeroImportModal';
@@ -1200,10 +1230,14 @@
     var mediaView = document.getElementById('mediaView');
     var settingsView = document.getElementById('aeroSettingsView');
     var connectView = document.getElementById('aeroConnectView');
+    var appsView = document.getElementById('aeroAppsView');
+    var drawingView = document.getElementById('aeroDrawingView');
     if (gamesView) gamesView.style.display = view === 'games' ? 'block' : 'none';
     if (mediaView) mediaView.classList.toggle('active', view === 'media');
     if (settingsView) settingsView.classList.toggle('active', view === 'settings');
     if (connectView) connectView.classList.toggle('active', view === 'connect');
+    if (appsView) appsView.classList.toggle('active', view === 'apps');
+    if (drawingView) drawingView.classList.toggle('active', view === 'drawing');
 
     document.querySelectorAll('.nav-links a, .settings-nav').forEach(function (link) {
       link.classList.remove('active');
@@ -1212,6 +1246,20 @@
       ? document.getElementById('settingsToggle')
       : document.getElementById(view + 'Nav');
     if (active) active.classList.add('active');
+    if (view === 'drawing' && drawingView && !drawingView.dataset.loaded) {
+      var drawingClient = document.getElementById('aeroDrawingClient');
+      var drawingStyles = document.getElementById('aeroDrawingStyles');
+      if (drawingStyles && !document.getElementById('aeroDrawingPageStyles')) {
+        var style = document.createElement('style');
+        style.id = 'aeroDrawingPageStyles';
+        style.textContent = drawingStyles.textContent;
+        document.head.appendChild(style);
+      }
+      if (drawingClient) {
+        (new Function(drawingClient.textContent))();
+        drawingView.dataset.loaded = 'true';
+      }
+    }
     window.scrollTo(0, 0);
   }
 
@@ -1427,6 +1475,7 @@
     var gamesNav = document.getElementById('gamesNav');
     var mediaNav = document.getElementById('mediaNav');
     var connectNav = document.getElementById('connectNav');
+    var appsNav = document.getElementById('appsNav');
     var settingsNav = document.getElementById('settingsToggle');
     if (gamesNav) gamesNav.onclick = function (event) {
       event.preventDefault();
@@ -1441,6 +1490,20 @@
       showView('connect');
       loadConnectFrame();
     };
+    if (appsNav) appsNav.onclick = function (event) {
+      event.preventDefault();
+      showView('apps');
+    };
+    var drawingCard = document.querySelector('#aeroAppsView .app-card');
+    if (drawingCard) drawingCard.addEventListener('click', function (event) {
+      event.preventDefault();
+      showView('drawing');
+    });
+    var drawingBack = document.querySelector('#aeroDrawingView .drawing-back');
+    if (drawingBack) drawingBack.addEventListener('click', function (event) {
+      event.preventDefault();
+      showView('apps');
+    });
     if (settingsNav) {
       settingsNav.textContent = 'Settings';
       settingsNav.onclick = function (event) {
@@ -1540,7 +1603,8 @@
     loadCustomGames();
     var params = new URLSearchParams(location.search);
     var requestedView = params.get('view');
-    var validView = requestedView === 'media' || requestedView === 'settings' || requestedView === 'connect'
+    var validView = requestedView === 'media' || requestedView === 'settings' || requestedView === 'connect' ||
+      requestedView === 'apps' || requestedView === 'drawing'
       ? requestedView
       : 'games';
     showView(validView);
