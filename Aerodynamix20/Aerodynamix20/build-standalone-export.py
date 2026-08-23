@@ -6,6 +6,7 @@ page itself. Connect API requests still go to the live Aerodynamix service.
 """
 
 from pathlib import Path
+import base64
 import re
 import zipfile
 
@@ -18,6 +19,14 @@ OUTPUT_ZIP = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Standalone.zip"
 
 
 CONNECT_ORIGIN = "https://aerodynamix20.onrender.com"
+
+
+def data_uri(filename: str, mime: str) -> str:
+    asset = PROJECT_ROOT / "attached_assets" / filename
+    if not asset.exists():
+        raise RuntimeError(f"Missing bundled media asset: {asset}")
+    encoded = base64.b64encode(asset.read_bytes()).decode("ascii")
+    return f"data:{mime};base64,{encoded}"
 
 
 def build_connect_assets() -> tuple[str, str]:
@@ -58,6 +67,35 @@ def build_connect_assets() -> tuple[str, str]:
 
 def main() -> None:
     source = SOURCE_EXPORT.read_text(encoding="utf-8")
+    # Embed the user-provided tracks so the downloaded HTML does not depend on
+    # a sibling assets directory or a hosted media route.
+    sicko_uri = data_uri("sicko-mode.mp3", "audio/mpeg")
+    sicko_art_uri = data_uri("sicko-mode-cover.jpg", "image/jpeg")
+    magnolia_uri = data_uri("magnolia-user.mp3", "audio/mpeg")
+    magnolia_art_uri = data_uri("magnolia-user.webp", "image/webp")
+    source = source.replace(
+        "const BUNDLED_TRACKS = [",
+        "const BUNDLED_TRACKS = [\n"
+        "            {\n"
+        "                key: 'sicko-mode-user',\n"
+        f"                src: '{sicko_uri}',\n"
+        "                fileName: 'SICKO MODE.mp3',\n"
+        "                mime: 'audio/mpeg',\n"
+        "                tags: { title: 'SICKO MODE', artist: 'Travis Scott; Drake', album: 'ASTROWORLD' },\n"
+        f"                artUrl: '{sicko_art_uri}'\n"
+        "            },",
+        1,
+    )
+    source = source.replace(
+        "src: '/attached_assets/magnolia.mp3',",
+        f"src: '{magnolia_uri}',",
+        1,
+    )
+    source = source.replace(
+        "artUrl: '/attached_assets/magnolia-cover.jpg'",
+        f"artUrl: '{magnolia_art_uri}'",
+        1,
+    )
     # The source export's global Media Player shortcut must not intercept
     # spaces typed into Connect textareas and other editable controls.
     source = source.replace(
