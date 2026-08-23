@@ -1183,7 +1183,7 @@
         // ── Keyboard shortcuts ───────────────────────────
         document.addEventListener('keydown', e => {
             if (isLocked()) { e.preventDefault(); return; }
-            if (e.target.tagName === 'INPUT') return;
+            if (e.target.matches('input, textarea, select, [contenteditable="true"]')) return;
             if (e.code === 'Space')      { e.preventDefault(); playPauseBtn.click(); }
             if (e.code === 'ArrowRight') { audio.currentTime = Math.min(audio.currentTime + 10, audio.duration||0); }
             if (e.code === 'ArrowLeft')  { audio.currentTime = Math.max(audio.currentTime - 10, 0); }

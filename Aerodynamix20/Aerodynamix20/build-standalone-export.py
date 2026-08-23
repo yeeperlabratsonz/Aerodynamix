@@ -58,6 +58,12 @@ def build_connect_assets() -> tuple[str, str]:
 
 def main() -> None:
     source = SOURCE_EXPORT.read_text(encoding="utf-8")
+    # The source export's global Media Player shortcut must not intercept
+    # spaces typed into Connect textareas and other editable controls.
+    source = source.replace(
+        "if (e.target.tagName === 'INPUT') return;",
+        "if (e.target.matches('input, textarea, select, [contenteditable=\"true\"]')) return;",
+    )
     patch = (PROJECT_ROOT / "aerodynamix-standalone-patch.js").read_text(encoding="utf-8")
     markup, styles, client = build_connect_assets()
     injection = (
