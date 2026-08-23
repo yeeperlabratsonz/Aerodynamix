@@ -552,6 +552,33 @@
       .aero-connect-page .dc-page-tab.active {
         background: var(--standalone-accent);
       }
+      .aero-connect-page .dc-modal-overlay {
+        z-index: 10080;
+      }
+      /* Keep the controls recognizable if the external Font Awesome sheet is
+         unavailable while this file is opened offline or on a filtered network. */
+      .aero-connect-page .fas {
+        display: inline-block;
+        min-width: 1em;
+        text-align: center;
+      }
+      .aero-connect-page .fa-home::before { content: "⌂"; }
+      .aero-connect-page .fa-user-friends::before,
+      .aero-connect-page .fa-user-plus::before,
+      .aero-connect-page .fa-user-check::before,
+      .aero-connect-page .fa-user-minus::before { content: "♙"; }
+      .aero-connect-page .fa-envelope::before { content: "✉"; }
+      .aero-connect-page .fa-video::before { content: "▣"; }
+      .aero-connect-page .fa-camera::before { content: "▣"; }
+      .aero-connect-page .fa-microphone::before { content: "♩"; }
+      .aero-connect-page .fa-phone::before { content: "☎"; }
+      .aero-connect-page .fa-phone-slash::before { content: "✕"; }
+      .aero-connect-page .fa-times::before { content: "×"; }
+      .aero-connect-page .fa-paper-plane::before { content: "➤"; }
+      .aero-connect-page .fa-image::before { content: "▧"; }
+      .aero-connect-page .fa-trash::before { content: "⌫"; }
+      .aero-connect-page .fa-arrow-left::before { content: "←"; }
+      .aero-connect-page .fa-user::before { content: "●"; }
       @media (max-width: 620px) {
         .aero-connect-page { min-height: calc(100vh - 78px); }
       }
@@ -1014,6 +1041,11 @@
       var client = document.getElementById('aeroConnectClient');
       if (!template || !styles || !client) throw new Error('Connect assets missing');
       page.appendChild(template.content.cloneNode(true));
+      // Fixed-position modals can be trapped by the standalone view's
+      // animation/stacking context in Chromium. Keep them at document level.
+      page.querySelectorAll('.dc-modal-overlay').forEach(function (modal) {
+        document.body.appendChild(modal);
+      });
       if (!document.getElementById('aeroConnectPageStyles')) {
         var style = document.createElement('style');
         style.id = 'aeroConnectPageStyles';
@@ -1023,6 +1055,13 @@
       page.hidden = false;
       empty.hidden = true;
       connectMounted = true;
+      if (!document.getElementById('aeroFontAwesome')) {
+        var iconFont = document.createElement('link');
+        iconFont.id = 'aeroFontAwesome';
+        iconFont.rel = 'stylesheet';
+        iconFont.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+        document.head.appendChild(iconFont);
+      }
       (new Function(client.textContent))();
     } catch (error) {
       page.hidden = true;

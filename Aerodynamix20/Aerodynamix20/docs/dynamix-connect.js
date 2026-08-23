@@ -672,6 +672,8 @@
         `).join('');
       }
     } catch (e) {
+      profileViewUsername.textContent = username || 'Profile';
+      profileViewBio.textContent = 'This profile could not be loaded right now.';
       profileViewPosts.innerHTML = '<div class="dc-empty">Could not load profile.</div>';
     }
   }
@@ -712,6 +714,9 @@
 
   async function getMedia() {
     if (localStream) return localStream;
+    if (window.location.protocol === 'file:' || !window.isSecureContext) {
+      throw new Error('Camera and microphone access requires HTTPS. Chromebook blocks camera permissions for downloaded HTML files; open the website version of Dynamix Connect to make a video call.');
+    }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       throw new Error('Video calling is not supported by this browser.');
     }
