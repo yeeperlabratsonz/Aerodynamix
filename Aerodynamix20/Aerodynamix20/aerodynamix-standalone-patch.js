@@ -911,6 +911,49 @@
     return URL.createObjectURL(new Blob([game.content], { type: 'text/html' }));
   }
 
+  function sanitizeStandaloneGameHtml(html, gameUrl) {
+    var parser = new DOMParser();
+    var documentCopy = parser.parseFromString(html, 'text/html');
+    var adPattern = /adservice|adsbygoogle|googlesyndication|doubleclick|popunder|popads|adsterra|propellerads|juicyads|exoclick|clickadu|monetag|hilltopads|trafficjunky|adroll|advertising|(^|[-_])ads?([._-]|$)/i;
+
+    documentCopy.querySelectorAll('script[src], iframe, object, embed, meta[http-equiv]').forEach(function (element) {
+      var source = element.getAttribute('src') || element.getAttribute('data') || '';
+      var metaRefresh = element.tagName === 'META' && /refresh/i.test(element.getAttribute('http-equiv') || '');
+      if (element.tagName !== 'SCRIPT' || adPattern.test(source) || metaRefresh) element.remove();
+    });
+    documentCopy.querySelectorAll('[id], [class], [style]').forEach(function (element) {
+      var label = [element.id, element.className, element.getAttribute('style') || ''].join(' ');
+      if (adPattern.test(label)) element.remove();
+    });
+    documentCopy.querySelectorAll('*').forEach(function (element) {
+      Array.from(element.attributes).forEach(function (attribute) {
+        if (/^on/i.test(attribute.name) && /window\.open|location\.(href|replace|assign)|popunder/i.test(attribute.value)) {
+          element.removeAttribute(attribute.name);
+        }
+      });
+    });
+    var guard = documentCopy.createElement('script');
+    guard.textContent = '(function(){window.open=function(){return null;};try{Object.defineProperty(window,"opener",{value:null,configurable:false});}catch(e){}})();';
+    documentCopy.head.insertBefore(guard, documentCopy.head.firstChild);
+    var base = documentCopy.createElement('base');
+    base.href = gameUrl;
+    documentCopy.head.insertBefore(base, documentCopy.head.firstChild);
+    return '<!doctype html>\n' + documentCopy.documentElement.outerHTML;
+  }
+
+  async function openSanitizedStandaloneGame(url, frame) {
+    try {
+      var response = await fetch(url, { credentials: 'omit' });
+      if (!response.ok) throw new Error('Game could not be loaded');
+      frame.srcdoc = sanitizeStandaloneGameHtml(await response.text(), url);
+    } catch (error) {
+      // Some legacy hosts do not allow fetching their HTML. Keep the sandboxed
+      // fallback so those games remain playable.
+      frame.removeAttribute('srcdoc');
+      frame.src = url;
+    }
+  }
+
   function openGame(game) {
     var gamePath = game.game || game.gamePath || game.path || '';
     var url = game.url || resolveSitePath(gamePath);
@@ -938,9 +981,14 @@
     if (game.custom === true) {
       frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-pointer-lock');
     } else {
-      frame.removeAttribute('sandbox');
+      frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-pointer-lock');
     }
-    frame.src = url;
+    if (location.protocol === 'file:' && game.custom !== true) {
+      frame.removeAttribute('src');
+      openSanitizedStandaloneGame(url, frame);
+    } else {
+      frame.src = url;
+    }
     player.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
