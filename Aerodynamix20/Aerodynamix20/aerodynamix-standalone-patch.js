@@ -614,6 +614,9 @@
       .aero-clock-display.liquid .aero-clock-time { color: rgba(255,255,255,.92); text-shadow: 0 2px 0 rgba(255,255,255,.32), 0 0 28px rgba(111,213,255,.95); -webkit-text-stroke: 1px rgba(255,255,255,.18); }
       .aero-clock-display.neon .aero-clock-time { color: var(--standalone-accent); text-shadow: 0 0 8px var(--standalone-accent), 0 0 35px var(--standalone-accent); }
       .aero-clock-display.minimal { background: transparent; box-shadow: none; }
+      .aero-clock-time.clock-font-square { font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif; letter-spacing: .08em; }
+      .aero-clock-time.clock-font-rounded { font-family: "Trebuchet MS", Arial, sans-serif; font-weight: 800; letter-spacing: .02em; }
+      .aero-clock-time.clock-font-serif { font-family: Georgia, serif; font-weight: 700; letter-spacing: .02em; }
       .aero-clock-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin: 0 auto; }
       .aero-clock-control { display: grid; gap: .4rem; min-width: 170px; color: color-mix(in srgb, var(--standalone-text) 72%, transparent); font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
       .aero-clock-control select, .aero-clock-control button { width: 100%; min-height: 42px; border: 1px solid var(--standalone-line); border-radius: 10px; background: var(--standalone-panel); color: var(--standalone-text); padding: .65rem .75rem; font: inherit; text-transform: none; cursor: pointer; }
@@ -1632,6 +1635,7 @@
     var mediaNav = document.getElementById('mediaNav');
     var connectNav = document.getElementById('connectNav');
     var appsNav = document.getElementById('appsNav');
+    var clock = document.getElementById('pstClock');
     var settingsNav = document.getElementById('settingsToggle');
     if (gamesNav) gamesNav.onclick = function (event) {
       event.preventDefault();
@@ -1649,6 +1653,43 @@
     if (appsNav) appsNav.onclick = function (event) {
       event.preventDefault();
       showView('apps');
+    };
+    if (clock) {
+      clock.title = 'Open clock easter egg';
+      clock.tabIndex = 0;
+      clock.style.cursor = 'pointer';
+      var openClock = function (event) {
+        if (event) event.preventDefault();
+        showView('clock');
+      };
+      clock.onclick = openClock;
+      clock.onkeydown = function (event) {
+        if (event.key === 'Enter' || event.key === ' ') openClock(event);
+      };
+    }
+    var clockFont = document.getElementById('aeroClockFont');
+    var clockStyle = document.getElementById('aeroClockStyle');
+    var clockFormat = document.getElementById('aeroClockFormat');
+    if (clockFont) clockFont.onchange = function () {
+      settings.clockFont = clockFont.value;
+      saveSettings();
+      applyClockDisplay();
+    };
+    if (clockStyle) clockStyle.onchange = function () {
+      settings.clockStyle = clockStyle.value;
+      saveSettings();
+      applyClockDisplay();
+    };
+    if (clockFormat) clockFormat.onclick = function () {
+      settings.clock24 = !settings.clock24;
+      saveSettings();
+      updateClockDisplay();
+      applyClockDisplay();
+    };
+    var clockBack = document.getElementById('aeroClockBack');
+    if (clockBack) clockBack.onclick = function (event) {
+      event.preventDefault();
+      showView('games');
     };
     var drawingCard = document.querySelector('#aeroAppsView .app-card');
     if (drawingCard) drawingCard.addEventListener('click', function (event) {
