@@ -65,7 +65,7 @@ def build_connect_assets() -> tuple[str, str]:
     return markup, styles, client
 
 
-def build_app_assets() -> tuple[str, str, str, str]:
+def build_app_assets() -> tuple[str, str, str, str, str]:
     docs = PROJECT_ROOT / "docs"
 
     def main_markup(filename: str) -> str:
@@ -77,11 +77,12 @@ def build_app_assets() -> tuple[str, str, str, str]:
 
     apps_markup = main_markup("apps.html")
     drawing_markup = main_markup("drawing.html")
-    # The standalone supplies its own navigation and shared shell.
-    apps_markup = re.sub(r"<div class=\"search\".*?</div>", "", apps_markup, flags=re.DOTALL)
+    apps_document = (docs / "apps.html").read_text(encoding="utf-8")
+    apps_style_match = re.search(r"<style>(.*?)</style>", apps_document, flags=re.DOTALL | re.IGNORECASE)
+    apps_styles = apps_style_match.group(1) if apps_style_match else ""
     drawing_styles = (docs / "drawing.css").read_text(encoding="utf-8")
     drawing_client = (docs / "drawing.js").read_text(encoding="utf-8")
-    return apps_markup, drawing_markup, drawing_styles + "\n", drawing_client
+    return apps_markup, apps_styles + "\n", drawing_markup, drawing_styles + "\n", drawing_client
 
 
 def main() -> None:
@@ -121,7 +122,7 @@ def main() -> None:
     )
     patch = (PROJECT_ROOT / "aerodynamix-standalone-patch.js").read_text(encoding="utf-8")
     markup, styles, client = build_connect_assets()
-    apps_markup, drawing_markup, drawing_styles, drawing_client = build_app_assets()
+    apps_markup, apps_styles, drawing_markup, drawing_styles, drawing_client = build_app_assets()
     injection = (
         "\n<template id=\"aeroConnectMarkup\"><div class=\"aero-connect-page\">"
         + markup
@@ -135,6 +136,9 @@ def main() -> None:
         + "<template id=\"aeroAppsMarkup\">"
         + apps_markup
         + "</template>\n"
+        + "<style id=\"aeroAppsStyles\">\n"
+        + apps_styles
+        + "\n</style>\n"
         + "<template id=\"aeroDrawingMarkup\">"
         + drawing_markup
         + "</template>\n"
