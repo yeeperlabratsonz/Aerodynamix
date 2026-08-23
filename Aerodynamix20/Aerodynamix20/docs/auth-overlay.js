@@ -18,6 +18,7 @@
                 display:flex; flex:0 0 auto; align-items:center; justify-content:center; gap:7px; margin-left:1vw;
                 margin-right:.35vw; white-space:nowrap; font:600 .72rem Montserrat,sans-serif;
             }
+            nav > .aero-site-status { flex:0 0 auto !important; min-width:max-content; width:auto !important; overflow:visible !important; }
             .aero-site-status-item {
                 border:1px solid rgba(130,185,255,.25); border-radius:8px; padding:8px 10px;
                 background:rgba(7,18,38,.55); color:rgba(255,255,255,.75);
@@ -59,7 +60,7 @@
             .aero-site-clock-control button { background:var(--aero-clock-accent,#2c7ffc); }
             .aero-site-clock-close { display:block; width:max-content; margin:2rem auto 0; color:rgba(255,255,255,.75); cursor:pointer; font:600 .8rem Montserrat,sans-serif; }
             @media(max-width:850px) { .aero-site-status { gap:3px; margin-right:4px; } .aero-site-status-item { padding:6px; font-size:.6rem; } }
-            @media(max-width:620px) { .aero-site-status .aero-site-online { display:none; } .aero-site-status { order:3; width:100%; margin:4px 0 0; } }
+            @media(max-width:700px) { nav > .aero-site-status { position:static !important; order:initial !important; width:auto !important; margin:0 0 0 auto; } .aero-site-status .aero-site-online { display:none; } .aero-site-status-item { font-size:.58rem; } }
         `;
         document.head.appendChild(style);
 
@@ -97,11 +98,26 @@
         document.body.appendChild(overlay);
 
         const save = () => { try { localStorage.setItem(clockSettingsKey, JSON.stringify(clockSettings)); } catch (error) {} };
+        const populateTimezones = () => {
+            const select = document.getElementById('aeroSiteClockTimezone');
+            if (!select || select.options.length) return;
+            const zones = typeof Intl.supportedValuesOf === 'function'
+                ? Intl.supportedValuesOf('timeZone')
+                : ['America/Los_Angeles','America/New_York','America/Chicago','America/Denver','Europe/London','Europe/Paris','Asia/Tokyo','Asia/Shanghai','Australia/Sydney','Pacific/Auckland','UTC'];
+            zones.forEach(zone => {
+                const option = document.createElement('option');
+                option.value = zone;
+                option.textContent = zone.replace(/_/g, ' ').replace(/\//g, ' / ');
+                select.appendChild(option);
+            });
+            select.value = clockSettings.timezone || 'America/Los_Angeles';
+        };
         const update = () => {
             const now = new Date();
             const use24 = clockSettings.clock24 === true;
-            document.getElementById('aeroSiteClockTime').textContent = new Intl.DateTimeFormat('en-US', { timeZone:'America/Los_Angeles', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:!use24 }).format(now);
-            document.getElementById('aeroSiteClockDate').textContent = new Intl.DateTimeFormat('en-US', { timeZone:'America/Los_Angeles', weekday:'long', month:'long', day:'numeric', year:'numeric' }).format(now);
+            const timezone = clockSettings.timezone || 'America/Los_Angeles';
+            document.getElementById('aeroSiteClockTime').textContent = new Intl.DateTimeFormat('en-US', { timeZone:timezone, hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:!use24 }).format(now);
+            document.getElementById('aeroSiteClockDate').textContent = new Intl.DateTimeFormat('en-US', { timeZone:timezone, weekday:'long', month:'long', day:'numeric', year:'numeric' }).format(now);
             document.getElementById('aeroSiteClock').textContent = 'PST ' + new Intl.DateTimeFormat('en-US', { timeZone:'America/Los_Angeles', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true }).format(now);
         };
         const apply = () => {
@@ -110,16 +126,21 @@
             display.classList.remove('liquid','neon','minimal');
             display.classList.add(selected === 'theme' ? (document.body.dataset.theme === 'frutiger-aero' ? 'liquid' : 'minimal') : selected);
             document.getElementById('aeroSiteClockTime').className = 'aero-site-clock-time font-' + (clockSettings.clockFont || 'digital');
+            display.style.setProperty('--aero-clock-color', clockSettings.color || getComputedStyle(document.documentElement).getPropertyValue('--aero-clock-accent').trim() || '#2c7ffc');
             document.getElementById('aeroSiteClockFont').value = clockSettings.clockFont || 'digital';
             document.getElementById('aeroSiteClockStyle').value = selected;
+            document.getElementById('aeroSiteClockTimezone').value = clockSettings.timezone || 'America/Los_Angeles';
+            document.getElementById('aeroSiteClockColor').value = clockSettings.color || '#2c7ffc';
             document.getElementById('aeroSiteClockFormat').textContent = clockSettings.clock24 ? 'Switch to 12-hour' : 'Switch to 24-hour';
         };
-        const open = () => { overlay.classList.add('open'); overlay.setAttribute('aria-hidden','false'); update(); apply(); };
+        const open = () => { populateTimezones(); overlay.classList.add('open'); overlay.setAttribute('aria-hidden','false'); update(); apply(); };
         const close = () => { overlay.classList.remove('open'); overlay.setAttribute('aria-hidden','true'); };
         document.getElementById('aeroSiteClock').addEventListener('click', open);
         document.getElementById('aeroSiteClockClose').addEventListener('click', close);
         document.getElementById('aeroSiteClockFont').addEventListener('change', e => { clockSettings.clockFont=e.target.value; save(); apply(); });
         document.getElementById('aeroSiteClockStyle').addEventListener('change', e => { clockSettings.clockStyle=e.target.value; save(); apply(); });
+        document.getElementById('aeroSiteClockTimezone').addEventListener('change', e => { clockSettings.timezone=e.target.value; save(); update(); });
+        document.getElementById('aeroSiteClockColor').addEventListener('input', e => { clockSettings.color=e.target.value; save(); apply(); });
         document.getElementById('aeroSiteClockFormat').addEventListener('click', () => { clockSettings.clock24=!clockSettings.clock24; save(); update(); apply(); });
         document.addEventListener('keydown', e => { if (e.key === 'Escape' && overlay.classList.contains('open')) close(); });
         setInterval(update, 1000);
