@@ -22,6 +22,7 @@
   var libraryLoadVersion = 0;
   var effectTimer = null;
   var effectLayer = null;
+  var clockTimer = null;
 
   var themes = {
     black: {
@@ -581,6 +582,43 @@
       #aeroDrawingView.active {
         display: block;
       }
+      #aeroClockView {
+        display: none;
+        min-height: calc(100vh - 118px);
+        padding: clamp(86px, 9vw, 130px) 5vw 8rem;
+        box-sizing: border-box;
+      }
+      #aeroClockView.active { display: block; animation: aeroViewIn .24s ease both; }
+      .aero-clock-shell { max-width: 1180px; margin: 0 auto; }
+      .aero-clock-heading { text-align: center; }
+      .aero-clock-heading h2 { margin: 0 0 .45rem; color: var(--standalone-text); font-size: clamp(1.8rem, 4vw, 3.5rem); letter-spacing: .08em; text-transform: uppercase; }
+      .aero-clock-heading p { margin: 0; color: color-mix(in srgb, var(--standalone-text) 62%, transparent); }
+      .aero-clock-display {
+        margin: clamp(2.2rem, 7vw, 6rem) auto 2.3rem;
+        padding: clamp(1.4rem, 5vw, 4.5rem) 2vw;
+        border: 1px solid color-mix(in srgb, var(--standalone-accent) 38%, transparent);
+        border-radius: 32px;
+        background: linear-gradient(145deg, color-mix(in srgb, var(--standalone-accent) 17%, var(--standalone-bg)), color-mix(in srgb, var(--standalone-bg) 92%, #000));
+        box-shadow: 0 26px 70px rgba(0,0,0,.35), 0 0 50px color-mix(in srgb, var(--standalone-accent) 12%, transparent);
+        text-align: center;
+      }
+      .aero-clock-time {
+        color: var(--standalone-text);
+        font: 700 clamp(3.2rem, 12vw, 10rem)/.95 "Courier New", monospace;
+        letter-spacing: .06em;
+        text-shadow: 0 0 22px color-mix(in srgb, var(--standalone-accent) 55%, transparent);
+        font-variant-numeric: tabular-nums;
+      }
+      .aero-clock-date { margin-top: 1.2rem; color: color-mix(in srgb, var(--standalone-text) 66%, transparent); font-size: clamp(.8rem, 1.6vw, 1.1rem); letter-spacing: .16em; text-transform: uppercase; }
+      .aero-clock-display.liquid { border-color: rgba(255,255,255,.5); background: linear-gradient(135deg, rgba(255,255,255,.28), rgba(126,207,255,.12) 38%, rgba(221,146,255,.22)); backdrop-filter: blur(18px) saturate(150%); box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 24px 65px rgba(0,60,130,.34); }
+      .aero-clock-display.liquid .aero-clock-time { color: rgba(255,255,255,.92); text-shadow: 0 2px 0 rgba(255,255,255,.32), 0 0 28px rgba(111,213,255,.95); -webkit-text-stroke: 1px rgba(255,255,255,.18); }
+      .aero-clock-display.neon .aero-clock-time { color: var(--standalone-accent); text-shadow: 0 0 8px var(--standalone-accent), 0 0 35px var(--standalone-accent); }
+      .aero-clock-display.minimal { background: transparent; box-shadow: none; }
+      .aero-clock-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin: 0 auto; }
+      .aero-clock-control { display: grid; gap: .4rem; min-width: 170px; color: color-mix(in srgb, var(--standalone-text) 72%, transparent); font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+      .aero-clock-control select, .aero-clock-control button { width: 100%; min-height: 42px; border: 1px solid var(--standalone-line); border-radius: 10px; background: var(--standalone-panel); color: var(--standalone-text); padding: .65rem .75rem; font: inherit; text-transform: none; cursor: pointer; }
+      .aero-clock-control button { background: var(--standalone-accent); color: #fff; }
+      .aero-clock-back { display: block; width: max-content; margin: 2rem auto 0; color: color-mix(in srgb, var(--standalone-text) 72%, transparent); cursor: pointer; font-size: .8rem; }
       .aero-connect-shell {
         width: 100%;
         margin: 0 auto;
@@ -758,6 +796,45 @@
     drawingView.innerHTML = drawingTemplate ? drawingTemplate.innerHTML : '<main class="drawing-page"></main>';
     if (nav && nav.parentNode) nav.parentNode.insertBefore(drawingView, nav.nextSibling);
     else document.body.prepend(drawingView);
+
+    var clockView = document.createElement('main');
+    clockView.id = 'aeroClockView';
+    clockView.innerHTML = `
+      <div class="aero-clock-shell">
+        <header class="aero-clock-heading">
+          <h2>Pacific Time</h2>
+          <p>Your little Aerodynamix clock easter egg.</p>
+        </header>
+        <section class="aero-clock-display" id="aeroClockDisplay">
+          <div class="aero-clock-time" id="aeroClockTime">--:--:--</div>
+          <div class="aero-clock-date" id="aeroClockDate">Loading time…</div>
+        </section>
+        <div class="aero-clock-controls">
+          <label class="aero-clock-control">Number style
+            <select id="aeroClockFont">
+              <option value="digital">Digital Mono</option>
+              <option value="square">Square Tech</option>
+              <option value="rounded">Rounded</option>
+              <option value="serif">Classic Serif</option>
+            </select>
+          </label>
+          <label class="aero-clock-control">Display look
+            <select id="aeroClockStyle">
+              <option value="theme">Match current theme</option>
+              <option value="liquid">Liquid glass</option>
+              <option value="neon">Neon glow</option>
+              <option value="minimal">Minimal</option>
+            </select>
+          </label>
+          <label class="aero-clock-control">Time format
+            <button type="button" id="aeroClockFormat">Switch to 24-hour</button>
+          </label>
+        </div>
+        <a class="aero-clock-back" id="aeroClockBack" href="#">← Back to Games</a>
+      </div>
+    `;
+    if (nav && nav.parentNode) nav.parentNode.insertBefore(clockView, nav.nextSibling);
+    else document.body.prepend(clockView);
 
     var appsStyles = document.getElementById('aeroAppsStyles');
     if (appsStyles) {
@@ -1259,6 +1336,44 @@
     modal.setAttribute('aria-hidden', 'true');
   }
 
+  function updateClockDisplay() {
+    var time = document.getElementById('aeroClockTime');
+    var date = document.getElementById('aeroClockDate');
+    if (!time || !date) return;
+    var now = new Date();
+    var use24 = settings.clock24 === true;
+    time.textContent = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: !use24
+    }).format(now);
+    date.textContent = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(now);
+  }
+
+  function applyClockDisplay() {
+    var display = document.getElementById('aeroClockDisplay');
+    var font = document.getElementById('aeroClockFont');
+    var style = document.getElementById('aeroClockStyle');
+    var format = document.getElementById('aeroClockFormat');
+    if (!display) return;
+    var selectedStyle = settings.clockStyle || 'theme';
+    display.classList.remove('liquid', 'neon', 'minimal');
+    display.classList.add(selectedStyle === 'theme' && settings.theme === 'frutiger-aero' ? 'liquid' : selectedStyle === 'theme' ? 'minimal' : selectedStyle);
+    display.classList.remove('clock-font-digital', 'clock-font-square', 'clock-font-rounded', 'clock-font-serif');
+    display.classList.add('clock-font-' + (settings.clockFont || 'digital'));
+    if (font) font.value = settings.clockFont || 'digital';
+    if (style) style.value = selectedStyle;
+    if (format) format.textContent = settings.clock24 ? 'Switch to 12-hour' : 'Switch to 24-hour';
+  }
+
   function showView(view) {
     var gamesView = document.querySelector('main.content');
     var mediaView = document.getElementById('mediaView');
@@ -1272,6 +1387,8 @@
     if (connectView) connectView.classList.toggle('active', view === 'connect');
     if (appsView) appsView.classList.toggle('active', view === 'apps');
     if (drawingView) drawingView.classList.toggle('active', view === 'drawing');
+    var clockView = document.getElementById('aeroClockView');
+    if (clockView) clockView.classList.toggle('active', view === 'clock');
 
     document.querySelectorAll('.nav-links a, .settings-nav').forEach(function (link) {
       link.classList.remove('active');
@@ -1293,6 +1410,11 @@
         (new Function(drawingClient.textContent))();
         drawingView.dataset.loaded = 'true';
       }
+    }
+    if (view === 'clock') {
+      applyClockDisplay();
+      updateClockDisplay();
+      if (!clockTimer) clockTimer = setInterval(updateClockDisplay, 1000);
     }
     window.scrollTo(0, 0);
   }
