@@ -83,17 +83,15 @@ def main() -> None:
         "                mime: 'audio/mpeg',\n"
         "                tags: { title: 'SICKO MODE', artist: 'Travis Scott; Drake', album: 'ASTROWORLD' },\n"
         f"                artUrl: '{sicko_art_uri}'\n"
+        "            },\n"
+        "            {\n"
+        "                key: 'magnolia-user',\n"
+        f"                src: '{magnolia_uri}',\n"
+        "                fileName: 'Magnolia.mp3',\n"
+        "                mime: 'audio/mpeg',\n"
+        "                tags: { title: 'Magnolia', artist: 'Playboi Carti', album: 'Playboi Carti' },\n"
+        f"                artUrl: '{magnolia_art_uri}'\n"
         "            },",
-        1,
-    )
-    source = source.replace(
-        "src: '/attached_assets/magnolia.mp3',",
-        f"src: '{magnolia_uri}',",
-        1,
-    )
-    source = source.replace(
-        "artUrl: '/attached_assets/magnolia-cover.jpg'",
-        f"artUrl: '{magnolia_art_uri}'",
         1,
     )
     # The source export's global Media Player shortcut must not intercept
