@@ -85,40 +85,6 @@
   let remoteAudio = null;
   let micBlocked = false;
 
-  // A blob relaunch can help browsers that treat the original local document
-  // unusually, but it cannot override Chromium's secure-origin policy.
-  if (standaloneAudioOnly && window.location.protocol === 'file:') {
-    const connectContainer = document.querySelector('.dc-container');
-    if (connectContainer && !document.getElementById('dc-file-mic-banner')) {
-      const banner = document.createElement('div');
-      banner.id = 'dc-file-mic-banner';
-      banner.className = 'dc-card';
-      banner.innerHTML = '<strong>Using Connect from a downloaded file?</strong><p style="margin:.45rem 0 .75rem;color:rgba(255,255,255,.7)">Try opening a temporary copy before starting a voice call. Chromium may still require the HTTPS website version.</p>';
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'dc-btn';
-      button.textContent = 'Relaunch for Mic Access';
-      button.addEventListener('click', () => {
-        try {
-          const copyUrl = URL.createObjectURL(new Blob([document.documentElement.outerHTML], { type: 'text/html' }));
-          const opened = window.open(copyUrl, '_blank', 'noopener');
-          if (!opened) window.location.href = copyUrl;
-        } catch (error) {
-          alert('Could not relaunch this file. Open the HTTPS website version for voice calling.');
-        }
-      });
-      banner.appendChild(button);
-      connectContainer.prepend(banner);
-    }
-  }
-  if (standaloneAudioOnly) {
-    if (profileCallBtn) profileCallBtn.innerHTML = '<i class="fas fa-phone"></i> Voice Call';
-    if (incomingCallerName) {
-      const incomingHint = incomingCallerName.closest('.dc-modal-content')?.querySelector('.dc-call-hint');
-      if (incomingHint) incomingHint.textContent = 'Incoming voice call';
-    }
-  }
-
   // ── API helper ──────────────────────────────────────────────────────────────
   async function api(path, options = {}) {
     const res = await fetch(path, { credentials: 'same-origin', ...options });
@@ -985,10 +951,6 @@
       if (data.calls && data.calls.length) {
         incomingCall = data.calls[0];
         setUsernameWithBadge(incomingCallerName, incomingCall.caller_username, incomingCall.caller_is_verified);
-        if (standaloneAudioOnly) {
-          const hint = incomingCallerName.closest('.dc-modal-content')?.querySelector('.dc-call-hint');
-          if (hint) hint.textContent = 'Incoming voice call';
-        }
         incomingModal.classList.remove('hidden');
       }
     } catch (e) {
@@ -1771,7 +1733,7 @@
 
   // ── Init ─────────────────────────────────────────────────────────────────────
   checkMe().then(() => {
-    callPollTimer = setInterval(pollIncomingCalls, 3000);
+    if (!standaloneAudioOnly) callPollTimer = setInterval(pollIncomingCalls, 3000);
     if (currentUser) {
       updateFriendBadge();
       updateUnreadBadge();

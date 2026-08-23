@@ -1041,6 +1041,17 @@
       var client = document.getElementById('aeroConnectClient');
       if (!template || !styles || !client) throw new Error('Connect assets missing');
       page.appendChild(template.content.cloneNode(true));
+      // Calling is intentionally unavailable in the downloaded standalone
+      // edition. Keep the hosted Connect page's calling feature unchanged.
+      if (window.location.protocol === 'file:' || window.AERO_CONNECT_ORIGIN) {
+        ['profile-call-btn', 'incoming-call-modal', 'video-call-modal'].forEach(function (id) {
+          var callElement = page.querySelector('#' + id);
+          if (callElement) {
+            if (id === 'profile-call-btn') callElement.remove();
+            else callElement.remove();
+          }
+        });
+      }
       // Fixed-position modals can be trapped by the standalone view's
       // animation/stacking context in Chromium. Keep them at document level.
       page.querySelectorAll('.dc-modal-overlay').forEach(function (modal) {
