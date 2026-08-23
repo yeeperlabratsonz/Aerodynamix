@@ -65,6 +65,25 @@ def build_connect_assets() -> tuple[str, str]:
     return markup, styles, client
 
 
+def build_app_assets() -> tuple[str, str, str, str]:
+    docs = PROJECT_ROOT / "docs"
+
+    def main_markup(filename: str) -> str:
+        document = (docs / filename).read_text(encoding="utf-8")
+        match = re.search(r"<main[^>]*>(.*?)</main>", document, flags=re.DOTALL | re.IGNORECASE)
+        if not match:
+            raise RuntimeError(f"{filename} has no main element.")
+        return match.group(0)
+
+    apps_markup = main_markup("apps.html")
+    drawing_markup = main_markup("drawing.html")
+    # The standalone supplies its own navigation and shared shell.
+    apps_markup = re.sub(r"<div class=\"search\".*?</div>", "", apps_markup, flags=re.DOTALL)
+    drawing_styles = (docs / "drawing.css").read_text(encoding="utf-8")
+    drawing_client = (docs / "drawing.js").read_text(encoding="utf-8")
+    return apps_markup, drawing_markup, drawing_styles + "\n", drawing_client
+
+
 def main() -> None:
     source = SOURCE_EXPORT.read_text(encoding="utf-8")
     # Embed the user-provided tracks so the downloaded HTML does not depend on
@@ -102,6 +121,7 @@ def main() -> None:
     )
     patch = (PROJECT_ROOT / "aerodynamix-standalone-patch.js").read_text(encoding="utf-8")
     markup, styles, client = build_connect_assets()
+    apps_markup, drawing_markup, drawing_styles, drawing_client = build_app_assets()
     injection = (
         "\n<template id=\"aeroConnectMarkup\"><div class=\"aero-connect-page\">"
         + markup
@@ -111,6 +131,18 @@ def main() -> None:
         + "\n</style>\n"
         + "<script type=\"text/plain\" id=\"aeroConnectClient\">\n"
         + client
+        + "\n</script>\n"
+        + "<template id=\"aeroAppsMarkup\">"
+        + apps_markup
+        + "</template>\n"
+        + "<template id=\"aeroDrawingMarkup\">"
+        + drawing_markup
+        + "</template>\n"
+        + "<style id=\"aeroDrawingStyles\">\n"
+        + drawing_styles
+        + "\n</style>\n"
+        + "<script type=\"text/plain\" id=\"aeroDrawingClient\">\n"
+        + drawing_client
         + "\n</script>\n"
         + "<script>\n"
         + patch
