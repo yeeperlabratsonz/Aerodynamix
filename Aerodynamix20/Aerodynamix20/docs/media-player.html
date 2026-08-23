@@ -828,12 +828,20 @@
         // after unlocking, without requiring the user to choose a local file.
         const BUNDLED_TRACKS = [
             {
-                key: 'magnolia',
-                src: '/attached_assets/magnolia.mp3',
+                key: 'sicko-mode-user',
+                src: 'attached_assets/sicko-mode.mp3',
+                fileName: 'SICKO MODE.mp3',
+                mime: 'audio/mpeg',
+                tags: { title: 'SICKO MODE', artist: 'Travis Scott; Drake', album: 'ASTROWORLD' },
+                artUrl: 'attached_assets/sicko-mode-cover.jpg'
+            },
+            {
+                key: 'magnolia-user',
+                src: 'attached_assets/magnolia-user.mp3',
                 fileName: 'Magnolia.mp3',
                 mime: 'audio/mpeg',
                 tags: { title: 'Magnolia', artist: 'Playboi Carti', album: 'Playboi Carti' },
-                artUrl: '/attached_assets/magnolia-cover.jpg'
+                artUrl: 'attached_assets/magnolia-user.webp'
             },
             {
                 key: '20-min',
@@ -876,12 +884,12 @@
                 artUrl: 'attached_assets/evil-jordan-cover.jpg'
             },
             {
-                key: 'pablo',
-                src: 'attached_assets/Pablo_1786149856081.m4a',
-                fileName: 'Pablo.m4a',
-                mime: 'audio/mp4',
-                tags: { title: 'Pablo', artist: 'Kanye West', album: 'Music Starter Pack' },
-                artUrl: 'attached_assets/cover_1786149778547.jpg'
+                key: 'zeze',
+                src: 'attached_assets/zeze.mp3',
+                fileName: 'ZEZE (feat. Travis Scott & Offset).mp3',
+                mime: 'audio/mpeg',
+                tags: { title: 'ZEZE (feat. Travis Scott & Offset)', artist: 'Kodak Black; Travis Scott; Offset', album: 'ZEZE (feat. Travis Scott & Offset)' },
+                artUrl: 'attached_assets/zeze-cover.jpg'
             }
         ];
         let bundledTracksLoaded = false;
