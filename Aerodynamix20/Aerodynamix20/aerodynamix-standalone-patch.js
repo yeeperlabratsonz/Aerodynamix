@@ -759,6 +759,40 @@
     if (nav && nav.parentNode) nav.parentNode.insertBefore(drawingView, nav.nextSibling);
     else document.body.prepend(drawingView);
 
+    var appsStyles = document.getElementById('aeroAppsStyles');
+    if (appsStyles) {
+      appsStyles.textContent += `
+        .aeroAppsView {}
+        #aeroAppsView .apps-page {
+          color: var(--standalone-text);
+          background: transparent;
+        }
+        #aeroAppsView .apps-title { color: var(--standalone-text); }
+        #aeroAppsView .apps-subtitle { color: color-mix(in srgb, var(--standalone-text) 58%, transparent); }
+        #aeroAppsView .search { display:flex; width:min(30vw, 300px); margin:2.5vw 0 .8rem 1.2vw; }
+        #aeroAppsView .search input {
+          min-width:0; flex:1; background:color-mix(in srgb, var(--standalone-text) 8%, transparent);
+          border:0; border-radius:1vw 0 0 1vw; color:var(--standalone-text);
+          font:600 clamp(.9rem,1.5vw,1.15rem) Montserrat,sans-serif; padding:.8vw 1.5vw; outline:0;
+        }
+        #aeroAppsView .search input::placeholder {
+          color:color-mix(in srgb, var(--standalone-text) 82%, transparent); font:600 clamp(.9rem,1.5vw,1.15rem) Montserrat,sans-serif;
+        }
+        #aeroAppsView .search button {
+          flex:none; border:0; border-radius:0 1vw 1vw 0; background:var(--standalone-text);
+          color:var(--standalone-bg); font-size:clamp(1rem,1.5vw,1.2rem); padding:.8vw 1vw; cursor:pointer;
+        }
+        #aeroAppsView .app-card {
+          border-color:color-mix(in srgb, var(--standalone-accent) 35%, transparent);
+          background:linear-gradient(150deg,color-mix(in srgb, var(--standalone-accent) 24%, var(--standalone-bg)),color-mix(in srgb, var(--standalone-bg) 92%, #000));
+        }
+        #aeroAppsView .app-card-art { background:linear-gradient(135deg,color-mix(in srgb, var(--standalone-accent) 70%, #173f87),#6b37a8 60%,#ef7b9a); }
+        #aeroAppsView .app-card-body p { color:color-mix(in srgb, var(--standalone-text) 58%, transparent); }
+        #aeroAppsView .app-card-launch { background:linear-gradient(135deg,var(--standalone-accent),color-mix(in srgb, var(--standalone-accent) 62%, #000)); }
+        @media (max-width:768px) { #aeroAppsView .search { width:calc(100% - 2.4vw); margin:1.5rem 1.2vw .8rem; } }
+      `;
+    }
+
     var modal = document.createElement('div');
     modal.id = 'aeroImportModal';
     modal.setAttribute('aria-hidden', 'true');
