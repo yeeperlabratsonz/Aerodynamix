@@ -1538,6 +1538,16 @@
       event.preventDefault();
       showView('apps');
     });
+    var appsSearch = document.querySelector('#aeroAppsView .search input');
+    var appsSearchButton = document.querySelector('#aeroAppsView .search button');
+    function filterApps() {
+      var query = (appsSearch && appsSearch.value || '').trim().toLowerCase();
+      document.querySelectorAll('#aeroAppsView .app-card').forEach(function (card) {
+        card.hidden = Boolean(query) && !(card.dataset.appName || '').includes(query);
+      });
+    }
+    if (appsSearch) appsSearch.addEventListener('input', filterApps);
+    if (appsSearchButton) appsSearchButton.addEventListener('click', filterApps);
     if (settingsNav) {
       settingsNav.textContent = 'Settings';
       settingsNav.onclick = function (event) {
