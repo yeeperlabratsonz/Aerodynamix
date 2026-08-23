@@ -2,10 +2,10 @@
 (function() {
     'use strict';
 
-    startSiteClockEasterEgg();
+    startSiteStatusBar();
     startSiteMessageNotifications();
 
-    function startSiteClockEasterEgg() {
+    function startSiteStatusBar() {
         if (window.__aeroSiteClock || location.protocol === 'file:') return;
         window.__aeroSiteClock = true;
         const clockSettingsKey = 'aerodynamixClockSettings';
@@ -23,8 +23,7 @@
                 border:1px solid rgba(130,185,255,.25); border-radius:8px; padding:8px 10px;
                 background:rgba(7,18,38,.55); color:rgba(255,255,255,.75);
             }
-            .aero-site-clock { cursor:pointer; transition:.2s ease; }
-            .aero-site-clock:hover, .aero-site-clock:focus { color:#fff; border-color:rgba(130,185,255,.7); outline:none; transform:translateY(-1px); }
+            .aero-site-clock { cursor:default; }
             .aero-site-battery { color:#9ff0bd; }
             .aero-site-online { color:#9ecbff; }
             #aero-site-clock-overlay {
@@ -69,12 +68,27 @@
             const navLinks = nav.querySelector('div[style*="justify-content:center"]') || nav.children[2];
             const status = document.createElement('div');
             status.className = 'aero-site-status';
-            status.innerHTML = '<button class="aero-site-status-item aero-site-clock" id="aeroSiteClock" type="button" aria-label="Open clock easter egg">PST --:--:--</button>' +
+            status.innerHTML = '<span class="aero-site-status-item aero-site-clock" id="aeroSiteClock" aria-label="Pacific time">PST --:--:--</span>' +
                 '<span class="aero-site-status-item aero-site-battery" id="aeroSiteBattery">Battery --</span>' +
                 '<span class="aero-site-status-item aero-site-online" id="aeroSiteOnline">Online</span>';
             if (navLinks && navLinks.parentNode) navLinks.parentNode.insertBefore(status, navLinks.nextSibling);
             else nav.appendChild(status);
         }
+
+        const updateTopClock = () => {
+            document.getElementById('aeroSiteClock').textContent = 'PST ' + new Intl.DateTimeFormat('en-US', {
+                timeZone:'America/Los_Angeles', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true
+            }).format(new Date());
+        };
+        updateTopClock();
+        setInterval(updateTopClock, 1000);
+        if (navigator.getBattery) navigator.getBattery().then(battery => {
+            const render = () => { const pct=Math.round(battery.level*100); const el=document.getElementById('aeroSiteBattery'); el.textContent='Battery '+pct+'%'+(battery.charging?' ⚡':''); };
+            render(); battery.addEventListener('levelchange',render); battery.addEventListener('chargingchange',render);
+        }).catch(() => { document.getElementById('aeroSiteBattery').textContent='Battery unavailable'; });
+        const siteOnline = () => { document.getElementById('aeroSiteOnline').textContent = navigator.onLine ? 'Online' : 'Offline'; };
+        siteOnline(); window.addEventListener('online',siteOnline); window.addEventListener('offline',siteOnline);
+        return;
 
         const overlay = document.createElement('section');
         overlay.id = 'aero-site-clock-overlay';

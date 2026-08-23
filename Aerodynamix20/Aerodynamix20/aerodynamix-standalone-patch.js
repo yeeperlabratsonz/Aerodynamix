@@ -844,6 +844,9 @@
     `;
     if (nav && nav.parentNode) nav.parentNode.insertBefore(clockView, nav.nextSibling);
     else document.body.prepend(clockView);
+    // The standalone keeps the compact status clock in the top bar, but does
+    // not expose the optional clock easter-egg page.
+    clockView.remove();
 
     var appsStyles = document.getElementById('aeroAppsStyles');
     if (appsStyles) {
@@ -1682,17 +1685,8 @@
       showView('apps');
     };
     if (clock) {
-      clock.title = 'Open clock easter egg';
-      clock.tabIndex = 0;
-      clock.style.cursor = 'pointer';
-      var openClock = function (event) {
-        if (event) event.preventDefault();
-        showView('clock');
-      };
-      clock.onclick = openClock;
-      clock.onkeydown = function (event) {
-        if (event.key === 'Enter' || event.key === ' ') openClock(event);
-      };
+      clock.title = 'Pacific time';
+      clock.style.cursor = 'default';
     }
     var clockFont = document.getElementById('aeroClockFont');
     var clockStyle = document.getElementById('aeroClockStyle');
