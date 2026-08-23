@@ -603,7 +603,7 @@
         text-align: center;
       }
       .aero-clock-time {
-        color: var(--standalone-text);
+        color: var(--aero-clock-color, var(--standalone-text));
         font: 700 clamp(3.2rem, 12vw, 10rem)/.95 "Courier New", monospace;
         letter-spacing: .06em;
         text-shadow: 0 0 22px color-mix(in srgb, var(--standalone-accent) 55%, transparent);
@@ -612,7 +612,7 @@
       .aero-clock-date { margin-top: 1.2rem; color: color-mix(in srgb, var(--standalone-text) 66%, transparent); font-size: clamp(.8rem, 1.6vw, 1.1rem); letter-spacing: .16em; text-transform: uppercase; }
       .aero-clock-display.liquid { border-color: rgba(255,255,255,.5); background: linear-gradient(135deg, rgba(255,255,255,.28), rgba(126,207,255,.12) 38%, rgba(221,146,255,.22)); backdrop-filter: blur(18px) saturate(150%); box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 24px 65px rgba(0,60,130,.34); }
       .aero-clock-display.liquid .aero-clock-time { color: rgba(255,255,255,.92); text-shadow: 0 2px 0 rgba(255,255,255,.32), 0 0 28px rgba(111,213,255,.95); -webkit-text-stroke: 1px rgba(255,255,255,.18); }
-      .aero-clock-display.neon .aero-clock-time { color: var(--standalone-accent); text-shadow: 0 0 8px var(--standalone-accent), 0 0 35px var(--standalone-accent); }
+      .aero-clock-display.neon .aero-clock-time { color: var(--aero-clock-color, var(--standalone-accent)); text-shadow: 0 0 8px var(--aero-clock-color, var(--standalone-accent)), 0 0 35px var(--aero-clock-color, var(--standalone-accent)); }
       .aero-clock-display.minimal { background: transparent; box-shadow: none; }
       .aero-clock-time.clock-font-square { font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif; letter-spacing: .08em; }
       .aero-clock-time.clock-font-rounded { font-family: "Trebuchet MS", Arial, sans-serif; font-weight: 800; letter-spacing: .02em; }
@@ -813,6 +813,12 @@
           <div class="aero-clock-date" id="aeroClockDate">Loading time…</div>
         </section>
         <div class="aero-clock-controls">
+          <label class="aero-clock-control">Timezone
+            <select id="aeroClockTimezone"></select>
+          </label>
+          <label class="aero-clock-control">Clock color
+            <input id="aeroClockColor" type="color" value="#2c7ffc" aria-label="Choose clock color">
+          </label>
           <label class="aero-clock-control">Number style
             <select id="aeroClockFont">
               <option value="digital">Digital Mono</option>
@@ -1345,15 +1351,16 @@
     if (!time || !date) return;
     var now = new Date();
     var use24 = settings.clock24 === true;
+    var timezone = settings.clockTimezone || 'America/Los_Angeles';
     time.textContent = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/Los_Angeles',
+      timeZone: timezone,
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
       hour12: !use24
     }).format(now);
     date.textContent = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/Los_Angeles',
+      timeZone: timezone,
       weekday: 'long',
       month: 'long',
       day: 'numeric',
@@ -1361,10 +1368,26 @@
     }).format(now);
   }
 
+  function populateClockTimezones(select) {
+    if (!select || select.options.length) return;
+    var zones = typeof Intl.supportedValuesOf === 'function'
+      ? Intl.supportedValuesOf('timeZone')
+      : ['America/Los_Angeles', 'America/New_York', 'America/Chicago', 'America/Denver', 'Europe/London', 'Europe/Paris', 'Asia/Tokyo', 'Asia/Shanghai', 'Australia/Sydney', 'Pacific/Auckland', 'UTC'];
+    zones.forEach(function (zone) {
+      var option = document.createElement('option');
+      option.value = zone;
+      option.textContent = zone.replace(/_/g, ' ').replace(/\//g, ' / ');
+      select.appendChild(option);
+    });
+    select.value = settings.clockTimezone || 'America/Los_Angeles';
+  }
+
   function applyClockDisplay() {
     var display = document.getElementById('aeroClockDisplay');
     var font = document.getElementById('aeroClockFont');
     var style = document.getElementById('aeroClockStyle');
+    var timezone = document.getElementById('aeroClockTimezone');
+    var color = document.getElementById('aeroClockColor');
     var format = document.getElementById('aeroClockFormat');
     if (!display) return;
     var selectedStyle = settings.clockStyle || 'theme';
@@ -1372,8 +1395,11 @@
     display.classList.add(selectedStyle === 'theme' && settings.theme === 'frutiger-aero' ? 'liquid' : selectedStyle === 'theme' ? 'minimal' : selectedStyle);
     display.classList.remove('clock-font-digital', 'clock-font-square', 'clock-font-rounded', 'clock-font-serif');
     display.classList.add('clock-font-' + (settings.clockFont || 'digital'));
+    display.style.setProperty('--aero-clock-color', settings.clockColor || getComputedStyle(document.documentElement).getPropertyValue('--standalone-accent').trim() || '#2c7ffc');
     if (font) font.value = settings.clockFont || 'digital';
     if (style) style.value = selectedStyle;
+    if (timezone) timezone.value = settings.clockTimezone || 'America/Los_Angeles';
+    if (color) color.value = settings.clockColor || '#2c7ffc';
     if (format) format.textContent = settings.clock24 ? 'Switch to 12-hour' : 'Switch to 24-hour';
   }
 
@@ -1670,6 +1696,8 @@
     }
     var clockFont = document.getElementById('aeroClockFont');
     var clockStyle = document.getElementById('aeroClockStyle');
+    var clockTimezone = document.getElementById('aeroClockTimezone');
+    var clockColor = document.getElementById('aeroClockColor');
     var clockFormat = document.getElementById('aeroClockFormat');
     if (clockFont) clockFont.onchange = function () {
       settings.clockFont = clockFont.value;
@@ -1678,6 +1706,17 @@
     };
     if (clockStyle) clockStyle.onchange = function () {
       settings.clockStyle = clockStyle.value;
+      saveSettings();
+      applyClockDisplay();
+    };
+    populateClockTimezones(clockTimezone);
+    if (clockTimezone) clockTimezone.onchange = function () {
+      settings.clockTimezone = clockTimezone.value;
+      saveSettings();
+      updateClockDisplay();
+    };
+    if (clockColor) clockColor.oninput = function () {
+      settings.clockColor = clockColor.value;
       saveSettings();
       applyClockDisplay();
     };

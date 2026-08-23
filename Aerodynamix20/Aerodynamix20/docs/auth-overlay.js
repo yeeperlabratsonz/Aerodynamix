@@ -15,8 +15,8 @@
         const style = document.createElement('style');
         style.textContent = `
             .aero-site-status {
-                display:flex; align-items:center; justify-content:center; gap:7px; margin-left:auto;
-                margin-right:1vw; white-space:nowrap; font:600 .72rem Montserrat,sans-serif;
+                display:flex; flex:0 0 auto; align-items:center; justify-content:center; gap:7px; margin-left:1vw;
+                margin-right:.35vw; white-space:nowrap; font:600 .72rem Montserrat,sans-serif;
             }
             .aero-site-status-item {
                 border:1px solid rgba(130,185,255,.25); border-radius:8px; padding:8px 10px;
@@ -42,15 +42,17 @@
                 border-radius:32px; background:linear-gradient(145deg,color-mix(in srgb,var(--aero-clock-accent,#2c7ffc) 17%,var(--aero-clock-bg,#030509)),rgba(0,0,0,.3));
                 box-shadow:0 26px 70px rgba(0,0,0,.35),0 0 50px color-mix(in srgb,var(--aero-clock-accent,#2c7ffc) 12%,transparent); text-align:center;
             }
-            .aero-site-clock-time { color:#fff; font:700 clamp(3.2rem,12vw,10rem)/.95 "Courier New",monospace; letter-spacing:.06em; font-variant-numeric:tabular-nums; text-shadow:0 0 22px var(--aero-clock-accent,#2c7ffc); }
+            .aero-site-clock-time { color:var(--aero-clock-color,#fff); font:700 clamp(3.2rem,12vw,10rem)/.95 "Courier New",monospace; letter-spacing:.06em; font-variant-numeric:tabular-nums; text-shadow:0 0 22px var(--aero-clock-color,var(--aero-clock-accent,#2c7ffc)); }
             .aero-site-clock-date { margin-top:1.2rem; color:rgba(255,255,255,.66); font:600 clamp(.8rem,1.6vw,1.1rem) Montserrat,sans-serif; letter-spacing:.16em; text-transform:uppercase; }
-            .aero-site-clock-display.liquid { border-color:rgba(255,255,255,.5); background:linear-gradient(135deg,rgba(255,255,255,.28),rgba(126,207,255,.12) 38%,rgba(221,146,255,.22)); backdrop-filter:blur(18px) saturate(150%); box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 24px 65px rgba(0,60,130,.34); }
-            .aero-site-clock-display.liquid .aero-site-clock-time { text-shadow:0 2px 0 rgba(255,255,255,.32),0 0 28px rgba(111,213,255,.95); -webkit-text-stroke:1px rgba(255,255,255,.18); }
-            .aero-site-clock-display.neon .aero-site-clock-time { color:var(--aero-clock-accent,#2c7ffc); text-shadow:0 0 8px var(--aero-clock-accent,#2c7ffc),0 0 35px var(--aero-clock-accent,#2c7ffc); }
+            .aero-site-clock-display.liquid { position:relative; overflow:hidden; border-color:rgba(255,255,255,.62); background:linear-gradient(125deg,rgba(255,255,255,.42),rgba(255,255,255,.08) 28%,rgba(124,206,255,.2) 52%,rgba(255,255,255,.15)); backdrop-filter:blur(26px) saturate(180%); box-shadow:inset 0 1px 0 rgba(255,255,255,.8),inset 0 -18px 32px rgba(255,255,255,.08),0 24px 65px rgba(0,60,130,.34); }
+            .aero-site-clock-display.liquid:before { content:""; position:absolute; inset:-45% 35% 35% -12%; border-radius:50%; background:rgba(255,255,255,.3); filter:blur(28px); transform:rotate(-18deg); pointer-events:none; }
+            .aero-site-clock-display.liquid .aero-site-clock-time { position:relative; color:var(--aero-clock-color,rgba(255,255,255,.96)); text-shadow:0 2px 0 rgba(255,255,255,.4),0 0 28px color-mix(in srgb,var(--aero-clock-color,#7bd7ff) 72%,white); -webkit-text-stroke:1px rgba(255,255,255,.22); }
+            .aero-site-clock-display.neon .aero-site-clock-time { color:var(--aero-clock-color,var(--aero-clock-accent,#2c7ffc)); text-shadow:0 0 8px var(--aero-clock-color,var(--aero-clock-accent,#2c7ffc)),0 0 35px var(--aero-clock-color,var(--aero-clock-accent,#2c7ffc)); }
             .aero-site-clock-display.minimal { background:transparent; box-shadow:none; }
             .aero-site-clock-time.font-square { font-family:Impact,"Arial Narrow Bold",sans-serif; }
             .aero-site-clock-time.font-rounded { font-family:"Trebuchet MS",Arial,sans-serif; letter-spacing:.02em; }
             .aero-site-clock-time.font-serif { font-family:Georgia,serif; letter-spacing:.02em; }
+            .aero-site-clock-color { width:100%; min-height:42px; padding:3px !important; cursor:pointer; }
             .aero-site-clock-controls { display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; }
             .aero-site-clock-control { display:grid; gap:.4rem; min-width:170px; color:rgba(255,255,255,.75); font:800 .72rem Montserrat,sans-serif; letter-spacing:.08em; text-transform:uppercase; }
             .aero-site-clock-control select,.aero-site-clock-control button { width:100%; min-height:42px; border:1px solid rgba(130,185,255,.3); border-radius:10px; background:rgba(7,18,38,.8); color:#fff; padding:.65rem .75rem; font:inherit; text-transform:none; cursor:pointer; }
@@ -84,6 +86,8 @@
                     <div class="aero-site-clock-date" id="aeroSiteClockDate">Loading time…</div>
                 </div>
                 <div class="aero-site-clock-controls">
+                    <label class="aero-site-clock-control">Timezone<select id="aeroSiteClockTimezone"></select></label>
+                    <label class="aero-site-clock-control">Clock color<input class="aero-site-clock-color" id="aeroSiteClockColor" type="color" value="#2c7ffc" aria-label="Choose clock color"></label>
                     <label class="aero-site-clock-control">Number style<select id="aeroSiteClockFont"><option value="digital">Digital Mono</option><option value="square">Square Tech</option><option value="rounded">Rounded</option><option value="serif">Classic Serif</option></select></label>
                     <label class="aero-site-clock-control">Display look<select id="aeroSiteClockStyle"><option value="theme">Match current theme</option><option value="liquid">Liquid glass</option><option value="neon">Neon glow</option><option value="minimal">Minimal</option></select></label>
                     <label class="aero-site-clock-control">Time format<button type="button" id="aeroSiteClockFormat">Switch to 24-hour</button></label>
