@@ -644,8 +644,6 @@ def enforce_connect_bans():
 def _user_disc_row(user_id):
     db   = DBSession()
     user = db.query(User).filter_by(id=user_id).first()
-    target_ban = _active_connect_ban(db, user.id) if _is_yandhi(viewer) else None
-    can_moderate_connect = _is_yandhi(viewer) and viewer.id != user.id
     db.close()
     if not user:
         return None
@@ -1337,13 +1335,14 @@ def me():
         return jsonify({'user': None})
     db   = DBSession()
     user = db.query(User).filter_by(id=session['user_id']).first()
-    db.close()
     if user:
         ban = _active_connect_ban(db, user.id)
         payload = user_to_dict(user)
         payload['connect_ban'] = _connect_ban_response(ban)
         payload['can_moderate_connect'] = _is_yandhi(user)
+        db.close()
         return jsonify({'user': payload})
+    db.close()
     return jsonify({'user': None})
 
 
@@ -1520,6 +1519,8 @@ def get_user_profile(username):
 
     viewer_id = session.get('user_id')
     viewer = db.query(User).filter_by(id=viewer_id).first() if viewer_id else None
+    can_moderate_connect = _is_yandhi(viewer) and viewer.id != user.id
+    target_ban = _active_connect_ban(db, user.id) if can_moderate_connect else None
     friend_status = 'none'
     friendship_id = None
     if viewer_id and viewer_id != user.id:
