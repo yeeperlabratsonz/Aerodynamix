@@ -1392,6 +1392,107 @@ def create_connect_ban():
         db.close()
 
 
+@app.route('/api/moderation/users', methods=['GET'])
+def moderation_users():
+    db = DBSession()
+    try:
+        viewer = _current_user(db)
+        if not _is_yandhi(viewer):
+            return jsonify({'error': 'Only YANDHI can access the Dev Panel.'}), 403
+        query = str(request.args.get('q') or '').strip()
+        users_query = db.query(User)
+        if query:
+            users_query = users_query.filter(User.username.ilike(f'%{query[:50]}%'))
+        users = users_query.order_by(User.username.asc()).limit(50).all()
+        rows = []
+        for user in users:
+            ban = _active_connect_ban(db, user.id)
+            rows.append({
+                'id': user.id,
+                'username': user.username,
+                'is_verified': bool(user.is_verified),
+                'pfp_url': f'/api/pfp/{user.id}' if user.pfp_data else None,
+                'active_ban': {
+                    'id': ban.id,
+                    'reason': ban.reason,
+                    'permanent': ban.expires_at is None,
+                    'expires_at': ban.expires_at.isoformat() if ban.expires_at else None,
+                } if ban else None,
+            })
+        return jsonify({'users': rows})
+    finally:
+        db.close()
+
+
+@app.route('/api/moderation/bans', methods=['GET'])
+def moderation_bans():
+    db = DBSession()
+    try:
+        viewer = _current_user(db)
+        if not _is_yandhi(viewer):
+            return jsonify({'error': 'Only YANDHI can access the Dev Panel.'}), 403
+        now = datetime.datetime.utcnow()
+        bans = db.query(ConnectBan).filter(
+            ConnectBan.revoked_at.is_(None),
+            ((ConnectBan.expires_at.is_(None)) | (ConnectBan.expires_at > now)),
+        ).order_by(ConnectBan.created_at.desc()).all()
+        return jsonify({'bans': [{
+            'id': ban.id,
+            'username': db.query(User.username).filter_by(id=ban.target_id).scalar(),
+            'reason': ban.reason,
+            'permanent': ban.expires_at is None,
+            'expires_at': ban.expires_at.isoformat() if ban.expires_at else None,
+            'created_at': ban.created_at.isoformat() if ban.created_at else None,
+        } for ban in bans]})
+    finally:
+        db.close()
+
+
+@app.route('/api/moderation/bans/<int:ban_id>', methods=['DELETE'])
+def revoke_connect_ban(ban_id):
+    db = DBSession()
+    try:
+        viewer = _current_user(db)
+        if not _is_yandhi(viewer):
+            return jsonify({'error': 'Only YANDHI can manage Connect bans.'}), 403
+        ban = db.query(ConnectBan).filter_by(id=ban_id).first()
+        if not ban or ban.revoked_at is not None:
+            return jsonify({'error': 'Active ban not found.'}), 404
+        ban.revoked_at = datetime.datetime.utcnow()
+        db.commit()
+        return jsonify({'success': True})
+    except Exception:
+        db.rollback()
+        return jsonify({'error': 'Could not unban user.'}), 500
+    finally:
+        db.close()
+
+
+@app.route('/api/moderation/users/<int:user_id>/verification', methods=['POST'])
+def set_user_verification(user_id):
+    db = DBSession()
+    try:
+        viewer = _current_user(db)
+        if not _is_yandhi(viewer):
+            return jsonify({'error': 'Only YANDHI can manage verification.'}), 403
+        if viewer.id == user_id:
+            return jsonify({'error': 'YANDHI verification is managed automatically.'}), 400
+        target = db.query(User).filter_by(id=user_id).first()
+        if not target:
+            return jsonify({'error': 'User not found.'}), 404
+        data = request.get_json(silent=True) or {}
+        if 'verified' not in data:
+            return jsonify({'error': 'Choose whether the user is verified.'}), 400
+        target.is_verified = bool(data['verified'])
+        db.commit()
+        return jsonify({'success': True, 'username': target.username, 'is_verified': bool(target.is_verified)})
+    except Exception:
+        db.rollback()
+        return jsonify({'error': 'Could not update verification.'}), 500
+    finally:
+        db.close()
+
+
 # ── Profile ───────────────────────────────────────────────────────────────────
 
 @app.route('/api/pfp/<int:user_id>', methods=['GET'])
