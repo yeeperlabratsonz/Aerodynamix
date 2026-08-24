@@ -1,13 +1,41 @@
-/* YANDHI-only gate for the Aerodynamix (Dev Edition) export. */
+/* YANDHI-only gate and moderation panel for the Aerodynamix Dev Edition. */
 (function () {
   'use strict';
   var ORIGIN = 'https://aerodynamix20.onrender.com';
-  var gate;
+  var gate, panel, panelNav, access = false, refreshTimer;
+
+  function api(path, options) {
+    return fetch(ORIGIN + path, Object.assign({ credentials: 'include' }, options || {}))
+      .then(function (response) {
+        return response.json().catch(function () { return {}; }).then(function (data) {
+          if (!response.ok) throw new Error(data.error || 'Request failed.');
+          return data;
+        });
+      });
+  }
+
+  function escapeHtml(value) {
+    var div = document.createElement('div');
+    div.textContent = value == null ? '' : String(value);
+    return div.innerHTML;
+  }
 
   function showGate(message) {
     if (!gate) {
       var style = document.createElement('style');
-      style.textContent = '#aeroDevGate{position:fixed;inset:0;z-index:20000;display:grid;place-items:center;padding:24px;background:rgba(2,5,12,.94);backdrop-filter:blur(16px);font-family:Montserrat,sans-serif;color:#fff}.aero-dev-card{width:min(440px,100%);padding:32px;border:1px solid rgba(130,185,255,.3);border-radius:22px;background:rgba(7,18,38,.96);box-shadow:0 30px 90px rgba(0,0,0,.6);text-align:center}.aero-dev-card h2{margin:0 0 10px}.aero-dev-card p{color:rgba(255,255,255,.65);line-height:1.5}.aero-dev-card button{border:0;border-radius:10px;padding:12px 18px;background:#2c7ffc;color:#fff;font:700 .82rem Montserrat,sans-serif;cursor:pointer}';
+      style.textContent = [
+        '#aeroDevGate{position:fixed;inset:0;z-index:20000;display:grid;place-items:center;padding:24px;background:rgba(2,5,12,.94);backdrop-filter:blur(16px);font-family:Montserrat,sans-serif;color:#fff}',
+        '.aero-dev-card{width:min(440px,100%);padding:32px;border:1px solid rgba(130,185,255,.3);border-radius:22px;background:rgba(7,18,38,.96);box-shadow:0 30px 90px rgba(0,0,0,.6);text-align:center}',
+        '.aero-dev-card h2{margin:0 0 10px}.aero-dev-card p{color:rgba(255,255,255,.65);line-height:1.5}',
+        '.aero-dev-card button,.aero-dev-panel button{border:0;border-radius:10px;padding:11px 16px;background:#2c7ffc;color:#fff;font:700 .82rem Montserrat,sans-serif;cursor:pointer}',
+        '.aero-dev-panel{max-width:980px;margin:0 auto;padding:clamp(86px,10vw,130px) 24px 60px;color:#fff;font-family:Montserrat,sans-serif}',
+        '.aero-dev-panel-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:22px}.aero-dev-panel h2{margin:0;font-size:clamp(1.8rem,4vw,3rem)}',
+        '.aero-dev-panel-kicker{color:#6ba8ff;font-size:.72rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px}',
+        '.aero-dev-panel-sub{color:rgba(255,255,255,.58);margin:8px 0 0}.aero-dev-panel-card{background:rgba(10,14,24,.86);border:1px solid rgba(44,127,252,.25);border-radius:18px;padding:20px;margin-bottom:18px;box-shadow:0 18px 50px rgba(0,0,0,.3)}',
+        '.aero-dev-search{display:flex;gap:10px}.aero-dev-search input{flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:10px;color:#fff;padding:12px 14px;font:inherit;outline:none}',
+        '.aero-dev-list{display:grid;gap:10px}.aero-dev-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.035)}',
+        '.aero-dev-user{display:flex;align-items:center;gap:11px;min-width:0}.aero-dev-avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#2c7ffc,#a855f7);font-weight:800;flex:none}.aero-dev-name{font-weight:800}.aero-dev-meta{font-size:.78rem;color:rgba(255,255,255,.55);margin-top:4px}.aero-dev-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}.aero-dev-actions button.secondary{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16)}.aero-dev-actions button.danger{background:#a83245}.aero-dev-status{color:#ffb0b9;font-size:.78rem}.aero-dev-status.perma{color:#ff7182}.aero-dev-status.clear{color:#70d99a}.aero-dev-message{min-height:20px;color:#70d99a;font-size:.85rem;margin:10px 0 0}.aero-dev-message.error{color:#ff7182}.aero-dev-section-title{display:flex;justify-content:space-between;align-items:center;margin:0 0 12px}.aero-dev-section-title h3{margin:0}.aero-dev-badge{color:#70d99a;font-size:.75rem;font-weight:700}.aero-dev-verified{color:#70d99a;margin-left:4px}.aero-dev-hidden{display:none!important}@media(max-width:620px){.aero-dev-panel{padding-left:14px;padding-right:14px}.aero-dev-panel-head{display:block}.aero-dev-row{align-items:flex-start;flex-direction:column}.aero-dev-actions{justify-content:flex-start}.aero-dev-search{display:block}.aero-dev-search button{margin-top:8px;width:100%}}'
+      ].join('');
       document.head.appendChild(style);
       gate = document.createElement('div');
       gate.id = 'aeroDevGate';
@@ -23,22 +51,143 @@
     gate.style.display = 'grid';
   }
 
-  async function checkAccess() {
-    try {
-      var response = await fetch(ORIGIN + '/api/me', { credentials: 'include' });
-      var data = await response.json();
-      if (data.user && data.user.username === 'YANDHI') {
+  function closeOtherViews() {
+    ['aeroSettingsView', 'aeroConnectView', 'aeroAppsView', 'aeroDrawingView', 'aeroClockView'].forEach(function (id) {
+      var view = document.getElementById(id);
+      if (view) view.classList.remove('active');
+    });
+    var games = document.querySelector('main.content');
+    if (games) games.style.display = 'none';
+    document.querySelectorAll('.nav-links a, .settings-nav').forEach(function (link) { link.classList.remove('active'); });
+  }
+
+  function remaining(expiresAt) {
+    if (!expiresAt) return '<span class="aero-dev-status perma">Permanent ban</span>';
+    var ms = new Date(expiresAt).getTime() - Date.now();
+    if (ms <= 0) return '<span class="aero-dev-status clear">Expired</span>';
+    var minutes = Math.ceil(ms / 60000), days = Math.floor(minutes / 1440);
+    minutes %= 1440;
+    var hours = Math.floor(minutes / 60);
+    minutes %= 60;
+    var label = (days ? days + 'd ' : '') + (hours ? hours + 'h ' : '') + minutes + 'm left';
+    return '<span class="aero-dev-status">' + label.trim() + '</span>';
+  }
+
+  function message(text, error) {
+    var el = panel && panel.querySelector('#aeroDevMessage');
+    if (!el) return;
+    el.textContent = text || '';
+    el.classList.toggle('error', !!error);
+  }
+
+  function userRow(user) {
+    var ban = user.active_ban;
+    return '<div class="aero-dev-row" data-user-id="' + user.id + '">' +
+      '<div class="aero-dev-user"><div class="aero-dev-avatar">' + escapeHtml(user.username.slice(0, 2).toUpperCase()) + '</div><div><div class="aero-dev-name">' + escapeHtml(user.username) + (user.is_verified ? '<span class="aero-dev-verified" title="Verified">✓</span>' : '') + '</div><div class="aero-dev-meta">' + (ban ? escapeHtml(ban.reason) : 'No active ban') + '</div></div></div>' +
+      '<div class="aero-dev-actions">' + (ban ? remaining(ban.expires_at) + '<button class="danger" data-unban="' + ban.id + '">Unban</button>' : '<span class="aero-dev-status clear">Clear</span>') +
+      '<button class="secondary" data-verify="' + user.id + '" data-value="' + (!user.is_verified) + '">' + (user.is_verified ? 'Remove verified' : 'Give verified') + '</button></div></div>';
+  }
+
+  function banRow(ban) {
+    return '<div class="aero-dev-row"><div><div class="aero-dev-name">' + escapeHtml(ban.username || 'Unknown user') + '</div><div class="aero-dev-meta">' + escapeHtml(ban.reason) + '</div></div><div class="aero-dev-actions">' + remaining(ban.expires_at) + '<button class="danger" data-unban="' + ban.id + '">Unban</button></div></div>';
+  }
+
+  function wireRows() {
+    panel.querySelectorAll('[data-unban]').forEach(function (button) {
+      button.onclick = function () {
+        button.disabled = true;
+        api('/api/moderation/bans/' + button.dataset.unban, { method: 'DELETE' }).then(function () {
+          message('User unbanned successfully.');
+          loadPanel();
+        }).catch(function (error) { button.disabled = false; message(error.message, true); });
+      };
+    });
+    panel.querySelectorAll('[data-verify]').forEach(function (button) {
+      button.onclick = function () {
+        button.disabled = true;
+        api('/api/moderation/users/' + button.dataset.verify + '/verification', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ verified: button.dataset.value === 'true' })
+        }).then(function () {
+          message('Verification status updated.');
+          loadPanel();
+        }).catch(function (error) { button.disabled = false; message(error.message, true); });
+      };
+    });
+  }
+
+  function loadPanel() {
+    if (!panel || !access) return;
+    var query = panel.querySelector('#aeroDevSearch').value.trim();
+    panel.querySelector('#aeroDevUsers').innerHTML = '<div class="aero-dev-meta">Searching users…</div>';
+    Promise.all([api('/api/moderation/users?q=' + encodeURIComponent(query)), api('/api/moderation/bans')])
+      .then(function (results) {
+        var users = results[0].users || [], bans = results[1].bans || [];
+        panel.querySelector('#aeroDevUsers').innerHTML = users.length ? users.map(userRow).join('') : '<div class="aero-dev-meta">No users found.</div>';
+        panel.querySelector('#aeroDevBans').innerHTML = bans.length ? bans.map(banRow).join('') : '<div class="aero-dev-meta">No active bans.</div>';
+        wireRows();
+      }).catch(function (error) { message(error.message, true); });
+  }
+
+  function openPanel() {
+    if (!access || !panel) return;
+    closeOtherViews();
+    panel.classList.remove('aero-dev-hidden');
+    panelNav.classList.add('active');
+    loadPanel();
+  }
+
+  function createPanel() {
+    var nav = document.querySelector('.real-nav .nav-links');
+    if (nav && !panelNav) {
+      panelNav = document.createElement('a');
+      panelNav.id = 'devPanelNav';
+      panelNav.href = '#';
+      panelNav.textContent = 'Dev Panel';
+      panelNav.onclick = function (event) { event.preventDefault(); openPanel(); };
+      nav.appendChild(panelNav);
+      nav.querySelectorAll('a:not(#devPanelNav)').forEach(function (link) {
+        link.addEventListener('click', function () {
+          if (panel) panel.classList.add('aero-dev-hidden');
+        });
+      });
+    }
+    if (panel) return;
+    panel = document.createElement('main');
+    panel.id = 'aeroDevPanel';
+    panel.className = 'aero-dev-panel aero-dev-hidden';
+    panel.innerHTML = '<div class="aero-dev-panel-head"><div><div class="aero-dev-panel-kicker">YANDHI tools</div><h2>Dev Panel</h2><p class="aero-dev-panel-sub">Manage Connect access and community verification.</p></div><button id="aeroDevRefresh" type="button">Refresh</button></div>' +
+      '<div class="aero-dev-panel-card"><div class="aero-dev-search"><input id="aeroDevSearch" type="search" placeholder="Search users by username" autocomplete="off"><button id="aeroDevSearchButton" type="button">Search</button></div><div id="aeroDevMessage" class="aero-dev-message" aria-live="polite"></div></div>' +
+      '<section class="aero-dev-panel-card"><div class="aero-dev-section-title"><h3>User management</h3><span class="aero-dev-badge">YANDHI only</span></div><div id="aeroDevUsers" class="aero-dev-list"></div></section>' +
+      '<section class="aero-dev-panel-card"><div class="aero-dev-section-title"><h3>Active bans</h3></div><div id="aeroDevBans" class="aero-dev-list"></div></section>';
+    document.body.appendChild(panel);
+    panel.querySelector('#aeroDevSearchButton').onclick = loadPanel;
+    panel.querySelector('#aeroDevSearch').onkeydown = function (event) { if (event.key === 'Enter') loadPanel(); };
+    panel.querySelector('#aeroDevRefresh').onclick = loadPanel;
+  }
+
+  function checkAccess() {
+    return api('/api/me').then(function (data) {
+      access = !!(data.user && data.user.username === 'YANDHI' && data.user.can_moderate_connect);
+      createPanel();
+      if (access) {
         if (gate) gate.style.display = 'none';
-        return true;
+        if (panelNav) panelNav.style.display = '';
+      } else {
+        if (panelNav) panelNav.style.display = 'none';
+        showGate('This version is restricted to the logged-in YANDHI account. Use the button below to open Connect and sign in.');
       }
-    } catch (error) {}
-    showGate('This version is restricted to the logged-in YANDHI account. Use the button below to open Connect and sign in.');
-    return false;
+    }).catch(function () {
+      access = false;
+      createPanel();
+      if (panelNav) panelNav.style.display = 'none';
+      showGate('This version is restricted to the logged-in YANDHI account. Use the button below to open Connect and sign in.');
+    });
   }
 
   function init() {
     checkAccess();
-    setInterval(checkAccess, 4000);
+    refreshTimer = setInterval(checkAccess, 4000);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
