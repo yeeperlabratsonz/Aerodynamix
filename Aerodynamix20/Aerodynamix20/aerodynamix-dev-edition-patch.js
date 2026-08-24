@@ -1,16 +1,28 @@
-/* YANDHI-only gate and moderation panel for the Aerodynamix Dev Edition. */
+/* YANDHI-only Dev Tools page for the Aerodynamix Dev Edition. */
 (function () {
   'use strict';
   var ORIGIN = 'https://aerodynamix20.onrender.com';
   var panel, settingsCard, access = false, refreshTimer;
 
   function api(path, options) {
-    return fetch(ORIGIN + path, Object.assign({ credentials: 'include' }, options || {}))
+    return fetch(ORIGIN + path, Object.assign({
+      credentials: 'include',
+      mode: 'cors',
+      cache: 'no-store'
+    }, options || {}))
       .then(function (response) {
         return response.json().catch(function () { return {}; }).then(function (data) {
-          if (!response.ok) throw new Error(data.error || 'Request failed.');
+          if (!response.ok) {
+            var error = new Error(data.error || ('Server returned HTTP ' + response.status + '.'));
+            error.status = response.status;
+            throw error;
+          }
           return data;
         });
+      })
+      .catch(function (error) {
+        if (error && error.status) throw error;
+        throw new Error('Could not reach the Connect server. Check your internet connection, then sign in to Connect again.');
       });
   }
 
@@ -25,8 +37,10 @@
     var style = document.createElement('style');
     style.id = 'aeroDevPanelStyles';
     style.textContent = [
-        '.aero-dev-panel button{border:0;border-radius:10px;padding:11px 16px;background:#2c7ffc;color:#fff;font:700 .82rem Montserrat,sans-serif;cursor:pointer}',
-        '.aero-dev-panel{max-width:980px;margin:0 auto;padding:clamp(86px,10vw,130px) 24px 60px;color:#fff;font-family:Montserrat,sans-serif}',
+        '#aeroDevPanel{display:none;min-height:100vh;box-sizing:border-box;padding:clamp(96px,10vw,138px) 24px 60px;color:var(--standalone-text,#fff);font-family:Montserrat,sans-serif}',
+        '#aeroDevPanel.active{display:block;animation:aeroViewIn .24s ease both}',
+        '.aero-dev-panel button{border:0;border-radius:10px;padding:11px 16px;background:var(--standalone-accent,#2c7ffc);color:#fff;font:700 .82rem Montserrat,sans-serif;cursor:pointer}',
+        '.aero-dev-panel{max-width:980px;margin:0 auto}',
         '.aero-dev-panel-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:22px}.aero-dev-panel h2{margin:0;font-size:clamp(1.8rem,4vw,3rem)}',
         '.aero-dev-panel-kicker{color:#6ba8ff;font-size:.72rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px}',
         '.aero-dev-panel-sub{color:rgba(255,255,255,.58);margin:8px 0 0}.aero-dev-panel-card{background:rgba(10,14,24,.86);border:1px solid rgba(44,127,252,.25);border-radius:18px;padding:20px;margin-bottom:18px;box-shadow:0 18px 50px rgba(0,0,0,.3)}',
@@ -38,7 +52,7 @@
   }
 
   function closeOtherViews() {
-    ['aeroSettingsView', 'aeroConnectView', 'aeroAppsView', 'aeroDrawingView', 'aeroClockView'].forEach(function (id) {
+    ['aeroSettingsView', 'aeroConnectView', 'aeroAppsView', 'aeroDrawingView', 'aeroClockView', 'aeroDevPanel'].forEach(function (id) {
       var view = document.getElementById(id);
       if (view) view.classList.remove('active');
     });
@@ -118,8 +132,14 @@
   function openPanel() {
     if (!access || !panel) return;
     closeOtherViews();
-    panel.classList.remove('aero-dev-hidden');
+    panel.classList.add('active');
     loadPanel();
+  }
+
+  function openSettings() {
+    closeOtherViews();
+    var settings = document.getElementById('aeroSettingsView');
+    if (settings) settings.classList.add('active');
   }
 
   function createPanel() {
@@ -132,7 +152,7 @@
     if (settingsGrid && !settingsCard) {
       settingsCard = document.createElement('section');
       settingsCard.className = 'aero-settings-card';
-      settingsCard.innerHTML = '<h3>Developer tools</h3><p class="aero-muted">YANDHI-only Connect moderation controls.</p><button id="aeroOpenDevPanel" class="aero-button" type="button">Open Dev Panel</button>';
+      settingsCard.innerHTML = '<h3>Developer tools</h3><p class="aero-muted">YANDHI-only Connect moderation controls.</p><button id="aeroOpenDevPanel" class="aero-button" type="button">Open Dev Tools</button>';
       settingsGrid.appendChild(settingsCard);
       settingsCard.querySelector('#aeroOpenDevPanel').onclick = openPanel;
     }
@@ -140,12 +160,13 @@
     if (panel) return;
     panel = document.createElement('main');
     panel.id = 'aeroDevPanel';
-    panel.className = 'aero-dev-panel aero-dev-hidden';
-    panel.innerHTML = '<div class="aero-dev-panel-head"><div><div class="aero-dev-panel-kicker">YANDHI tools</div><h2>Dev Panel</h2><p class="aero-dev-panel-sub">Manage Connect access and community verification.</p></div><button id="aeroDevRefresh" type="button">Refresh</button></div>' +
+    panel.className = 'aero-dev-panel';
+    panel.innerHTML = '<div class="aero-dev-panel-head"><div><div class="aero-dev-panel-kicker">YANDHI tools</div><h2>Dev Tools</h2><p class="aero-dev-panel-sub">Manage Connect access and community verification.</p></div><div class="aero-dev-actions"><button id="aeroDevBack" class="secondary" type="button">Back to Settings</button><button id="aeroDevRefresh" type="button">Refresh</button></div></div>' +
       '<div class="aero-dev-panel-card"><div class="aero-dev-search"><input id="aeroDevSearch" type="search" placeholder="Search users by username" autocomplete="off"><button id="aeroDevSearchButton" type="button">Search</button></div><div id="aeroDevMessage" class="aero-dev-message" aria-live="polite"></div></div>' +
       '<section class="aero-dev-panel-card"><div class="aero-dev-section-title"><h3>User management</h3><span class="aero-dev-badge">YANDHI only</span></div><div id="aeroDevUsers" class="aero-dev-list"></div></section>' +
       '<section class="aero-dev-panel-card"><div class="aero-dev-section-title"><h3>Active bans</h3></div><div id="aeroDevBans" class="aero-dev-list"></div></section>';
     document.body.appendChild(panel);
+    panel.querySelector('#aeroDevBack').onclick = openSettings;
     panel.querySelector('#aeroDevSearchButton').onclick = loadPanel;
     panel.querySelector('#aeroDevSearch').onkeydown = function (event) { if (event.key === 'Enter') loadPanel(); };
     panel.querySelector('#aeroDevRefresh').onclick = loadPanel;
@@ -160,7 +181,7 @@
       if (access) {
         createPanel();
       } else {
-        if (panel) panel.classList.add('aero-dev-hidden');
+        if (panel) panel.classList.remove('active');
         if (settingsCard) settingsCard.style.display = 'none';
       }
     }).catch(function () {
