@@ -199,9 +199,9 @@ def main() -> None:
     dev_result = dev_result.rsplit("</body>", 1)[0] + "<script>\n" + dev_patch + "\n</script>\n</body>" + dev_result.rsplit("</body>", 1)[1]
     OUTPUT_DEV_HTML.write_text(dev_result, encoding="utf-8")
 
-    with zipfile.ZipFile(OUTPUT_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+    with zipfile.ZipFile(OUTPUT_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
         archive.write(OUTPUT_HTML, arcname=OUTPUT_HTML.name)
-    with zipfile.ZipFile(OUTPUT_DEV_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+    with zipfile.ZipFile(OUTPUT_DEV_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
         archive.write(OUTPUT_DEV_HTML, arcname=OUTPUT_DEV_HTML.name)
     OUTPUT_XZ.write_bytes(lzma.compress(result.encode("utf-8"), preset=9))
     OUTPUT_DEV_XZ.write_bytes(lzma.compress(dev_result.encode("utf-8"), preset=9))
