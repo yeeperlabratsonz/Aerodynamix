@@ -238,7 +238,8 @@ body.dc-embedded .dc-container {
   color: rgba(255,255,255,.78);
   font-size: .88rem;
 }
-.dc-ban-option input[type="number"] {
+.dc-ban-option input[type="number"],
+.dc-ban-option select {
   width: 120px;
   margin-left: auto;
   background: rgba(255,255,255,.04);
@@ -247,6 +248,7 @@ body.dc-embedded .dc-container {
   color: #fff;
   padding: .5rem;
 }
+.dc-ban-option select { width: auto; }
 
 .dc-user-bar {
   display: flex;

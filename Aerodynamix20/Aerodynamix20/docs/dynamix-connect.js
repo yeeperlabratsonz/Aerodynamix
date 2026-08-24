@@ -7,6 +7,7 @@
   );
 
   let currentUser = null;
+  let activeProfileUsername = '';
   let pfpObjectUrl = null;
   let pfpOffsetX = 50, pfpOffsetY = 50;
   let isDragging = false, dragStartX, dragStartY, dragStartOffX, dragStartOffY;
@@ -57,7 +58,8 @@
   const banForm             = document.getElementById('ban-user-form');
   const banTargetName       = document.getElementById('ban-target-name');
   const banReason           = document.getElementById('ban-reason');
-  const banDurationMinutes  = document.getElementById('ban-duration-minutes');
+  const banDurationValue    = document.getElementById('ban-duration-value');
+  const banDurationUnit     = document.getElementById('ban-duration-unit');
   const banError            = document.getElementById('ban-user-error');
   const banSuccess          = document.getElementById('ban-user-success');
   const incomingModal      = document.getElementById('incoming-call-modal');
@@ -618,6 +620,7 @@
 
   // ── User profile modal ───────────────────────────────────────────────────────
   async function openUserProfile(username) {
+    activeProfileUsername = username || '';
     profileModal.classList.remove('hidden');
     profileViewPosts.innerHTML = '<div class="dc-loading">Loading…</div>';
     profileViewUsername.textContent = '';
@@ -629,6 +632,7 @@
     try {
       const data    = await api(`/api/users/${encodeURIComponent(username)}`);
       const u       = data.user;
+      activeProfileUsername = u.username;
       const isSelf  = currentUser && currentUser.username === u.username;
       const loggedIn = !!currentUser;
 
@@ -643,7 +647,7 @@
       }
       if (profileBanBtn) {
         profileBanBtn.style.display = data.can_moderate_connect ? 'inline-flex' : 'none';
-        profileBanBtn.dataset.username = u.username;
+        profileBanBtn.dataset.username = activeProfileUsername;
         profileBanBtn.textContent = data.active_ban?.active ? 'Manage Ban' : 'Ban User';
       }
 
@@ -708,8 +712,10 @@
   }
   if (profileBanBtn) {
     profileBanBtn.addEventListener('click', () => {
-      banTargetName.textContent = profileBanBtn.dataset.username || 'user';
+      banTargetName.textContent = activeProfileUsername || profileBanBtn.dataset.username || 'user';
       banReason.value = '';
+      if (banDurationValue) banDurationValue.value = '60';
+      if (banDurationUnit) banDurationUnit.value = 'minutes';
       banError.textContent = '';
       banError.style.display = 'none';
       banSuccess.textContent = '';
@@ -722,16 +728,31 @@
   banForm?.addEventListener('submit', async e => {
     e.preventDefault();
     const permanent = banForm.querySelector('input[name="ban-duration"]:checked')?.value === 'permanent';
+    const targetUsername = activeProfileUsername || profileBanBtn?.dataset.username || '';
+    const durationValue = Number(banDurationValue?.value || 0);
+    const durationUnit = banDurationUnit?.value || 'minutes';
+    const unitMinutes = { minutes: 1, days: 1440, weeks: 10080, months: 43800 };
+    const durationMinutes = Math.round(durationValue * (unitMinutes[durationUnit] || 1));
     banError.style.display = 'none';
     banSuccess.style.display = 'none';
+    if (!targetUsername) {
+      banError.textContent = 'Open the user’s profile again before banning.';
+      banError.style.display = 'block';
+      return;
+    }
+    if (!permanent && (!Number.isFinite(durationValue) || durationValue < 1 || durationMinutes > 52560000)) {
+      banError.textContent = 'Choose a duration from 1 minute to 100 years.';
+      banError.style.display = 'block';
+      return;
+    }
     try {
       await api('/api/moderation/bans', {
         method: 'POST',
         body: JSON.stringify({
-          username: profileBanBtn.dataset.username,
+          username: targetUsername,
           reason: banReason.value.trim(),
           permanent,
-          duration_minutes: permanent ? null : Number(banDurationMinutes.value)
+          duration_minutes: permanent ? null : durationMinutes
         })
       });
       banSuccess.textContent = 'User banned successfully.';
