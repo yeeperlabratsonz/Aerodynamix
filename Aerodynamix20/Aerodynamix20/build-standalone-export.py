@@ -7,6 +7,7 @@ page itself. Connect API requests still go to the live Aerodynamix service.
 
 from pathlib import Path
 import base64
+import json
 import re
 import zipfile
 import lzma
@@ -32,6 +33,32 @@ def data_uri(filename: str, mime: str) -> str:
         raise RuntimeError(f"Missing bundled media asset: {asset}")
     encoded = base64.b64encode(asset.read_bytes()).decode("ascii")
     return f"data:{mime};base64,{encoded}"
+
+
+def inline_new_game(source: str) -> str:
+    """Add the latest hosted catalogue game to the self-contained export."""
+    game_file = PROJECT_ROOT / "attached_assets" / "clnubbysnumberfactory_1787559476408.html"
+    thumbnail_file = PROJECT_ROOT / "docs" / "images" / "nubbys-number-factory.jpg"
+    content_uri = "data:text/html;base64," + base64.b64encode(game_file.read_bytes()).decode("ascii")
+    thumb_uri = "data:image/jpeg;base64," + base64.b64encode(thumbnail_file.read_bytes()).decode("ascii")
+    match = re.search(r"const GAMES=(\[.*?\]);", source)
+    if not match:
+        raise RuntimeError("The standalone source has no GAMES catalogue.")
+    catalogue = match.group(1)
+    if "Nubby's Number Factory" in catalogue:
+        return source
+    new_game = json.dumps({
+        "title": "Nubby's Number Factory",
+        "game": "attached_assets/clnubbysnumberfactory_1787559476408.html",
+        "thumb": thumb_uri,
+        "content": content_uri,
+    }, separators=(",", ":"))
+    insert_at = catalogue.rfind("]")
+    if insert_at < 0:
+        raise RuntimeError("The standalone GAMES catalogue is malformed.")
+    separator = "," if catalogue[:insert_at].rstrip().endswith("}") else ""
+    updated = catalogue[:insert_at] + separator + new_game + catalogue[insert_at:]
+    return source[:match.start(1)] + updated + source[match.end(1):]
 
 
 def build_connect_assets() -> tuple[str, str]:
@@ -92,6 +119,7 @@ def build_app_assets() -> tuple[str, str, str, str, str]:
 
 def main() -> None:
     source = SOURCE_EXPORT.read_text(encoding="utf-8")
+    source = inline_new_game(source)
     # Embed the user-provided tracks so the downloaded HTML does not depend on
     # a sibling assets directory or a hosted media route.
     sicko_uri = data_uri("sicko-mode.mp3", "audio/mpeg")

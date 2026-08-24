@@ -10,17 +10,16 @@
   var DB_NAME = 'aerodynamixStandaloneLibrary';
   var DB_STORE = 'games';
   var DEFAULT_PUBLIC_ROOT = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/';
-  var STANDALONE_VERSION = '1.0';
+  var STANDALONE_VERSION = '1.1';
   var UPDATE_MANIFEST_PATH = 'standalone-updates.json';
   var FALLBACK_UPDATE_MANIFEST = {
-    version: '1.0',
+    version: '1.1',
     changelog: [{
-      version: 'Aerodynamix Ver 1.0',
+      version: 'Aerodynamix Ver 1.1',
       changes: [
-        'Added the standalone Updates tab with version checking.',
-        'Added a readable changelog for reviewing changes before downloading.',
-        'Added safe normal-edition update downloads with offline fallback.',
-        'Added safer offline handling when update information is unavailable.'
+        'Added Nubby’s Number Factory to the game catalogue.',
+        'Added its thumbnail and bundled game file to the standalone release.',
+        'Kept updates manual so games change only when you choose to update.'
       ]
     }],
     download: 'attached_assets/Aerodynamix-Standalone.html'
