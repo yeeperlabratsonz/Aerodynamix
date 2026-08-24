@@ -479,6 +479,17 @@ class DirectMessage(Base):
     is_read      = Column(Boolean, default=False)
 
 
+class ConnectBan(Base):
+    __tablename__ = 'connect_bans'
+    id          = Column(Integer, primary_key=True, autoincrement=True)
+    target_id   = Column(Integer, ForeignKey('users.id'), nullable=False)
+    issuer_id   = Column(Integer, ForeignKey('users.id'), nullable=False)
+    reason      = Column(String(500), nullable=False)
+    expires_at  = Column(DateTime, nullable=True)
+    created_at  = Column(DateTime, default=datetime.datetime.utcnow)
+    revoked_at  = Column(DateTime, nullable=True)
+
+
 class TradeOffer(Base):
     __tablename__ = 'trade_offers'
     id                   = Column(Integer, primary_key=True, autoincrement=True)
@@ -572,6 +583,62 @@ def user_to_dict(user):
         'card_pack_available': card_pack_available,
         'next_card_pack_at': next_card_pack_at.isoformat(),
     }
+
+
+def _active_connect_ban(db, user_id):
+    now = datetime.datetime.utcnow()
+    return db.query(ConnectBan).filter(
+        ConnectBan.target_id == user_id,
+        ConnectBan.revoked_at.is_(None),
+        ((ConnectBan.expires_at.is_(None)) | (ConnectBan.expires_at > now)),
+    ).order_by(ConnectBan.created_at.desc()).first()
+
+
+def _is_yandhi(user):
+    return bool(user and user.username == 'YANDHI')
+
+
+def _current_user(db):
+    user_id = session.get('user_id')
+    return db.query(User).filter_by(id=user_id).first() if user_id else None
+
+
+def _connect_ban_response(ban):
+    return {
+        'active': bool(ban),
+        'reason': ban.reason if ban else None,
+        'permanent': bool(ban and ban.expires_at is None),
+        'expires_at': ban.expires_at.isoformat() if ban and ban.expires_at else None,
+    }
+
+
+@app.before_request
+def enforce_connect_bans():
+    if not session.get('user_id'):
+        return None
+    protected = (
+        request.path.startswith('/api/posts'),
+        request.path.startswith('/api/comments'),
+        request.path.startswith('/api/friends'),
+        request.path.startswith('/api/dms'),
+        request.path.startswith('/api/calls'),
+        request.path.startswith('/api/users/'),
+    )
+    if not any(protected):
+        return None
+    db = DBSession()
+    try:
+        ban = _active_connect_ban(db, session['user_id'])
+        if ban:
+            return jsonify({
+                'error': 'Your Connect access is suspended.',
+                'reason': ban.reason,
+                'permanent': ban.expires_at is None,
+                'expires_at': ban.expires_at.isoformat() if ban.expires_at else None,
+            }), 403
+    finally:
+        db.close()
+    return None
 
 
 def _user_disc_row(user_id):
