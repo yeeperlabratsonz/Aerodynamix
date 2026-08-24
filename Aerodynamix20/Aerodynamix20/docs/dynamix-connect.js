@@ -52,6 +52,14 @@
   const profileViewJoined  = document.getElementById('profile-view-joined');
   const profileViewPosts   = document.getElementById('profile-view-posts');
   const profileCallBtn     = document.getElementById('profile-call-btn');
+  const profileBanBtn      = document.getElementById('profile-ban-btn');
+  const banModal            = document.getElementById('ban-user-modal');
+  const banForm             = document.getElementById('ban-user-form');
+  const banTargetName       = document.getElementById('ban-target-name');
+  const banReason           = document.getElementById('ban-reason');
+  const banDurationMinutes  = document.getElementById('ban-duration-minutes');
+  const banError            = document.getElementById('ban-user-error');
+  const banSuccess          = document.getElementById('ban-user-success');
   const incomingModal      = document.getElementById('incoming-call-modal');
   const incomingCallerName = document.getElementById('incoming-caller-name');
   const videoModal         = document.getElementById('video-call-modal');
@@ -633,6 +641,11 @@
         profileCallBtn.dataset.username = u.username;
         profileCallBtn.style.display = loggedIn && !isSelf ? 'inline-flex' : 'none';
       }
+      if (profileBanBtn) {
+        profileBanBtn.style.display = data.can_moderate_connect ? 'inline-flex' : 'none';
+        profileBanBtn.dataset.username = u.username;
+        profileBanBtn.textContent = data.active_ban?.active ? 'Manage Ban' : 'Ban User';
+      }
 
       const friendBtn = document.getElementById('profile-friend-btn');
       if (friendBtn) {
@@ -693,6 +706,43 @@
       if (e.target === profileModal) profileModal.classList.add('hidden');
     });
   }
+  if (profileBanBtn) {
+    profileBanBtn.addEventListener('click', () => {
+      banTargetName.textContent = profileBanBtn.dataset.username || 'user';
+      banReason.value = '';
+      banError.textContent = '';
+      banError.style.display = 'none';
+      banSuccess.textContent = '';
+      banSuccess.style.display = 'none';
+      banModal.classList.remove('hidden');
+    });
+  }
+  document.getElementById('ban-user-modal-close')?.addEventListener('click', () => banModal.classList.add('hidden'));
+  banModal?.addEventListener('click', e => { if (e.target === banModal) banModal.classList.add('hidden'); });
+  banForm?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const permanent = banForm.querySelector('input[name="ban-duration"]:checked')?.value === 'permanent';
+    banError.style.display = 'none';
+    banSuccess.style.display = 'none';
+    try {
+      await api('/api/moderation/bans', {
+        method: 'POST',
+        body: JSON.stringify({
+          username: profileBanBtn.dataset.username,
+          reason: banReason.value.trim(),
+          permanent,
+          duration_minutes: permanent ? null : Number(banDurationMinutes.value)
+        })
+      });
+      banSuccess.textContent = 'User banned successfully.';
+      banSuccess.style.display = 'block';
+      profileBanBtn.textContent = 'Manage Ban';
+      setTimeout(() => banModal.classList.add('hidden'), 900);
+    } catch (error) {
+      banError.textContent = error.message || 'Could not create ban.';
+      banError.style.display = 'block';
+    }
+  });
 
   // ── One-to-one WebRTC calling ───────────────────────────────────────────────
   function setVideoError(message) {

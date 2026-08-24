@@ -16,6 +16,8 @@ WORKSPACE_ROOT = PROJECT_ROOT.parents[1]
 SOURCE_EXPORT = WORKSPACE_ROOT / "attached_assets" / "presentation_1787450952428.html"
 OUTPUT_HTML = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Standalone.html"
 OUTPUT_ZIP = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Standalone.zip"
+OUTPUT_DEV_HTML = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Dev-Edition.html"
+OUTPUT_DEV_ZIP = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Dev-Edition.zip"
 
 
 CONNECT_ORIGIN = "https://aerodynamix20.onrender.com"
@@ -121,6 +123,7 @@ def main() -> None:
         "if (e.target.matches('input, textarea, select, [contenteditable=\"true\"]')) return;",
     )
     patch = (PROJECT_ROOT / "aerodynamix-standalone-patch.js").read_text(encoding="utf-8")
+    dev_patch = (PROJECT_ROOT / "aerodynamix-dev-edition-patch.js").read_text(encoding="utf-8")
     markup, styles, client = build_connect_assets()
     apps_markup, apps_styles, drawing_markup, drawing_styles, drawing_client = build_app_assets()
     injection = (
@@ -157,12 +160,18 @@ def main() -> None:
         raise RuntimeError("The original standalone export has no closing body tag.")
     result = source.rsplit("</body>", 1)[0] + injection + "</body>" + source.rsplit("</body>", 1)[1]
     OUTPUT_HTML.write_text(result, encoding="utf-8")
+    dev_result = result.rsplit("</body>", 1)[0] + "<script>\n" + dev_patch + "\n</script>\n</body>" + result.rsplit("</body>", 1)[1]
+    OUTPUT_DEV_HTML.write_text(dev_result, encoding="utf-8")
 
     with zipfile.ZipFile(OUTPUT_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         archive.write(OUTPUT_HTML, arcname=OUTPUT_HTML.name)
+    with zipfile.ZipFile(OUTPUT_DEV_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        archive.write(OUTPUT_DEV_HTML, arcname=OUTPUT_DEV_HTML.name)
 
     print(f"Built {OUTPUT_HTML.name} ({OUTPUT_HTML.stat().st_size:,} bytes)")
     print(f"Built {OUTPUT_ZIP.name} ({OUTPUT_ZIP.stat().st_size:,} bytes)")
+    print(f"Built {OUTPUT_DEV_HTML.name} ({OUTPUT_DEV_HTML.stat().st_size:,} bytes)")
+    print(f"Built {OUTPUT_DEV_ZIP.name} ({OUTPUT_DEV_ZIP.stat().st_size:,} bytes)")
 
 
 if __name__ == "__main__":
