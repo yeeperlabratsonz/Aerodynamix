@@ -230,11 +230,33 @@
             <button id="profile-dm-btn" class="dc-btn-secondary dc-dm-profile-btn" type="button" style="display:none;">
               <i class="fas fa-envelope"></i> Message
             </button>
+            <button id="profile-ban-btn" class="dc-btn-secondary dc-ban-profile-btn" type="button" style="display:none;">
+              <i class="fas fa-ban"></i> Ban User
+            </button>
           </div>
         </div>
       </div>
       <div class="dc-profile-posts-label">Posts</div>
       <div id="profile-view-posts" class="dc-profile-posts"></div>
+    </div>
+  </div>
+
+  <!-- YANDHI-only moderation dialog -->
+  <div id="ban-user-modal" class="dc-modal-overlay hidden">
+    <div class="dc-modal-content dc-ban-modal-content">
+      <button class="dc-modal-close-btn" id="ban-user-modal-close" type="button"><i class="fas fa-times"></i></button>
+      <h3 class="dc-modal-title">Ban <span id="ban-target-name">user</span></h3>
+      <p class="dc-call-hint">This blocks the user from Connect across the shared site.</p>
+      <form id="ban-user-form" class="dc-form">
+        <textarea id="ban-reason" maxlength="500" placeholder="Reason for the ban" required></textarea>
+        <label class="dc-ban-option"><input type="radio" name="ban-duration" value="duration" checked> Duration
+          <input id="ban-duration-minutes" type="number" min="1" max="52560000" value="60" required> minutes
+        </label>
+        <label class="dc-ban-option"><input type="radio" name="ban-duration" value="permanent"> Permanent ban</label>
+        <button class="dc-btn" type="submit">Confirm Ban</button>
+        <p id="ban-user-error" class="dc-error"></p>
+        <p id="ban-user-success" class="dc-success"></p>
+      </form>
     </div>
   </div>
 

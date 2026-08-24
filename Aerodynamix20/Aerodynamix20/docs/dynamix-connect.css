@@ -222,6 +222,32 @@ body.dc-embedded .dc-container {
   background: rgba(255,255,255,0.12);
 }
 
+.dc-ban-profile-btn {
+  color: #ff9da5;
+  border-color: rgba(255,91,106,.35);
+}
+.dc-ban-profile-btn:hover {
+  background: rgba(255,91,106,.16);
+  border-color: rgba(255,91,106,.65);
+}
+.dc-ban-modal-content { max-width: 460px; }
+.dc-ban-option {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  color: rgba(255,255,255,.78);
+  font-size: .88rem;
+}
+.dc-ban-option input[type="number"] {
+  width: 120px;
+  margin-left: auto;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
+  color: #fff;
+  padding: .5rem;
+}
+
 .dc-user-bar {
   display: flex;
   justify-content: space-between;
