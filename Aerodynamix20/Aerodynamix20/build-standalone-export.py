@@ -9,6 +9,7 @@ from pathlib import Path
 import base64
 import re
 import zipfile
+import lzma
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -18,6 +19,7 @@ OUTPUT_HTML = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Standalone.html"
 OUTPUT_ZIP = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Standalone.zip"
 OUTPUT_DEV_HTML = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Dev-Edition.html"
 OUTPUT_DEV_ZIP = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Dev-Edition.zip"
+OUTPUT_DEV_XZ = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Dev-Edition.html.xz"
 
 
 CONNECT_ORIGIN = "https://aerodynamix20.onrender.com"
@@ -167,11 +169,13 @@ def main() -> None:
         archive.write(OUTPUT_HTML, arcname=OUTPUT_HTML.name)
     with zipfile.ZipFile(OUTPUT_DEV_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         archive.write(OUTPUT_DEV_HTML, arcname=OUTPUT_DEV_HTML.name)
+    OUTPUT_DEV_XZ.write_bytes(lzma.compress(dev_result.encode("utf-8"), preset=9))
 
     print(f"Built {OUTPUT_HTML.name} ({OUTPUT_HTML.stat().st_size:,} bytes)")
     print(f"Built {OUTPUT_ZIP.name} ({OUTPUT_ZIP.stat().st_size:,} bytes)")
     print(f"Built {OUTPUT_DEV_HTML.name} ({OUTPUT_DEV_HTML.stat().st_size:,} bytes)")
     print(f"Built {OUTPUT_DEV_ZIP.name} ({OUTPUT_DEV_ZIP.stat().st_size:,} bytes)")
+    print(f"Built {OUTPUT_DEV_XZ.name} ({OUTPUT_DEV_XZ.stat().st_size:,} bytes)")
 
 
 if __name__ == "__main__":
