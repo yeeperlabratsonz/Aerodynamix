@@ -114,3 +114,17 @@ mtime_ms = 1787516085548
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/ae04ad62-fd44-429f-aa16-32aac6830f40/542e680f-2c70-4130-9b0a-504820b9b9e3"
 storage_version_token = "1787516104721498"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "HVnDu7bza0VxlNJ-Ed9Wa"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Dev-Edition.html.xz"
+type = "unspecified"
+title = "Aerodynamix Dev Edition XZ download"
+description = "Compressed Dev Edition standalone file with the YANDHI-only Dev Panel."
+logical_id = "7a2da55e-beda-4b46-a9a4-140bd40cfe23"
+content_hash = "sha256:e0ee3b8c0fea21b58651b4ef61ee862dd2465bc4e8c45fb80365846c9d783f6e"
+size = 104439444
+mtime_ms = 1787548017760
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/7a2da55e-beda-4b46-a9a4-140bd40cfe23/9df764a8-a716-4090-bd38-6a9c25c1b487"
+storage_version_token = "1787549535730410"
+content_type = "application/octet-stream"
