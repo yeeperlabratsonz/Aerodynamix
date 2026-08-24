@@ -13,7 +13,10 @@
       .then(function (response) {
         return response.json().catch(function () { return {}; }).then(function (data) {
           if (!response.ok) {
-            var error = new Error(data.error || ('Server returned HTTP ' + response.status + '.'));
+            var fallback = response.status === 404
+              ? 'The Dev Tools moderation routes are not deployed on the Connect server yet.'
+              : ('Server returned HTTP ' + response.status + '.');
+            var error = new Error(data.error || fallback);
             error.status = response.status;
             throw error;
           }
