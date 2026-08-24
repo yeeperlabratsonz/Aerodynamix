@@ -644,6 +644,8 @@ def enforce_connect_bans():
 def _user_disc_row(user_id):
     db   = DBSession()
     user = db.query(User).filter_by(id=user_id).first()
+    target_ban = _active_connect_ban(db, user.id) if _is_yandhi(viewer) else None
+    can_moderate_connect = _is_yandhi(viewer) and viewer.id != user.id
     db.close()
     if not user:
         return None
@@ -1337,8 +1339,58 @@ def me():
     user = db.query(User).filter_by(id=session['user_id']).first()
     db.close()
     if user:
-        return jsonify({'user': user_to_dict(user)})
+        ban = _active_connect_ban(db, user.id)
+        payload = user_to_dict(user)
+        payload['connect_ban'] = _connect_ban_response(ban)
+        payload['can_moderate_connect'] = _is_yandhi(user)
+        return jsonify({'user': payload})
     return jsonify({'user': None})
+
+
+@app.route('/api/moderation/bans', methods=['POST'])
+def create_connect_ban():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+    db = DBSession()
+    try:
+        issuer = _current_user(db)
+        if not _is_yandhi(issuer):
+            return jsonify({'error': 'Only YANDHI can manage Connect bans.'}), 403
+        data = request.get_json(silent=True) or {}
+        username = str(data.get('username') or '').strip()
+        reason = str(data.get('reason') or '').strip()[:500]
+        permanent = bool(data.get('permanent'))
+        if not username or not reason:
+            return jsonify({'error': 'A username and reason are required.'}), 400
+        target = db.query(User).filter_by(username=username).first()
+        if not target:
+            return jsonify({'error': 'User not found.'}), 404
+        if target.id == issuer.id:
+            return jsonify({'error': 'YANDHI cannot ban this account.'}), 400
+        expires_at = None
+        if not permanent:
+            try:
+                duration_minutes = int(data.get('duration_minutes'))
+            except (TypeError, ValueError):
+                duration_minutes = 0
+            if duration_minutes < 1 or duration_minutes > 52560000:
+                return jsonify({'error': 'Choose a duration from 1 minute to 100 years, or permanent.'}), 400
+            expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=duration_minutes)
+        now = datetime.datetime.utcnow()
+        db.query(ConnectBan).filter(
+            ConnectBan.target_id == target.id,
+            ConnectBan.revoked_at.is_(None),
+            ((ConnectBan.expires_at.is_(None)) | (ConnectBan.expires_at > now)),
+        ).update({'revoked_at': now}, synchronize_session=False)
+        ban = ConnectBan(target_id=target.id, issuer_id=issuer.id, reason=reason, expires_at=expires_at)
+        db.add(ban)
+        db.commit()
+        return jsonify({'success': True, 'ban': _connect_ban_response(ban)})
+    except Exception:
+        db.rollback()
+        return jsonify({'error': 'Could not create ban.'}), 500
+    finally:
+        db.close()
 
 
 # ── Profile ───────────────────────────────────────────────────────────────────
@@ -1467,6 +1519,7 @@ def get_user_profile(username):
     ]
 
     viewer_id = session.get('user_id')
+    viewer = db.query(User).filter_by(id=viewer_id).first() if viewer_id else None
     friend_status = 'none'
     friendship_id = None
     if viewer_id and viewer_id != user.id:
@@ -1492,6 +1545,8 @@ def get_user_profile(username):
         'posts':         posts_data,
         'friend_status': friend_status,
         'friendship_id': friendship_id,
+        'can_moderate_connect': can_moderate_connect,
+        'active_ban': _connect_ban_response(target_ban) if can_moderate_connect else None,
     })
 
 
