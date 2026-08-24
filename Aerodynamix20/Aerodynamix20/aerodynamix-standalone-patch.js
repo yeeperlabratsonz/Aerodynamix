@@ -12,6 +12,19 @@
   var DEFAULT_PUBLIC_ROOT = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/';
   var STANDALONE_VERSION = '1.0';
   var UPDATE_MANIFEST_PATH = 'standalone-updates.json';
+  var FALLBACK_UPDATE_MANIFEST = {
+    version: '1.0',
+    changelog: [{
+      version: 'Aerodynamix Ver 1.0',
+      changes: [
+        'Added the standalone Updates tab with version checking.',
+        'Added a readable changelog for reviewing changes before downloading.',
+        'Added safe normal-edition update downloads with offline fallback.',
+        'Dev Edition updates remain manually controlled.'
+      ]
+    }],
+    download: 'attached_assets/Aerodynamix-Standalone.html'
+  };
   var CLOAK_PRESETS = {
     google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
     deltaMath: { title: 'DeltaMath', path: 'attached_assets/delta-math-grad-cap.png' },
@@ -908,6 +921,14 @@
     `;
     if (nav && nav.parentNode) nav.parentNode.insertBefore(updatesView, nav.nextSibling);
     else document.body.prepend(updatesView);
+    renderChangelog(FALLBACK_UPDATE_MANIFEST.changelog);
+    if (window.AERODYNAMIX_EDITION === 'dev') {
+      var devUpdateButton = updatesView.querySelector('#aeroUpdateButton');
+      if (devUpdateButton) {
+        devUpdateButton.disabled = true;
+        devUpdateButton.textContent = 'Dev Edition updates are manual';
+      }
+    }
 
     var appsStyles = document.getElementById('aeroAppsStyles');
     if (appsStyles) {
@@ -1838,8 +1859,9 @@
         status.textContent = 'You have the latest normal standalone version.';
       }
     } catch (error) {
-      button.disabled = false;
-      button.textContent = 'Try again';
+      renderChangelog(FALLBACK_UPDATE_MANIFEST.changelog);
+      button.disabled = window.AERODYNAMIX_EDITION === 'dev';
+      button.textContent = window.AERODYNAMIX_EDITION === 'dev' ? 'Dev Edition updates are manual' : 'Try again';
       status.className += ' error';
       status.textContent = 'Could not check for updates. Your current file is still safe to use offline.';
     }
