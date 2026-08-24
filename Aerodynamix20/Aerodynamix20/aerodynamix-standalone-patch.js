@@ -1038,6 +1038,66 @@
     return (settings.sourceOrigin || DEFAULT_PUBLIC_ROOT).replace(/\/?$/, '/');
   }
 
+  function normalizeLiveGameTitle(value) {
+    var title = String(value || '').trim();
+    if (!title) return 'Untitled game';
+    return title.replace(/\w\S*/g, function (word) {
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    });
+  }
+
+  async function refreshLiveCatalogue() {
+    var liveBase = DEFAULT_PUBLIC_ROOT;
+    try {
+      var response = await fetch(new URL('index.html', liveBase).href, {
+        credentials: 'omit',
+        cache: 'no-store'
+      });
+      if (!response.ok) throw new Error('Live catalogue returned HTTP ' + response.status);
+      var html = await response.text();
+      var parsed = new DOMParser().parseFromString(html, 'text/html');
+      var liveGames = [];
+      parsed.querySelectorAll('#games a[href*="game-frame.html?game="]').forEach(function (card) {
+        var image = card.querySelector('img');
+        var link = card.getAttribute('href') || '';
+        var gamePath = '';
+        try {
+          gamePath = new URL(link, liveBase).searchParams.get('game') || '';
+        } catch (error) {}
+        if (!gamePath) return;
+        var gameUrl = new URL(gamePath, liveBase).href;
+        var thumbPath = image && image.getAttribute('src');
+        var thumb = thumbPath ? new URL(thumbPath, liveBase).href : '';
+        liveGames.push({
+          title: normalizeLiveGameTitle(image && image.getAttribute('alt')),
+          game: gamePath,
+          url: gameUrl,
+          thumb: thumb
+        });
+      });
+      if (!liveGames.length) throw new Error('Live catalogue contained no games');
+
+      var known = {};
+      builtInGames.forEach(function (game) {
+        known[game.url || game.game || game.gamePath || game.path || game.title] = true;
+      });
+      var additions = liveGames.filter(function (game) {
+        var key = game.game || game.url || game.title;
+        if (known[key]) return false;
+        known[key] = true;
+        return true;
+      });
+      if (additions.length) {
+        builtInGames = builtInGames.concat(additions);
+        drawLibrary();
+        wireFeaturedGames();
+      }
+    } catch (error) {
+      // The bundled catalogue remains available when the live site is offline,
+      // blocked by a browser, or opened without network access.
+    }
+  }
+
   function resolveSitePath(path) {
     if (!path) return '';
     if (/^(https?:|blob:|data:)/i.test(path)) return path;
@@ -1842,6 +1902,7 @@
     startStandaloneMessageNotifications();
     drawLibrary();
     loadCustomGames();
+    refreshLiveCatalogue();
     var params = new URLSearchParams(location.search);
     var requestedView = params.get('view');
     var validView = requestedView === 'media' || requestedView === 'settings' || requestedView === 'connect' ||
