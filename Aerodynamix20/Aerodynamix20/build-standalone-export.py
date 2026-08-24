@@ -153,6 +153,7 @@ def main() -> None:
         + "<script type=\"text/plain\" id=\"aeroDrawingClient\">\n"
         + drawing_client
         + "\n</script>\n"
+        + "<script>window.AERODYNAMIX_EDITION='normal';</script>\n"
         + "<script>\n"
         + patch
         + "\n</script>\n"
@@ -162,7 +163,8 @@ def main() -> None:
         raise RuntimeError("The original standalone export has no closing body tag.")
     result = source.rsplit("</body>", 1)[0] + injection + "</body>" + source.rsplit("</body>", 1)[1]
     OUTPUT_HTML.write_text(result, encoding="utf-8")
-    dev_result = result.rsplit("</body>", 1)[0] + "<script>\n" + dev_patch + "\n</script>\n</body>" + result.rsplit("</body>", 1)[1]
+    dev_result = result.replace("window.AERODYNAMIX_EDITION='normal'", "window.AERODYNAMIX_EDITION='dev'", 1)
+    dev_result = dev_result.rsplit("</body>", 1)[0] + "<script>\n" + dev_patch + "\n</script>\n</body>" + dev_result.rsplit("</body>", 1)[1]
     OUTPUT_DEV_HTML.write_text(dev_result, encoding="utf-8")
 
     with zipfile.ZipFile(OUTPUT_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:

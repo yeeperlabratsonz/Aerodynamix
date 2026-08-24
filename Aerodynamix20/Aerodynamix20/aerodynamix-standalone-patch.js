@@ -10,6 +10,8 @@
   var DB_NAME = 'aerodynamixStandaloneLibrary';
   var DB_STORE = 'games';
   var DEFAULT_PUBLIC_ROOT = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/';
+  var STANDALONE_VERSION = '1.0';
+  var UPDATE_MANIFEST_PATH = 'standalone-updates.json';
   var CLOAK_PRESETS = {
     google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
     deltaMath: { title: 'DeltaMath', path: 'attached_assets/delta-math-grad-cap.png' },
@@ -589,6 +591,30 @@
         box-sizing: border-box;
       }
       #aeroClockView.active { display: block; animation: aeroViewIn .24s ease both; }
+      #aeroUpdatesView {
+        display: none;
+        min-height: 100vh;
+        padding: clamp(110px, 10vw, 150px) 20px 80px;
+        box-sizing: border-box;
+        color: var(--standalone-text);
+      }
+      #aeroUpdatesView.active { display: block; animation: aeroViewIn .24s ease both; }
+      .aero-updates-shell { width: min(1060px, 100%); margin: 0 auto; }
+      .aero-updates-title { margin-bottom: 24px; }
+      .aero-updates-title h2 { margin: 7px 0 8px; font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -.055em; }
+      .aero-updates-grid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 18px; align-items: start; }
+      .aero-update-card { padding: 24px; border: 1px solid var(--standalone-line); border-radius: 22px; background: var(--standalone-panel); box-shadow: 0 24px 70px rgba(0,0,0,.3); backdrop-filter: blur(18px); }
+      .aero-update-card h3 { margin: 0 0 8px; font-size: 1.18rem; }
+      .aero-update-version { color: var(--standalone-accent); font-size: 1.35rem; font-weight: 900; }
+      .aero-update-status { margin: 12px 0 18px; color: color-mix(in srgb, var(--standalone-text) 72%, transparent); line-height: 1.5; }
+      .aero-update-status.ready { color: #70d99a; }
+      .aero-update-status.error { color: #ff9ca7; }
+      .aero-update-button[disabled] { opacity: .48; cursor: not-allowed; transform: none; }
+      .aero-changelog { display: grid; gap: 15px; margin-top: 18px; }
+      .aero-changelog-item { padding: 15px; border-left: 3px solid var(--standalone-accent); border-radius: 0 12px 12px 0; background: rgba(255,255,255,.055); }
+      .aero-changelog-item strong { display: block; margin-bottom: 6px; }
+      .aero-changelog-item ul { margin: 0; padding-left: 20px; color: color-mix(in srgb, var(--standalone-text) 72%, transparent); line-height: 1.55; }
+      @media (max-width: 760px) { .aero-updates-grid { grid-template-columns: 1fr; } #aeroUpdatesView { padding-left: 14px; padding-right: 14px; } }
       .aero-clock-shell { max-width: 1180px; margin: 0 auto; }
       .aero-clock-heading { text-align: center; }
       .aero-clock-heading h2 { margin: 0 0 .45rem; color: var(--standalone-text); font-size: clamp(1.8rem, 4vw, 3.5rem); letter-spacing: .08em; text-transform: uppercase; }
@@ -847,6 +873,41 @@
     // The standalone keeps the compact status clock in the top bar, but does
     // not expose the optional clock easter-egg page.
     clockView.remove();
+
+    var updatesNav = document.createElement('a');
+    updatesNav.id = 'updatesNav';
+    updatesNav.href = '#';
+    updatesNav.title = 'Updates';
+    updatesNav.textContent = 'Updates';
+    if (navLinks) navLinks.appendChild(updatesNav);
+
+    var updatesView = document.createElement('main');
+    updatesView.id = 'aeroUpdatesView';
+    updatesView.innerHTML = `
+      <div class="aero-updates-shell">
+        <header class="aero-updates-title">
+          <div class="aero-kicker">Aerodynamix updates</div>
+          <h2>Stay up to date.</h2>
+          <p class="aero-muted">Review what is changing before downloading an updated copy of this standalone file.</p>
+        </header>
+        <div class="aero-updates-grid">
+          <section class="aero-update-card">
+            <h3>Your version</h3>
+            <div class="aero-update-version">Aerodynamix Ver ${STANDALONE_VERSION}</div>
+            <p id="aeroUpdateStatus" class="aero-update-status" aria-live="polite">Checking for updates…</p>
+            <button id="aeroUpdateButton" class="aero-button aero-update-button" type="button">Check for updates</button>
+          </section>
+          <section class="aero-update-card">
+            <h3>Latest changelog</h3>
+            <div id="aeroChangelog" class="aero-changelog">
+              <div class="aero-muted">Loading the latest changelog…</div>
+            </div>
+          </section>
+        </div>
+      </div>
+    `;
+    if (nav && nav.parentNode) nav.parentNode.insertBefore(updatesView, nav.nextSibling);
+    else document.body.prepend(updatesView);
 
     var appsStyles = document.getElementById('aeroAppsStyles');
     if (appsStyles) {
@@ -1481,6 +1542,8 @@
     if (drawingView) drawingView.classList.toggle('active', view === 'drawing');
     var clockView = document.getElementById('aeroClockView');
     if (clockView) clockView.classList.toggle('active', view === 'clock');
+    var updatesView = document.getElementById('aeroUpdatesView');
+    if (updatesView) updatesView.classList.toggle('active', view === 'updates');
 
     document.querySelectorAll('.nav-links a, .settings-nav').forEach(function (link) {
       link.classList.remove('active');
@@ -1720,6 +1783,68 @@
     if (status) status.textContent = navigator.onLine ? 'Online' : 'Offline';
   }
 
+  function compareVersions(left, right) {
+    var a = String(left || '0').split('.').map(Number);
+    var b = String(right || '0').split('.').map(Number);
+    for (var index = 0; index < Math.max(a.length, b.length); index += 1) {
+      if ((a[index] || 0) !== (b[index] || 0)) return (a[index] || 0) > (b[index] || 0) ? 1 : -1;
+    }
+    return 0;
+  }
+
+  function renderChangelog(entries) {
+    var container = document.getElementById('aeroChangelog');
+    if (!container) return;
+    if (!Array.isArray(entries) || !entries.length) {
+      container.innerHTML = '<div class="aero-muted">No changelog is available yet.</div>';
+      return;
+    }
+    container.innerHTML = entries.map(function (entry) {
+      var changes = Array.isArray(entry.changes) ? entry.changes : [];
+      return '<article class="aero-changelog-item"><strong>' +
+        String(entry.version || 'Update').replace(/[<>&"]/g, '') + '</strong><ul>' +
+        changes.map(function (change) { return '<li>' + String(change).replace(/[<>&"]/g, '') + '</li>'; }).join('') +
+        '</ul></article>';
+    }).join('');
+  }
+
+  async function checkForStandaloneUpdate() {
+    var status = document.getElementById('aeroUpdateStatus');
+    var button = document.getElementById('aeroUpdateButton');
+    if (!status || !button) return;
+    status.className = 'aero-update-status';
+    status.textContent = 'Checking for updates…';
+    try {
+      var response = await fetch(new URL(UPDATE_MANIFEST_PATH, DEFAULT_PUBLIC_ROOT).href, { credentials: 'omit', cache: 'no-store' });
+      if (!response.ok) throw new Error('Update server returned HTTP ' + response.status);
+      var manifest = await response.json();
+      renderChangelog(manifest.changelog);
+      var latest = manifest.version || STANDALONE_VERSION;
+      var isDev = window.AERODYNAMIX_EDITION === 'dev';
+      if (isDev) {
+        button.disabled = true;
+        button.textContent = 'Dev Edition updates are manual';
+        status.textContent = 'Dev Edition is maintained separately. Review the changelog here, but update this file manually.';
+      } else if (compareVersions(latest, STANDALONE_VERSION) > 0 && manifest.download) {
+        button.disabled = false;
+        button.textContent = 'Download Ver ' + latest;
+        status.className += ' ready';
+        status.textContent = 'A newer version is available: Aerodynamix Ver ' + latest + '.';
+        button.dataset.download = manifest.download;
+      } else {
+        button.disabled = false;
+        button.textContent = 'Check again';
+        status.className += ' ready';
+        status.textContent = 'You have the latest normal standalone version.';
+      }
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = 'Try again';
+      status.className += ' error';
+      status.textContent = 'Could not check for updates. Your current file is still safe to use offline.';
+    }
+  }
+
   function wireEvents() {
     var gamesNav = document.getElementById('gamesNav');
     var mediaNav = document.getElementById('mediaNav');
@@ -1743,6 +1868,27 @@
     if (appsNav) appsNav.onclick = function (event) {
       event.preventDefault();
       showView('apps');
+    };
+    var updatesNav = document.getElementById('updatesNav');
+    if (updatesNav) updatesNav.onclick = function (event) {
+      event.preventDefault();
+      showView('updates');
+      checkForStandaloneUpdate();
+    };
+    var updateButton = document.getElementById('aeroUpdateButton');
+    if (updateButton) updateButton.onclick = function () {
+      if (window.AERODYNAMIX_EDITION === 'dev') return;
+      if (updateButton.dataset.download) {
+        var link = document.createElement('a');
+        link.href = new URL(updateButton.dataset.download, DEFAULT_PUBLIC_ROOT).href;
+        link.download = '';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        toast('Updated file download started.');
+      } else {
+        checkForStandaloneUpdate();
+      }
     };
     if (clock) {
       clock.title = 'Pacific time';
@@ -1906,10 +2052,11 @@
     var params = new URLSearchParams(location.search);
     var requestedView = params.get('view');
     var validView = requestedView === 'media' || requestedView === 'settings' || requestedView === 'connect' ||
-      requestedView === 'apps' || requestedView === 'drawing' || requestedView === 'clock'
+      requestedView === 'apps' || requestedView === 'drawing' || requestedView === 'clock' || requestedView === 'updates'
       ? requestedView
       : 'games';
     showView(validView);
+    if (validView === 'updates') checkForStandaloneUpdate();
     if (validView === 'connect') loadConnectFrame();
     var requestedGame = Number(params.get('game'));
     if (params.has('game') && Number.isInteger(requestedGame) && builtInGames[requestedGame]) {

@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "changelog": [
+    {
+      "version": "Aerodynamix Ver 1.0",
+      "changes": [
+        "Added the standalone Updates tab with version checking.",
+        "Added a readable changelog so changes can be reviewed before downloading.",
+        "Added safe normal-edition update downloads with offline fallback.",
+        "Dev Edition updates remain manually controlled."
+      ]
+    }
+  ],
+  "download": "attached_assets/Aerodynamix-Standalone.html"
+}
