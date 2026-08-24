@@ -125,6 +125,10 @@
   function createPanel() {
     addPanelStyles();
     var settingsGrid = document.querySelector('#aeroSettingsView .aero-settings-grid');
+    if (!settingsGrid) {
+      setTimeout(createPanel, 250);
+      return;
+    }
     if (settingsGrid && !settingsCard) {
       settingsCard = document.createElement('section');
       settingsCard.className = 'aero-settings-card';
@@ -149,7 +153,10 @@
 
   function checkAccess() {
     return api('/api/me').then(function (data) {
-      access = !!(data.user && data.user.username === 'YANDHI' && data.user.can_moderate_connect);
+      // The server remains authoritative for every moderation action. The
+      // client only needs the exact username to reveal the Settings shortcut,
+      // which also works while an older hosted /api/me response is cached.
+      access = !!(data.user && data.user.username === 'YANDHI');
       if (access) {
         createPanel();
       } else {
