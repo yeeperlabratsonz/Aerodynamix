@@ -250,7 +250,13 @@
       <form id="ban-user-form" class="dc-form">
         <textarea id="ban-reason" maxlength="500" placeholder="Reason for the ban" required></textarea>
         <label class="dc-ban-option"><input type="radio" name="ban-duration" value="duration" checked> Duration
-          <input id="ban-duration-minutes" type="number" min="1" max="52560000" value="60" required> minutes
+          <input id="ban-duration-value" type="number" min="1" max="52560000" value="60" required>
+          <select id="ban-duration-unit" aria-label="Ban duration unit">
+            <option value="minutes">minutes</option>
+            <option value="days">days</option>
+            <option value="weeks">weeks</option>
+            <option value="months">months</option>
+          </select>
         </label>
         <label class="dc-ban-option"><input type="radio" name="ban-duration" value="permanent"> Permanent ban</label>
         <button class="dc-btn" type="submit">Confirm Ban</button>
