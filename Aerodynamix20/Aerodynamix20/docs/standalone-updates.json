@@ -7,7 +7,7 @@
         "Added the standalone Updates tab with version checking.",
         "Added a readable changelog so changes can be reviewed before downloading.",
         "Added safe normal-edition update downloads with offline fallback.",
-        "Dev Edition updates remain manually controlled."
+        "Added safer offline handling when update information is unavailable."
       ]
     }
   ],

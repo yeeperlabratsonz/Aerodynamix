@@ -1,4 +1,4 @@
-/* YANDHI-only Dev Tools page for the Aerodynamix Dev Edition. */
+/* Private Dev Tools page for the Aerodynamix Dev Edition. */
 (function () {
   'use strict';
   var ORIGIN = 'https://aerodynamix20.onrender.com';
@@ -155,7 +155,7 @@
     if (settingsGrid && !settingsCard) {
       settingsCard = document.createElement('section');
       settingsCard.className = 'aero-settings-card';
-      settingsCard.innerHTML = '<h3>Developer tools</h3><p class="aero-muted">YANDHI-only Connect moderation controls.</p><button id="aeroOpenDevPanel" class="aero-button" type="button">Open Dev Tools</button>';
+       settingsCard.innerHTML = '<h3>Developer tools</h3><p class="aero-muted">Private Connect moderation controls.</p><button id="aeroOpenDevPanel" class="aero-button" type="button">Open Dev Tools</button>';
       settingsGrid.appendChild(settingsCard);
       settingsCard.querySelector('#aeroOpenDevPanel').onclick = openPanel;
     }
@@ -164,9 +164,9 @@
     panel = document.createElement('main');
     panel.id = 'aeroDevPanel';
     panel.className = 'aero-dev-panel';
-    panel.innerHTML = '<div class="aero-dev-panel-head"><div><div class="aero-dev-panel-kicker">YANDHI tools</div><h2>Dev Tools</h2><p class="aero-dev-panel-sub">Manage Connect access and community verification.</p></div><div class="aero-dev-actions"><button id="aeroDevBack" class="secondary" type="button">Back to Settings</button><button id="aeroDevRefresh" type="button">Refresh</button></div></div>' +
+    panel.innerHTML = '<div class="aero-dev-panel-head"><div><div class="aero-dev-panel-kicker">Private tools</div><h2>Dev Tools</h2><p class="aero-dev-panel-sub">Manage Connect access and community verification.</p></div><div class="aero-dev-actions"><button id="aeroDevBack" class="secondary" type="button">Back to Settings</button><button id="aeroDevRefresh" type="button">Refresh</button></div></div>' +
       '<div class="aero-dev-panel-card"><div class="aero-dev-search"><input id="aeroDevSearch" type="search" placeholder="Search users by username" autocomplete="off"><button id="aeroDevSearchButton" type="button">Search</button></div><div id="aeroDevMessage" class="aero-dev-message" aria-live="polite"></div></div>' +
-      '<section class="aero-dev-panel-card"><div class="aero-dev-section-title"><h3>User management</h3><span class="aero-dev-badge">YANDHI only</span></div><div id="aeroDevUsers" class="aero-dev-list"></div></section>' +
+      '<section class="aero-dev-panel-card"><div class="aero-dev-section-title"><h3>User management</h3><span class="aero-dev-badge">Private</span></div><div id="aeroDevUsers" class="aero-dev-list"></div></section>' +
       '<section class="aero-dev-panel-card"><div class="aero-dev-section-title"><h3>Active bans</h3></div><div id="aeroDevBans" class="aero-dev-list"></div></section>';
     document.body.appendChild(panel);
     panel.querySelector('#aeroDevBack').onclick = openSettings;
@@ -195,6 +195,10 @@
   }
 
   function init() {
+    var updatesNav = document.getElementById('updatesNav');
+    var updatesView = document.getElementById('aeroUpdatesView');
+    if (updatesNav) updatesNav.remove();
+    if (updatesView) updatesView.remove();
     checkAccess();
     refreshTimer = setInterval(checkAccess, 4000);
   }

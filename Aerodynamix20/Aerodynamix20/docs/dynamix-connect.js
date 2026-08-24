@@ -748,6 +748,7 @@
     try {
       await api('/api/moderation/bans', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: targetUsername,
           reason: banReason.value.trim(),

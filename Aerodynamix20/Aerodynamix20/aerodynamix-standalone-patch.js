@@ -20,7 +20,7 @@
         'Added the standalone Updates tab with version checking.',
         'Added a readable changelog for reviewing changes before downloading.',
         'Added safe normal-edition update downloads with offline fallback.',
-        'Dev Edition updates remain manually controlled.'
+        'Added safer offline handling when update information is unavailable.'
       ]
     }],
     download: 'attached_assets/Aerodynamix-Standalone.html'
@@ -922,13 +922,6 @@
     if (nav && nav.parentNode) nav.parentNode.insertBefore(updatesView, nav.nextSibling);
     else document.body.prepend(updatesView);
     renderChangelog(FALLBACK_UPDATE_MANIFEST.changelog);
-    if (window.AERODYNAMIX_EDITION === 'dev') {
-      var devUpdateButton = updatesView.querySelector('#aeroUpdateButton');
-      if (devUpdateButton) {
-        devUpdateButton.disabled = true;
-        devUpdateButton.textContent = 'Dev Edition updates are manual';
-      }
-    }
 
     var appsStyles = document.getElementById('aeroAppsStyles');
     if (appsStyles) {
@@ -1844,8 +1837,8 @@
       var isDev = window.AERODYNAMIX_EDITION === 'dev';
       if (isDev) {
         button.disabled = true;
-        button.textContent = 'Dev Edition updates are manual';
-        status.textContent = 'Dev Edition is maintained separately. Review the changelog here, but update this file manually.';
+        button.textContent = 'Updates unavailable';
+        status.textContent = 'This edition is updated separately.';
       } else if (compareVersions(latest, STANDALONE_VERSION) > 0 && manifest.download) {
         button.disabled = false;
         button.textContent = 'Download Ver ' + latest;
@@ -1861,9 +1854,9 @@
     } catch (error) {
       renderChangelog(FALLBACK_UPDATE_MANIFEST.changelog);
       button.disabled = window.AERODYNAMIX_EDITION === 'dev';
-      button.textContent = window.AERODYNAMIX_EDITION === 'dev' ? 'Dev Edition updates are manual' : 'Try again';
-      status.className += ' error';
-      status.textContent = 'Could not check for updates. Your current file is still safe to use offline.';
+      button.textContent = window.AERODYNAMIX_EDITION === 'dev' ? 'Updates unavailable' : 'Check again';
+      status.className += ' ready';
+      status.textContent = 'Update information is unavailable right now. Your current file is ready to use, and the built-in changelog is shown below.';
     }
   }
 
@@ -2070,7 +2063,6 @@
     startStandaloneMessageNotifications();
     drawLibrary();
     loadCustomGames();
-    refreshLiveCatalogue();
     var params = new URLSearchParams(location.search);
     var requestedView = params.get('view');
     var validView = requestedView === 'media' || requestedView === 'settings' || requestedView === 'connect' ||
