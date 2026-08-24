@@ -41,10 +41,13 @@ def inline_new_game(source: str) -> str:
     thumbnail_file = PROJECT_ROOT / "docs" / "images" / "nubbys-number-factory.jpg"
     content_uri = "data:text/html;base64," + base64.b64encode(game_file.read_bytes()).decode("ascii")
     thumb_uri = "data:image/jpeg;base64," + base64.b64encode(thumbnail_file.read_bytes()).decode("ascii")
-    match = re.search(r"const GAMES=(\[.*?\]);", source)
-    if not match:
+    marker = "const GAMES="
+    start = source.find(marker)
+    end = source.find("];", start)
+    if start < 0 or end < 0:
         raise RuntimeError("The standalone source has no GAMES catalogue.")
-    catalogue = match.group(1)
+    catalogue_start = start + len(marker)
+    catalogue = source[catalogue_start:end + 1]
     if "Nubby's Number Factory" in catalogue:
         return source
     new_game = json.dumps({
@@ -58,7 +61,7 @@ def inline_new_game(source: str) -> str:
         raise RuntimeError("The standalone GAMES catalogue is malformed.")
     separator = "," if catalogue[:insert_at].rstrip().endswith("}") else ""
     updated = catalogue[:insert_at] + separator + new_game + catalogue[insert_at:]
-    return source[:match.start(1)] + updated + source[match.end(1):]
+    return source[:catalogue_start] + updated + source[end + 1:]
 
 
 def build_connect_assets() -> tuple[str, str]:
