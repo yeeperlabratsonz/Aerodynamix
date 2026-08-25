@@ -1425,7 +1425,8 @@
 
   function openGame(game) {
     var gamePath = game.game || game.gamePath || game.path || '';
-    var url = game.url || resolveSitePath(gamePath);
+    var hasBundledContent = !!(game && game.content);
+    var url = hasBundledContent ? getFallbackContent(game) : (game.url || resolveSitePath(gamePath));
 
     if (!url && location.protocol === 'file:' && gamePath) {
       showView('settings');
@@ -1452,7 +1453,9 @@
     } else {
       frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-pointer-lock');
     }
-    if (location.protocol === 'file:' && game.custom !== true) {
+    if (hasBundledContent) {
+      frame.src = url;
+    } else if (location.protocol === 'file:' && game.custom !== true) {
       frame.removeAttribute('src');
       openSanitizedStandaloneGame(url, frame);
     } else {
