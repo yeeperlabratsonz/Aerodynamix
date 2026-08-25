@@ -105,14 +105,14 @@ content_type = "application/octet-stream"
 id = "ywN-s0LcTllcUwzAc1ct6"
 uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone.html.xz"
 type = "unspecified"
-title = "Aerodynamix Standalone — updated"
-description = "Normal standalone file with manual game updates through Updates, clean fallback messaging, and repaired ban request formatting."
+title = "Aerodynamix Standalone 1.1 — proxy-enabled"
+description = "Verified compressed standalone release with Connect routed through the reverse proxy and bundled game content."
 logical_id = "ae04ad62-fd44-429f-aa16-32aac6830f40"
-content_hash = "sha256:f2668d040ef8c82b57e478cb6c840cbaab3d5a156a58b6e828a381dc4e3d6b3d"
-size = 104439256
-mtime_ms = 1787558246798
-storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/ae04ad62-fd44-429f-aa16-32aac6830f40/c12fef5d-d825-4797-ad63-ea35e95d55a5"
-storage_version_token = "1787558534646223"
+content_hash = "sha256:c2128bcd96f22bad57cc256218ac745e60cad366f520e22ef1058c321e2f5677"
+size = 104416900
+mtime_ms = 1787697426845
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/ae04ad62-fd44-429f-aa16-32aac6830f40/1c360e4f-aa10-47c1-b6ab-3af9a77ec22b"
+storage_version_token = "1787697630988159"
 content_type = "application/octet-stream"
 
 [[outputs]]
