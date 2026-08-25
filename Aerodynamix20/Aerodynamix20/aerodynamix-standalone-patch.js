@@ -10,6 +10,7 @@
   var DB_NAME = 'aerodynamixStandaloneLibrary';
   var DB_STORE = 'games';
   var DEFAULT_PUBLIC_ROOT = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/';
+  var UPDATE_PROXY_ROOT = 'https://aerodynamix20.onrender.com/api/update-proxy/';
   var STANDALONE_VERSION = '1.1';
   var UPDATE_MANIFEST_PATH = 'standalone-updates.json';
   var FALLBACK_UPDATE_MANIFEST = {
@@ -22,7 +23,8 @@
         'Kept updates manual so games change only when you choose to update.'
       ]
     }],
-    download: 'attached_assets/Aerodynamix-Standalone.html'
+    download: 'attached_assets/Aerodynamix-Standalone.html',
+    dev_download: 'attached_assets/Aerodynamix-Dev-Edition.html'
   };
   var CLOAK_PRESETS = {
     google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
@@ -521,6 +523,147 @@
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+      #aeroUpdateNotification {
+        position: fixed;
+        top: 14px;
+        left: 50%;
+        z-index: 10005;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        width: min(520px, calc(100% - 28px));
+        padding: 10px 14px 10px 10px;
+        border: 1px solid rgba(130,185,255,.42);
+        border-radius: 14px;
+        background: rgba(7,18,38,.97);
+        color: #fff;
+        box-shadow: 0 14px 44px rgba(0,0,0,.55);
+        opacity: 0;
+        transform: translate(-50%, -18px);
+        pointer-events: none;
+        cursor: pointer;
+        transition: opacity .18s ease, transform .18s ease;
+      }
+      #aeroUpdateNotification.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+        pointer-events: auto;
+      }
+      #aeroUpdateNotification .aero-update-avatar {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2c7ffc, #70d7ff);
+        color: #fff;
+        font-size: 1.1rem;
+        font-weight: 900;
+      }
+      #aeroUpdateNotification .aero-update-copy {
+        min-width: 0;
+        line-height: 1.25;
+      }
+      #aeroUpdateNotification .aero-update-title {
+        font-size: .82rem;
+        font-weight: 800;
+      }
+      #aeroUpdateNotification .aero-update-preview {
+        margin-top: 3px;
+        color: rgba(255,255,255,.72);
+        font-size: .74rem;
+      }
+      #aeroUpdateOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10020;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: radial-gradient(circle at 50% 38%, rgba(44,127,252,.24), transparent 34%),
+          rgba(2,7,18,.94);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .24s ease;
+      }
+      #aeroUpdateOverlay.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .aero-update-overlay-card {
+        position: relative;
+        width: min(440px, 100%);
+        overflow: hidden;
+        padding: 34px 30px 30px;
+        border: 1px solid rgba(123,199,255,.38);
+        border-radius: 26px;
+        background: linear-gradient(145deg, rgba(19,43,87,.96), rgba(7,15,37,.98));
+        box-shadow: 0 30px 100px rgba(0,0,0,.62), 0 0 70px rgba(44,127,252,.18);
+        text-align: center;
+        transform: translateY(12px) scale(.97);
+        transition: transform .24s ease;
+      }
+      #aeroUpdateOverlay.show .aero-update-overlay-card {
+        transform: translateY(0) scale(1);
+      }
+      .aero-update-orbit {
+        position: relative;
+        width: 86px;
+        height: 86px;
+        margin: 0 auto 22px;
+        border: 2px solid rgba(112,215,255,.24);
+        border-radius: 50%;
+        box-shadow: 0 0 28px rgba(44,127,252,.25);
+      }
+      .aero-update-orbit::before,
+      .aero-update-orbit::after {
+        content: '';
+        position: absolute;
+        inset: 11px;
+        border: 2px solid transparent;
+        border-top-color: #70d7ff;
+        border-radius: 50%;
+        animation: aeroUpdateSpin 1.1s linear infinite;
+      }
+      .aero-update-orbit::after {
+        inset: 21px;
+        border-top-color: #b9f2ff;
+        border-right-color: rgba(112,215,255,.42);
+        animation-direction: reverse;
+        animation-duration: .78s;
+      }
+      @keyframes aeroUpdateSpin { to { transform: rotate(360deg); } }
+      .aero-update-overlay-card h2 {
+        margin: 0;
+        color: #fff;
+        font-size: clamp(1.35rem, 3vw, 1.8rem);
+      }
+      .aero-update-overlay-card p {
+        margin: 10px 0 22px;
+        color: rgba(225,241,255,.72);
+        line-height: 1.5;
+      }
+      .aero-update-progress {
+        height: 7px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: rgba(255,255,255,.12);
+      }
+      .aero-update-progress::before {
+        content: '';
+        display: block;
+        width: 42%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #2c7ffc, #9cecff, #2c7ffc);
+        box-shadow: 0 0 15px rgba(112,215,255,.8);
+        animation: aeroUpdateProgress 1.35s ease-in-out infinite;
+      }
+      @keyframes aeroUpdateProgress {
+        0% { transform: translateX(-110%); }
+        100% { transform: translateX(270%); }
+      }
       #aeroThemeEffects {
         position: fixed;
         inset: 0;
@@ -1013,6 +1156,45 @@
       loadConnectFrame();
     });
     document.body.appendChild(messageNotification);
+
+    var updateNotification = document.createElement('div');
+    updateNotification.id = 'aeroUpdateNotification';
+    updateNotification.setAttribute('role', 'status');
+    updateNotification.setAttribute('aria-live', 'polite');
+    updateNotification.setAttribute('tabindex', '0');
+    updateNotification.innerHTML =
+      '<div class="aero-update-avatar">↻</div>' +
+      '<div class="aero-update-copy">' +
+        '<div class="aero-update-title">New Aerodynamix version</div>' +
+        '<div class="aero-update-preview">Hey dude you\'re on an older version. Go to the Update section and update to get the newest games and features</div>' +
+      '</div>';
+    function openUpdateNotification() {
+      updateNotification.classList.remove('show');
+      showView('updates');
+      checkForStandaloneUpdate();
+    }
+    updateNotification.addEventListener('click', openUpdateNotification);
+    updateNotification.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openUpdateNotification();
+      }
+    });
+    document.body.appendChild(updateNotification);
+
+    var updateOverlay = document.createElement('div');
+    updateOverlay.id = 'aeroUpdateOverlay';
+    updateOverlay.setAttribute('role', 'dialog');
+    updateOverlay.setAttribute('aria-modal', 'true');
+    updateOverlay.setAttribute('aria-label', 'Downloading update');
+    updateOverlay.innerHTML =
+      '<div class="aero-update-overlay-card">' +
+        '<div class="aero-update-orbit" aria-hidden="true"></div>' +
+        '<h2>Preparing your update</h2>' +
+        '<p>Your newest Aerodynamix file is on its way. Keep this tab open while the download begins.</p>' +
+        '<div class="aero-update-progress" aria-hidden="true"></div>' +
+      '</div>';
+    document.body.appendChild(updateOverlay);
   }
 
   function toast(message) {
@@ -1821,6 +2003,20 @@
     }).join('');
   }
 
+  function showOutdatedNotification() {
+    var notification = document.getElementById('aeroUpdateNotification');
+    if (notification) notification.classList.add('show');
+  }
+
+  function showUpdateOverlay() {
+    var overlay = document.getElementById('aeroUpdateOverlay');
+    if (!overlay) return;
+    overlay.classList.add('show');
+    window.setTimeout(function () {
+      overlay.classList.remove('show');
+    }, 4200);
+  }
+
   async function checkForStandaloneUpdate() {
     var status = document.getElementById('aeroUpdateStatus');
     var button = document.getElementById('aeroUpdateButton');
@@ -1828,22 +2024,21 @@
     status.className = 'aero-update-status';
     status.textContent = 'Checking for updates…';
     try {
-      var response = await fetch(new URL(UPDATE_MANIFEST_PATH, DEFAULT_PUBLIC_ROOT).href, { credentials: 'omit', cache: 'no-store' });
+      var response = await fetch(new URL(UPDATE_MANIFEST_PATH, UPDATE_PROXY_ROOT).href, { credentials: 'omit', cache: 'no-store' });
       if (!response.ok) throw new Error('Update server returned HTTP ' + response.status);
       var manifest = await response.json();
       renderChangelog(manifest.changelog);
       var latest = manifest.version || STANDALONE_VERSION;
-      var isDev = window.AERODYNAMIX_EDITION === 'dev';
-      if (isDev) {
-        button.disabled = true;
-        button.textContent = 'Updates unavailable';
-        status.textContent = 'This edition is updated separately.';
-      } else if (compareVersions(latest, STANDALONE_VERSION) > 0 && manifest.download) {
+      var downloadPath = window.AERODYNAMIX_EDITION === 'dev'
+        ? (manifest.dev_download || manifest.download)
+        : manifest.download;
+      if (compareVersions(latest, STANDALONE_VERSION) > 0 && downloadPath) {
         button.disabled = false;
         button.textContent = 'Download Ver ' + latest;
         status.className += ' ready';
         status.textContent = 'A newer version is available: Aerodynamix Ver ' + latest + '.';
-        button.dataset.download = manifest.download;
+        button.dataset.download = downloadPath;
+        showOutdatedNotification();
       } else {
         button.disabled = false;
         button.textContent = 'Check again';
@@ -1852,8 +2047,8 @@
       }
     } catch (error) {
       renderChangelog(FALLBACK_UPDATE_MANIFEST.changelog);
-      button.disabled = window.AERODYNAMIX_EDITION === 'dev';
-      button.textContent = window.AERODYNAMIX_EDITION === 'dev' ? 'Updates unavailable' : 'Check again';
+      button.disabled = false;
+      button.textContent = 'Check again';
       status.className += ' ready';
       status.textContent = 'Update information is unavailable right now. Your current file is ready to use, and the built-in changelog is shown below.';
     }
@@ -1891,10 +2086,10 @@
     };
     var updateButton = document.getElementById('aeroUpdateButton');
     if (updateButton) updateButton.onclick = function () {
-      if (window.AERODYNAMIX_EDITION === 'dev') return;
       if (updateButton.dataset.download) {
+        showUpdateOverlay();
         var link = document.createElement('a');
-        link.href = new URL(updateButton.dataset.download, DEFAULT_PUBLIC_ROOT).href;
+        link.href = new URL(updateButton.dataset.download, UPDATE_PROXY_ROOT).href;
         link.download = '';
         document.body.appendChild(link);
         link.click();
@@ -2069,7 +2264,11 @@
       ? requestedView
       : 'games';
     showView(validView);
+    checkForStandaloneUpdate();
     if (validView === 'updates') checkForStandaloneUpdate();
+    if (params.get('preview') === 'update') {
+      window.setTimeout(showUpdateOverlay, 120);
+    }
     if (validView === 'connect') loadConnectFrame();
     var requestedGame = Number(params.get('game'));
     if (params.has('game') && Number.isInteger(requestedGame) && builtInGames[requestedGame]) {
