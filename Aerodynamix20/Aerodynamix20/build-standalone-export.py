@@ -93,9 +93,10 @@ def build_connect_assets() -> tuple[str, str]:
     client = client.replace(
         "  async function api(path, options = {}) {\n"
         "    const res = await fetch(path, { credentials: 'same-origin', ...options });",
-        "  window.AERO_CONNECT_ORIGIN = " + repr(CONNECT_ORIGIN) + ";\n\n"
+        "  window.AERO_CONNECT_ORIGIN = " + repr(CONNECT_ORIGIN) + ";\n"
+        "  window.AERO_CONNECT_PROXY = " + repr(CONNECT_ORIGIN + "/api/connect-proxy") + ";\n\n"
         "  async function api(path, options = {}) {\n"
-        "    const res = await fetch(new URL(path, window.AERO_CONNECT_ORIGIN).href, { credentials: 'include', ...options });",
+        "    const res = await fetch(new URL(window.AERO_CONNECT_PROXY + path).href, { credentials: 'include', ...options });",
     )
     return markup, styles, client
 
@@ -199,12 +200,12 @@ def main() -> None:
     dev_result = dev_result.rsplit("</body>", 1)[0] + "<script>\n" + dev_patch + "\n</script>\n</body>" + dev_result.rsplit("</body>", 1)[1]
     OUTPUT_DEV_HTML.write_text(dev_result, encoding="utf-8")
 
-    with zipfile.ZipFile(OUTPUT_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
+    with zipfile.ZipFile(OUTPUT_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
         archive.write(OUTPUT_HTML, arcname=OUTPUT_HTML.name)
-    with zipfile.ZipFile(OUTPUT_DEV_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
+    with zipfile.ZipFile(OUTPUT_DEV_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
         archive.write(OUTPUT_DEV_HTML, arcname=OUTPUT_DEV_HTML.name)
-    OUTPUT_XZ.write_bytes(lzma.compress(result.encode("utf-8"), preset=9))
-    OUTPUT_DEV_XZ.write_bytes(lzma.compress(dev_result.encode("utf-8"), preset=9))
+    OUTPUT_XZ.write_bytes(lzma.compress(result.encode("utf-8"), preset=1))
+    OUTPUT_DEV_XZ.write_bytes(lzma.compress(dev_result.encode("utf-8"), preset=1))
 
     print(f"Built {OUTPUT_HTML.name} ({OUTPUT_HTML.stat().st_size:,} bytes)")
     print(f"Built {OUTPUT_ZIP.name} ({OUTPUT_ZIP.stat().st_size:,} bytes)")
