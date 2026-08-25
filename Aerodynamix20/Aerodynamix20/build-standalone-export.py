@@ -11,6 +11,7 @@ import json
 import re
 import zipfile
 import lzma
+import mimetypes
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -61,6 +62,61 @@ def inline_new_game(source: str) -> str:
         raise RuntimeError("The standalone GAMES catalogue is malformed.")
     separator = "," if catalogue[:insert_at].rstrip().endswith("}") else ""
     updated = catalogue[:insert_at] + separator + new_game + catalogue[insert_at:]
+    return source[:catalogue_start] + updated + source[end + 1:]
+
+
+def bundle_catalogue_games(source: str) -> str:
+    """Embed hosted game folders and rewrite their local dependencies.
+
+    The catalogue's HTML files often load large Unity/WASM/SWF assets through
+    relative URLs. A single-file export has no directory beside it, so those
+    URLs must become data URLs before the game HTML is embedded.
+    """
+    marker = "const GAMES="
+    start = source.find(marker)
+    end = source.find("];", start)
+    if start < 0 or end < 0:
+        raise RuntimeError("The standalone source has no GAMES catalogue.")
+    catalogue_start = start + len(marker)
+    catalogue = json.loads(source[catalogue_start:end + 1])
+
+    def uri(path: Path) -> str:
+        mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+        return "data:" + mime + ";base64," + base64.b64encode(path.read_bytes()).decode("ascii")
+
+    for game in catalogue:
+        game_path = str(game.get("game", ""))
+        if not game_path.startswith("games/"):
+            continue
+        relative = game_path[len("games/"):].strip("/")
+        game_root = PROJECT_ROOT / "docs" / "games" / relative
+        if game_root.is_file():
+            index_file = game_root
+            game_root = game_root.parent
+        else:
+            index_file = game_root / "index.html"
+        if not index_file.exists():
+            continue
+
+        files = [path for path in game_root.rglob("*") if path.is_file()]
+        replacements = {}
+        for path in files:
+            rel = path.relative_to(game_root).as_posix()
+            value = uri(path)
+            replacements[rel] = value
+            replacements["./" + rel] = value
+            replacements["/" + rel] = value
+
+        html = index_file.read_text(encoding="utf-8", errors="replace")
+        # Longest first prevents a short filename from corrupting a directory
+        # or another filename that happens to contain it.
+        for needle, value in sorted(replacements.items(), key=lambda item: len(item[0]), reverse=True):
+            html = html.replace(needle, value)
+        game["content"] = "data:text/html;base64," + base64.b64encode(
+            html.encode("utf-8")
+        ).decode("ascii")
+
+    updated = json.dumps(catalogue, separators=(",", ":"))
     return source[:catalogue_start] + updated + source[end + 1:]
 
 
