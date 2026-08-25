@@ -195,10 +195,6 @@
   }
 
   function init() {
-    var updatesNav = document.getElementById('updatesNav');
-    var updatesView = document.getElementById('aeroUpdatesView');
-    if (updatesNav) updatesNav.remove();
-    if (updatesView) updatesView.remove();
     checkAccess();
     refreshTimer = setInterval(checkAccess, 4000);
   }
