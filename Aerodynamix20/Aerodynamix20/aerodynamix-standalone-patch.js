@@ -521,6 +521,57 @@
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+      #aeroUpdateNotification {
+        position: fixed;
+        top: 14px;
+        left: 50%;
+        z-index: 10005;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        width: min(520px, calc(100% - 28px));
+        padding: 10px 14px 10px 10px;
+        border: 1px solid rgba(130,185,255,.42);
+        border-radius: 14px;
+        background: rgba(7,18,38,.97);
+        color: #fff;
+        box-shadow: 0 14px 44px rgba(0,0,0,.55);
+        opacity: 0;
+        transform: translate(-50%, -18px);
+        pointer-events: none;
+        cursor: pointer;
+        transition: opacity .18s ease, transform .18s ease;
+      }
+      #aeroUpdateNotification.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+        pointer-events: auto;
+      }
+      #aeroUpdateNotification .aero-update-avatar {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2c7ffc, #70d7ff);
+        color: #fff;
+        font-size: 1.1rem;
+        font-weight: 900;
+      }
+      #aeroUpdateNotification .aero-update-copy {
+        min-width: 0;
+        line-height: 1.25;
+      }
+      #aeroUpdateNotification .aero-update-title {
+        font-size: .82rem;
+        font-weight: 800;
+      }
+      #aeroUpdateNotification .aero-update-preview {
+        margin-top: 3px;
+        color: rgba(255,255,255,.72);
+        font-size: .74rem;
+      }
       #aeroThemeEffects {
         position: fixed;
         inset: 0;
@@ -1013,6 +1064,31 @@
       loadConnectFrame();
     });
     document.body.appendChild(messageNotification);
+
+    var updateNotification = document.createElement('div');
+    updateNotification.id = 'aeroUpdateNotification';
+    updateNotification.setAttribute('role', 'status');
+    updateNotification.setAttribute('aria-live', 'polite');
+    updateNotification.setAttribute('tabindex', '0');
+    updateNotification.innerHTML =
+      '<div class="aero-update-avatar">↻</div>' +
+      '<div class="aero-update-copy">' +
+        '<div class="aero-update-title">New Aerodynamix version</div>' +
+        '<div class="aero-update-preview">Hey dude you\'re on an older version. Go to the Update section and update to get the newest games and features</div>' +
+      '</div>';
+    function openUpdateNotification() {
+      updateNotification.classList.remove('show');
+      showView('updates');
+      checkForStandaloneUpdate();
+    }
+    updateNotification.addEventListener('click', openUpdateNotification);
+    updateNotification.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openUpdateNotification();
+      }
+    });
+    document.body.appendChild(updateNotification);
   }
 
   function toast(message) {
