@@ -105,14 +105,14 @@ content_type = "application/octet-stream"
 id = "ywN-s0LcTllcUwzAc1ct6"
 uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone.html.xz"
 type = "unspecified"
-title = "Aerodynamix Standalone 1.1 — proxy-enabled"
-description = "Verified compressed standalone release with Connect routed through the reverse proxy and bundled game content."
+title = "Aerodynamix Standalone 1.1 — newest file"
+description = "Newest compressed normal standalone release with the update notification, animated update screen, update proxy, and Nubby’s Number Factory."
 logical_id = "ae04ad62-fd44-429f-aa16-32aac6830f40"
-content_hash = "sha256:c2128bcd96f22bad57cc256218ac745e60cad366f520e22ef1058c321e2f5677"
-size = 104416900
-mtime_ms = 1787697426845
-storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/ae04ad62-fd44-429f-aa16-32aac6830f40/1c360e4f-aa10-47c1-b6ab-3af9a77ec22b"
-storage_version_token = "1787697630988159"
+content_hash = "sha256:fbc4c6386a01a8ef943f87818d9e675429f33be2decf2f0228d30a105f015f7c"
+size = 104417760
+mtime_ms = 1787700152791
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/ae04ad62-fd44-429f-aa16-32aac6830f40/1618f2f2-e50e-43a0-b66f-285ac506a784"
+storage_version_token = "1787700164371594"
 content_type = "application/octet-stream"
 
 [[outputs]]
