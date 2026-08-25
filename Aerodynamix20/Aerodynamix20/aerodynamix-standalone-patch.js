@@ -1897,6 +1897,12 @@
     }).join('');
   }
 
+  function showOutdatedNotification() {
+    if (window.AERODYNAMIX_EDITION === 'dev') return;
+    var notification = document.getElementById('aeroUpdateNotification');
+    if (notification) notification.classList.add('show');
+  }
+
   async function checkForStandaloneUpdate() {
     var status = document.getElementById('aeroUpdateStatus');
     var button = document.getElementById('aeroUpdateButton');
@@ -1920,6 +1926,7 @@
         status.className += ' ready';
         status.textContent = 'A newer version is available: Aerodynamix Ver ' + latest + '.';
         button.dataset.download = manifest.download;
+        showOutdatedNotification();
       } else {
         button.disabled = false;
         button.textContent = 'Check again';
@@ -2145,6 +2152,7 @@
       ? requestedView
       : 'games';
     showView(validView);
+    if (window.AERODYNAMIX_EDITION !== 'dev') checkForStandaloneUpdate();
     if (validView === 'updates') checkForStandaloneUpdate();
     if (validView === 'connect') loadConnectFrame();
     var requestedGame = Number(params.get('game'));
