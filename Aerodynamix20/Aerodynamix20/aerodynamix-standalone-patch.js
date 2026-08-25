@@ -10,6 +10,7 @@
   var DB_NAME = 'aerodynamixStandaloneLibrary';
   var DB_STORE = 'games';
   var DEFAULT_PUBLIC_ROOT = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/';
+  var UPDATE_PROXY_ROOT = 'https://aerodynamix20.onrender.com/api/update-proxy/';
   var STANDALONE_VERSION = '1.1';
   var UPDATE_MANIFEST_PATH = 'standalone-updates.json';
   var FALLBACK_UPDATE_MANIFEST = {
@@ -1910,7 +1911,7 @@
     status.className = 'aero-update-status';
     status.textContent = 'Checking for updates…';
     try {
-      var response = await fetch(new URL(UPDATE_MANIFEST_PATH, DEFAULT_PUBLIC_ROOT).href, { credentials: 'omit', cache: 'no-store' });
+      var response = await fetch(new URL(UPDATE_MANIFEST_PATH, UPDATE_PROXY_ROOT).href, { credentials: 'omit', cache: 'no-store' });
       if (!response.ok) throw new Error('Update server returned HTTP ' + response.status);
       var manifest = await response.json();
       renderChangelog(manifest.changelog);
@@ -1977,7 +1978,7 @@
       if (window.AERODYNAMIX_EDITION === 'dev') return;
       if (updateButton.dataset.download) {
         var link = document.createElement('a');
-        link.href = new URL(updateButton.dataset.download, DEFAULT_PUBLIC_ROOT).href;
+        link.href = new URL(updateButton.dataset.download, UPDATE_PROXY_ROOT).href;
         link.download = '';
         document.body.appendChild(link);
         link.click();

@@ -47,6 +47,10 @@ CONNECT_UPSTREAM_ORIGIN = os.environ.get(
     'CONNECT_UPSTREAM_ORIGIN',
     'https://aerodynamix20.onrender.com',
 ).rstrip('/')
+UPDATE_UPSTREAM_ORIGIN = os.environ.get(
+    'UPDATE_UPSTREAM_ORIGIN',
+    'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20',
+).rstrip('/')
 
 app = Flask(__name__, static_folder='docs', static_url_path='')
 app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-key')
@@ -1390,6 +1394,41 @@ def connect_proxy(upstream_path):
         }
     except (urllib.error.URLError, TimeoutError) as error:
         return jsonify({'error': f'Connect service unavailable: {error.reason if hasattr(error, "reason") else error}'}), 502
+    return Response(body, status=status, headers=response_headers)
+
+
+@app.route('/api/update-proxy/<path:update_path>', methods=['GET', 'OPTIONS'])
+def update_proxy(update_path):
+    """Serve the fixed public update host through a read-only gateway."""
+    if request.method == 'OPTIONS':
+        return ('', 204)
+    target = f'{UPDATE_UPSTREAM_ORIGIN}/{update_path}'
+    if request.query_string:
+        target += '?' + request.query_string.decode('utf-8', 'replace')
+    proxy_request = urllib.request.Request(
+        target,
+        headers={'Accept': request.headers.get('Accept', '*/*')},
+        method='GET',
+    )
+    try:
+        with urllib.request.urlopen(proxy_request, timeout=30) as upstream:
+            body = upstream.read()
+            status = upstream.status
+            response_headers = {
+                name: value
+                for name, value in upstream.headers.items()
+                if name.lower() in {'content-type', 'content-disposition', 'content-length'}
+            }
+    except urllib.error.HTTPError as upstream:
+        body = upstream.read()
+        status = upstream.code
+        response_headers = {
+            name: value
+            for name, value in upstream.headers.items()
+            if name.lower() in {'content-type', 'content-disposition', 'content-length'}
+        }
+    except (urllib.error.URLError, TimeoutError) as error:
+        return jsonify({'error': f'Update service unavailable: {error.reason if hasattr(error, "reason") else error}'}), 502
     return Response(body, status=status, headers=response_headers)
 
 
