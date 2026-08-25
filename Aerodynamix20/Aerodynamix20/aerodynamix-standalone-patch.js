@@ -23,7 +23,8 @@
         'Kept updates manual so games change only when you choose to update.'
       ]
     }],
-    download: 'attached_assets/Aerodynamix-Standalone.html'
+    download: 'attached_assets/Aerodynamix-Standalone.html',
+    dev_download: 'attached_assets/Aerodynamix-Dev-Edition.html'
   };
   var CLOAK_PRESETS = {
     google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
@@ -1899,7 +1900,6 @@
   }
 
   function showOutdatedNotification() {
-    if (window.AERODYNAMIX_EDITION === 'dev') return;
     var notification = document.getElementById('aeroUpdateNotification');
     if (notification) notification.classList.add('show');
   }
@@ -1916,17 +1916,15 @@
       var manifest = await response.json();
       renderChangelog(manifest.changelog);
       var latest = manifest.version || STANDALONE_VERSION;
-      var isDev = window.AERODYNAMIX_EDITION === 'dev';
-      if (isDev) {
-        button.disabled = true;
-        button.textContent = 'Updates unavailable';
-        status.textContent = 'This edition is updated separately.';
-      } else if (compareVersions(latest, STANDALONE_VERSION) > 0 && manifest.download) {
+      var downloadPath = window.AERODYNAMIX_EDITION === 'dev'
+        ? (manifest.dev_download || manifest.download)
+        : manifest.download;
+      if (compareVersions(latest, STANDALONE_VERSION) > 0 && downloadPath) {
         button.disabled = false;
         button.textContent = 'Download Ver ' + latest;
         status.className += ' ready';
         status.textContent = 'A newer version is available: Aerodynamix Ver ' + latest + '.';
-        button.dataset.download = manifest.download;
+        button.dataset.download = downloadPath;
         showOutdatedNotification();
       } else {
         button.disabled = false;
@@ -1936,8 +1934,8 @@
       }
     } catch (error) {
       renderChangelog(FALLBACK_UPDATE_MANIFEST.changelog);
-      button.disabled = window.AERODYNAMIX_EDITION === 'dev';
-      button.textContent = window.AERODYNAMIX_EDITION === 'dev' ? 'Updates unavailable' : 'Check again';
+      button.disabled = false;
+      button.textContent = 'Check again';
       status.className += ' ready';
       status.textContent = 'Update information is unavailable right now. Your current file is ready to use, and the built-in changelog is shown below.';
     }
@@ -1975,7 +1973,6 @@
     };
     var updateButton = document.getElementById('aeroUpdateButton');
     if (updateButton) updateButton.onclick = function () {
-      if (window.AERODYNAMIX_EDITION === 'dev') return;
       if (updateButton.dataset.download) {
         var link = document.createElement('a');
         link.href = new URL(updateButton.dataset.download, UPDATE_PROXY_ROOT).href;
@@ -2153,7 +2150,7 @@
       ? requestedView
       : 'games';
     showView(validView);
-    if (window.AERODYNAMIX_EDITION !== 'dev') checkForStandaloneUpdate();
+    checkForStandaloneUpdate();
     if (validView === 'updates') checkForStandaloneUpdate();
     if (validView === 'connect') loadConnectFrame();
     var requestedGame = Number(params.get('game'));

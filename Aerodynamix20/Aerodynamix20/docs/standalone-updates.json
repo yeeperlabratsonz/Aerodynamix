@@ -10,5 +10,6 @@
       ]
     }
   ],
-  "download": "attached_assets/Aerodynamix-Standalone.html"
+  "download": "attached_assets/Aerodynamix-Standalone.html",
+  "dev_download": "attached_assets/Aerodynamix-Dev-Edition.html"
 }
