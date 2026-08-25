@@ -574,6 +574,96 @@
         color: rgba(255,255,255,.72);
         font-size: .74rem;
       }
+      #aeroUpdateOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10020;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: radial-gradient(circle at 50% 38%, rgba(44,127,252,.24), transparent 34%),
+          rgba(2,7,18,.94);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .24s ease;
+      }
+      #aeroUpdateOverlay.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .aero-update-overlay-card {
+        position: relative;
+        width: min(440px, 100%);
+        overflow: hidden;
+        padding: 34px 30px 30px;
+        border: 1px solid rgba(123,199,255,.38);
+        border-radius: 26px;
+        background: linear-gradient(145deg, rgba(19,43,87,.96), rgba(7,15,37,.98));
+        box-shadow: 0 30px 100px rgba(0,0,0,.62), 0 0 70px rgba(44,127,252,.18);
+        text-align: center;
+        transform: translateY(12px) scale(.97);
+        transition: transform .24s ease;
+      }
+      #aeroUpdateOverlay.show .aero-update-overlay-card {
+        transform: translateY(0) scale(1);
+      }
+      .aero-update-orbit {
+        position: relative;
+        width: 86px;
+        height: 86px;
+        margin: 0 auto 22px;
+        border: 2px solid rgba(112,215,255,.24);
+        border-radius: 50%;
+        box-shadow: 0 0 28px rgba(44,127,252,.25);
+      }
+      .aero-update-orbit::before,
+      .aero-update-orbit::after {
+        content: '';
+        position: absolute;
+        inset: 11px;
+        border: 2px solid transparent;
+        border-top-color: #70d7ff;
+        border-radius: 50%;
+        animation: aeroUpdateSpin 1.1s linear infinite;
+      }
+      .aero-update-orbit::after {
+        inset: 21px;
+        border-top-color: #b9f2ff;
+        border-right-color: rgba(112,215,255,.42);
+        animation-direction: reverse;
+        animation-duration: .78s;
+      }
+      @keyframes aeroUpdateSpin { to { transform: rotate(360deg); } }
+      .aero-update-overlay-card h2 {
+        margin: 0;
+        color: #fff;
+        font-size: clamp(1.35rem, 3vw, 1.8rem);
+      }
+      .aero-update-overlay-card p {
+        margin: 10px 0 22px;
+        color: rgba(225,241,255,.72);
+        line-height: 1.5;
+      }
+      .aero-update-progress {
+        height: 7px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: rgba(255,255,255,.12);
+      }
+      .aero-update-progress::before {
+        content: '';
+        display: block;
+        width: 42%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #2c7ffc, #9cecff, #2c7ffc);
+        box-shadow: 0 0 15px rgba(112,215,255,.8);
+        animation: aeroUpdateProgress 1.35s ease-in-out infinite;
+      }
+      @keyframes aeroUpdateProgress {
+        0% { transform: translateX(-110%); }
+        100% { transform: translateX(270%); }
+      }
       #aeroThemeEffects {
         position: fixed;
         inset: 0;
@@ -1091,6 +1181,20 @@
       }
     });
     document.body.appendChild(updateNotification);
+
+    var updateOverlay = document.createElement('div');
+    updateOverlay.id = 'aeroUpdateOverlay';
+    updateOverlay.setAttribute('role', 'dialog');
+    updateOverlay.setAttribute('aria-modal', 'true');
+    updateOverlay.setAttribute('aria-label', 'Downloading update');
+    updateOverlay.innerHTML =
+      '<div class="aero-update-overlay-card">' +
+        '<div class="aero-update-orbit" aria-hidden="true"></div>' +
+        '<h2>Preparing your update</h2>' +
+        '<p>Your newest Aerodynamix file is on its way. Keep this tab open while the download begins.</p>' +
+        '<div class="aero-update-progress" aria-hidden="true"></div>' +
+      '</div>';
+    document.body.appendChild(updateOverlay);
   }
 
   function toast(message) {
@@ -1904,6 +2008,15 @@
     if (notification) notification.classList.add('show');
   }
 
+  function showUpdateOverlay() {
+    var overlay = document.getElementById('aeroUpdateOverlay');
+    if (!overlay) return;
+    overlay.classList.add('show');
+    window.setTimeout(function () {
+      overlay.classList.remove('show');
+    }, 4200);
+  }
+
   async function checkForStandaloneUpdate() {
     var status = document.getElementById('aeroUpdateStatus');
     var button = document.getElementById('aeroUpdateButton');
@@ -1974,6 +2087,7 @@
     var updateButton = document.getElementById('aeroUpdateButton');
     if (updateButton) updateButton.onclick = function () {
       if (updateButton.dataset.download) {
+        showUpdateOverlay();
         var link = document.createElement('a');
         link.href = new URL(updateButton.dataset.download, UPDATE_PROXY_ROOT).href;
         link.download = '';
