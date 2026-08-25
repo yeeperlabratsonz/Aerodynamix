@@ -189,6 +189,7 @@ def build_app_assets() -> tuple[str, str, str, str, str]:
 def main() -> None:
     source = SOURCE_EXPORT.read_text(encoding="utf-8")
     source = inline_new_game(source)
+    source = bundle_catalogue_games(source)
     # Embed the user-provided tracks so the downloaded HTML does not depend on
     # a sibling assets directory or a hosted media route.
     sicko_uri = data_uri("sicko-mode.mp3", "audio/mpeg")
