@@ -2266,6 +2266,9 @@
     showView(validView);
     checkForStandaloneUpdate();
     if (validView === 'updates') checkForStandaloneUpdate();
+    if (params.get('preview') === 'update') {
+      window.setTimeout(showUpdateOverlay, 120);
+    }
     if (validView === 'connect') loadConnectFrame();
     var requestedGame = Number(params.get('game'));
     if (params.has('game') && Number.isInteger(requestedGame) && builtInGames[requestedGame]) {
