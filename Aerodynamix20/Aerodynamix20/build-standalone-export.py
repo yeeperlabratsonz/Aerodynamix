@@ -85,6 +85,18 @@ def bundle_catalogue_games(source: str) -> str:
         mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
         return "data:" + mime + ";base64," + base64.b64encode(path.read_bytes()).decode("ascii")
 
+    def replace_paths(text: str, replacements: dict[str, str]) -> str:
+        """Replace paths without recursively rewriting inserted data URLs."""
+        ordered = sorted(replacements.items(), key=lambda item: len(item[0]), reverse=True)
+        tokens = {}
+        for index, (needle, value) in enumerate(ordered):
+            token = f"__AERO_BUNDLE_PATH_{index:05d}__"
+            text = text.replace(needle, token)
+            tokens[token] = value
+        for token, value in tokens.items():
+            text = text.replace(token, value)
+        return text
+
     for game in catalogue:
         game_path = str(game.get("game", ""))
         if not game_path.startswith("games/"):
@@ -127,8 +139,7 @@ def bundle_catalogue_games(source: str) -> str:
                 # Loaders commonly store a root-relative asset path even when
                 # the loader itself lives in a nested directory.
                 replacements[target] = value
-            for needle, value in sorted(replacements.items(), key=lambda item: len(item[0]), reverse=True):
-                text = text.replace(needle, value)
+            text = replace_paths(text, replacements)
             mime = mimetypes.guess_type(path.name)[0] or "text/plain"
             bundled_uris[rel] = (
                 "data:" + mime + ";base64," +
@@ -144,8 +155,7 @@ def bundle_catalogue_games(source: str) -> str:
             replacements["./" + local] = value
             replacements["/" + target] = value
             replacements[target] = value
-        for needle, value in sorted(replacements.items(), key=lambda item: len(item[0]), reverse=True):
-            html = html.replace(needle, value)
+        html = replace_paths(html, replacements)
         game["content"] = "data:text/html;base64," + base64.b64encode(
             html.encode("utf-8")
         ).decode("ascii")
