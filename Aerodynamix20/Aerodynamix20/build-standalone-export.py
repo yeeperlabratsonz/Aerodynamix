@@ -154,6 +154,11 @@ def bundle_catalogue_games(source: str) -> str:
                 )
 
         html = index_file.read_text(encoding="utf-8", errors="replace")
+        # Flash wrappers commonly declare the same SWF in both an object
+        # param and an embed tag. Ruffle can use the object param, and keeping
+        # both would duplicate multi-megabyte SWFs in the single-file export.
+        if re.search(r"<object\b", html, flags=re.IGNORECASE):
+            html = re.sub(r"<embed\b[^>]*>\s*", "", html, flags=re.IGNORECASE)
         parent = posixpath.dirname(index_file.relative_to(game_root).as_posix()) or "."
         replacements = {}
         for target, value in bundled_uris.items():
