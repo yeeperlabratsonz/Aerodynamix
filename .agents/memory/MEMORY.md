@@ -8,3 +8,4 @@
 - [Standalone Connect browser constraints](standalone-connect-browser-constraints.md) — rewrite remote media paths in file exports; camera and microphone require an HTTPS context.
 - [Hosted standalone game root](hosted-standalone-game-root.md) — Slim game URLs must target the deployed repository’s published docs path.
 - [Large download delivery](large-download-delivery.md) — attach oversized standalone exports as compressed XZ files and retain direct uncompressed download routes.
+- [Slim UGS hosting](ugs-slim-hosting.md) — prefer verified UGS entries and expand their Flash `$1` movie placeholder at runtime.
