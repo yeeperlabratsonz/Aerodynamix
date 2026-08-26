@@ -1449,9 +1449,9 @@
 
     if (playing) playing.textContent = game.title || 'Game';
     if (game.custom === true) {
-      frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-pointer-lock');
+      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock');
     } else {
-      frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-pointer-lock');
+      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock');
     }
     if (hasBundledContent) {
       frame.src = url;
