@@ -268,3 +268,59 @@ mtime_ms = 1787702564472
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/b0981c65-9dd3-4283-ad0f-6725c5290e7a/34946df0-efcd-4eed-b91a-fcf1b84d18f9"
 storage_version_token = "1787702576161415"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "8gGu-623nU58QrsjL9q3W"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-latest.zip.part-00"
+type = "unspecified"
+title = "Standalone latest ZIP — part 1 of 2"
+description = "Latest rebuilt export containing the bundled game files."
+logical_id = "b3472e2b-51bb-4df1-a910-b69cb8be4ed1"
+content_hash = "sha256:dbc8e6e33d2d08267a2929f1e88a86ed21ec7c77df5cde745111583848fb10a0"
+size = 94371840
+mtime_ms = 1787706919525
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/b3472e2b-51bb-4df1-a910-b69cb8be4ed1/b76260d2-369b-4e38-aed6-b24711350e91"
+storage_version_token = "1787706927902538"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "1VUzN_GlrJsSDmw_yr_YG"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-latest.zip.part-01"
+type = "unspecified"
+title = "Standalone latest ZIP — part 2 of 2"
+description = "Latest rebuilt export containing the bundled game files."
+logical_id = "9c36d443-4280-4d82-b5ab-af328be1ea49"
+content_hash = "sha256:48b7382d9d485b4acbf1702c76fe6604a5f80b47e68bafe40b277c8c2d74f0c8"
+size = 59224324
+mtime_ms = 1787706919577
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/9c36d443-4280-4d82-b5ab-af328be1ea49/dcc3c76f-cf91-4c54-a6a1-7f5e249b5e06"
+storage_version_token = "1787706929440420"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "BMNiu0rpNP37L-Zwx4J-1"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Dev-Edition-latest.zip.part-00"
+type = "unspecified"
+title = "Dev Edition latest ZIP — part 1 of 2"
+description = "Latest rebuilt export containing the bundled game files."
+logical_id = "71fdf361-726f-4f01-aeba-0b4760ba4428"
+content_hash = "sha256:af3a400925be7683487ffdd1dc7efbf9b9d48c15246443cebb0fa2b4cb9c13d4"
+size = 94371840
+mtime_ms = 1787706919657
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/71fdf361-726f-4f01-aeba-0b4760ba4428/49a125f6-e26f-4bfc-9026-3e3c17787f68"
+storage_version_token = "1787706931322498"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "t54NBCa_tPXlkpBfPb_kH"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Dev-Edition-latest.zip.part-01"
+type = "unspecified"
+title = "Dev Edition latest ZIP — part 2 of 2"
+description = "Latest rebuilt export containing the bundled game files."
+logical_id = "f9e3b0dc-c783-4ed3-a13b-29100f858679"
+content_hash = "sha256:586854c7171f336a8d0231d6cba63e758f649fc73d2ef1559959f247f45a821a"
+size = 59227728
+mtime_ms = 1787706919705
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/f9e3b0dc-c783-4ed3-a13b-29100f858679/edc71475-e17d-49c2-951b-4bfa7af72ecf"
+storage_version_token = "1787706933041176"
+content_type = "application/octet-stream"
