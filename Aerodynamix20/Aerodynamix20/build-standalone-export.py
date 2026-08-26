@@ -98,6 +98,28 @@ def bundle_catalogue_games(source: str) -> str:
             text = text.replace(token, value)
         return text
 
+    def flatten_nested_scripts(html: str) -> str:
+        """Remove a redundant base64 layer from embedded JavaScript files."""
+        pattern = re.compile(
+            r"<script(?P<attrs>[^>]*?)\s+src=[\"']data:"
+            r"(?:text/javascript|application/javascript);base64,"
+            r"(?P<payload>[A-Za-z0-9+/=]+)[\"'](?P<rest>[^>]*)></script>",
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+
+        def inline(match: re.Match[str]) -> str:
+            try:
+                script = base64.b64decode(match.group("payload")).decode("utf-8")
+            except (ValueError, UnicodeDecodeError):
+                return match.group(0)
+            # Prevent an embedded string from prematurely closing the wrapper
+            # script element.
+            script = re.sub(r"</script", r"<\\/script", script, flags=re.IGNORECASE)
+            attrs = re.sub(r"\s+src=[\"'][^\"']*[\"']", "", match.group("attrs"), flags=re.IGNORECASE)
+            return "<script" + attrs + match.group("rest") + ">\n" + script + "\n</script>"
+
+        return pattern.sub(inline, html)
+
     def compact_name(value: str) -> str:
         return re.sub(r"[^a-z0-9]", "", value.lower())
 
@@ -211,6 +233,7 @@ def bundle_catalogue_games(source: str) -> str:
             rewrite_nested_data_url,
             html,
         )
+        html = flatten_nested_scripts(html)
         game["content"] = "data:text/html;base64," + base64.b64encode(
             html.encode("utf-8")
         ).decode("ascii")
