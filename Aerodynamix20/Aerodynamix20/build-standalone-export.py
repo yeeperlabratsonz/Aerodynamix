@@ -132,6 +132,8 @@ def bundle_catalogue_games(source: str) -> str:
             parent = posixpath.dirname(rel) or "."
             replacements = {}
             for target, value in raw_uris.items():
+                if target == rel:
+                    continue
                 local = posixpath.relpath(target, parent)
                 replacements[local] = value
                 replacements["./" + local] = value
@@ -150,6 +152,8 @@ def bundle_catalogue_games(source: str) -> str:
         parent = posixpath.dirname(index_file.relative_to(game_root).as_posix()) or "."
         replacements = {}
         for target, value in bundled_uris.items():
+            if target == index_file.relative_to(game_root).as_posix():
+                continue
             local = posixpath.relpath(target, parent)
             replacements[local] = value
             replacements["./" + local] = value
