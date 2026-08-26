@@ -19,3 +19,5 @@ Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Dev-Edition.zip.part-00 
 Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone.html.part-00 filter=lfs diff=lfs merge=lfs -text
 Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone.html.part-01 filter=lfs diff=lfs merge=lfs -text
 Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone.zip.part-00 filter=lfs diff=lfs merge=lfs -text
+Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Dev-Edition-single.zip filter=lfs diff=lfs merge=lfs -text
+Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-single.zip filter=lfs diff=lfs merge=lfs -text

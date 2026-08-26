@@ -240,3 +240,31 @@ mtime_ms = 1787702386863
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/2e24948d-9c38-44e1-872e-0763c39607d4/987eab33-50df-4508-b231-f126af8a08d3"
 storage_version_token = "1787702407617944"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "IbeCV26K5pu4jg7M80nSX"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-single.zip"
+type = "unspecified"
+title = "Aerodynamix Standalone — One File"
+description = "Single ZIP containing the standalone HTML with all bundled games and dependencies."
+logical_id = "ddfbd220-9b50-4f8c-873a-cea56c07a3b6"
+content_hash = "sha256:ca9fef7105962a959f67bb6b4cf2a5dff14beed445b1721a534450449809d3d2"
+size = 102212756
+mtime_ms = 1787702554804
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/ddfbd220-9b50-4f8c-873a-cea56c07a3b6/28d9538c-1fb5-4933-8125-9bed25bbcbfc"
+storage_version_token = "1787702574446726"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "dfyu2KGDu_O9YbzZYNhop"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Dev-Edition-single.zip"
+type = "unspecified"
+title = "Aerodynamix Dev Edition — One File"
+description = "Single ZIP containing the Dev Edition HTML with all bundled games and dependencies."
+logical_id = "b0981c65-9dd3-4283-ad0f-6725c5290e7a"
+content_hash = "sha256:35f09fc15ebc079cb653478f5916012fb84bf364b4af917a8998faa2742ecdfa"
+size = 102216137
+mtime_ms = 1787702564472
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/b0981c65-9dd3-4283-ad0f-6725c5290e7a/34946df0-efcd-4eed-b91a-fcf1b84d18f9"
+storage_version_token = "1787702576161415"
+content_type = "application/octet-stream"
