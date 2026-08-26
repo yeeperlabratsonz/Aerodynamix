@@ -128,3 +128,115 @@ mtime_ms = 1787558387967
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/7a2da55e-beda-4b46-a9a4-140bd40cfe23/935c3b48-1e97-4aef-a22f-9b0f8817f0bf"
 storage_version_token = "1787558536808398"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "vojn9rCJ9f-T0kAKMeZHH"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone.html.part-00"
+type = "unspecified"
+title = "Standalone HTML part 1 of 2"
+description = "Part of the rebuilt export with all game files bundled."
+logical_id = "a33b482c-608b-4f14-b12b-ff701c71a3b7"
+content_hash = "sha256:3b085567f8e8eae60f08c572f76d88cc1bb47f9855a59972e695c677a822db05"
+size = 94371840
+mtime_ms = 1787702384847
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/a33b482c-608b-4f14-b12b-ff701c71a3b7/cd4bb988-e559-4a40-8534-bf8b663a617c"
+storage_version_token = "1787702394628928"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "VV4RvgHgZWbEJI44YBYT_"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone.html.part-01"
+type = "unspecified"
+title = "Standalone HTML part 2 of 2"
+description = "Part of the rebuilt export with all game files bundled."
+logical_id = "66bc203c-62ee-4b06-bc1e-41cb145ac5a6"
+content_hash = "sha256:ddb462301de236880d86273cb61e2130acd98969746c6a71b00157e4b46165ee"
+size = 57542482
+mtime_ms = 1787702385159
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/66bc203c-62ee-4b06-bc1e-41cb145ac5a6/e95633e7-748c-4d01-a1a9-b17042d2fdd7"
+storage_version_token = "1787702396210189"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "LvNsf7uuz88_HVMLR148I"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone.zip.part-00"
+type = "unspecified"
+title = "Standalone ZIP part 1 of 2"
+description = "Part of the rebuilt export with all game files bundled."
+logical_id = "45ecdc6f-ce13-49d4-9187-f9a7fb57a20f"
+content_hash = "sha256:ef879825bdb134b410129dd57c7858e4ecb28c0a5ccaee041eea5fd5ef590aed"
+size = 94371840
+mtime_ms = 1787702386383
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/45ecdc6f-ce13-49d4-9187-f9a7fb57a20f/287ff3c6-60cd-4d88-ae2b-aa49136f8c41"
+storage_version_token = "1787702398021867"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "MVnFTgsuz7MrWyUXot4Sh"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone.zip.part-01"
+type = "unspecified"
+title = "Standalone ZIP part 2 of 2"
+description = "Part of the rebuilt export with all game files bundled."
+logical_id = "88be5f3e-d1ab-46ef-bf52-97c1ab40afe8"
+content_hash = "sha256:87add9f21133d290a97417f890f8394625718c1a5d48ef839914a38d521d17bb"
+size = 10561661
+mtime_ms = 1787702386451
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/88be5f3e-d1ab-46ef-bf52-97c1ab40afe8/1ba25c8f-27db-4886-9f85-f7e3a1963082"
+storage_version_token = "1787702399061764"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "6jMrLW0kuripWKATkBj64"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Dev-Edition.html.part-00"
+type = "unspecified"
+title = "Dev Edition HTML part 1 of 2"
+description = "Part of the rebuilt export with all game files bundled."
+logical_id = "ea761401-fcff-4223-9ced-158d5f915149"
+content_hash = "sha256:3b085567f8e8eae60f08c572f76d88cc1bb47f9855a59972e695c677a822db05"
+size = 94371840
+mtime_ms = 1787702385399
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/ea761401-fcff-4223-9ced-158d5f915149/138d3d99-3281-45da-befc-5a2c826bb49d"
+storage_version_token = "1787702401234620"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "7C20ehnHP7xYTG2ePa7pQ"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Dev-Edition.html.part-01"
+type = "unspecified"
+title = "Dev Edition HTML part 2 of 2"
+description = "Part of the rebuilt export with all game files bundled."
+logical_id = "05683685-6a0a-4a8e-8fbf-24c01ab40d53"
+content_hash = "sha256:0e6f40d9e42f353968264bf1599cd3fa3cb8370825a9e2ecf59a32c7167817a8"
+size = 57555179
+mtime_ms = 1787702385763
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/05683685-6a0a-4a8e-8fbf-24c01ab40d53/7c072fc8-159e-4f94-87be-73a429013b94"
+storage_version_token = "1787702403011591"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "Bf1VZ-x-aHBRFEH2ZkoPA"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Dev-Edition.zip.part-00"
+type = "unspecified"
+title = "Dev Edition ZIP part 1 of 2"
+description = "Part of the rebuilt export with all game files bundled."
+logical_id = "0db9eb79-3698-4c7b-a295-c7d0630f9e37"
+content_hash = "sha256:00cafb3484575893255424d21775f0e90e340d8f974b86c3ddc368f4324a3c7c"
+size = 94371840
+mtime_ms = 1787702386815
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/0db9eb79-3698-4c7b-a295-c7d0630f9e37/af3efe20-514b-46d9-847c-b4c8601e8c5c"
+storage_version_token = "1787702406545911"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "V1ggdklqlmYRE3Sfm5fF1"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Dev-Edition.zip.part-01"
+type = "unspecified"
+title = "Dev Edition ZIP part 2 of 2"
+description = "Part of the rebuilt export with all game files bundled."
+logical_id = "2e24948d-9c38-44e1-872e-0763c39607d4"
+content_hash = "sha256:40bab80cf8877e767db566bcd6811c4fe87c7c8282a427d0a90ee2f218ed50e6"
+size = 10565813
+mtime_ms = 1787702386863
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/2e24948d-9c38-44e1-872e-0763c39607d4/987eab33-50df-4508-b231-f126af8a08d3"
+storage_version_token = "1787702407617944"
+content_type = "application/octet-stream"
