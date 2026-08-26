@@ -40,7 +40,7 @@
 	<meta property="og:description" content="Relax or experiment with over 500 materials in this falling sand simulator.">
 	<meta property="og:url" content="https://sandboxels.r74n.com">
 	<meta property="og:site_name" content="Sandboxels">
-	<meta property="og:image" content="https://sandboxels.r74n.com/icons/cover-3840x1240px-text.png">
+	<meta property="og:image" content="cover-3840x1240px-text.png">
 	<meta property="og:image:width" content="3840">
 	<meta property="og:image:height" content="1240">
 	<meta property="og:image:type" content="image/png">
@@ -51,7 +51,7 @@
 	<meta name="twitter:title" content="Sandboxels - Experiment with Pixels">
 	<meta name="twitter:description" content="Relax or experiment with over 500 materials in this falling sand simulator.">
 	<meta name="twitter:site:id" content="1436857621827530753">
-	<meta name="twitter:image" content="https://sandboxels.r74n.com/icons/cover-3840x1240px-text.png">
+	<meta name="twitter:image" content="cover-3840x1240px-text.png">
 	<meta name="twitter:image:alt" content="Magma falling into Water, forming Steam and Basalt. Pixel art style.">
 	<meta name="twitter:creator:id" content="1436857621827530753">
 
@@ -72,7 +72,7 @@
 		  "@context": "https://schema.org",
 		  "@type": ["VideoGame","MobileApplication","WebApplication"],
 		  "gamePlatform":["Web Browser","Windows","macOS"],
-		  "image":"https://sandboxels.r74n.com/icons/icon.png",
+		  "image":"icon.png",
 		  "url": "https://sandboxels.r74n.com",
 		  "name":"Sandboxels",
 		  "author":"R74n",
@@ -91,7 +91,7 @@
 		  "gameTip":"https://sandboxels.r74n.com/controls",
 		  "softwareHelp":"https://sandboxels.r74n.com/controls",
 		  "releaseNotes":"https://sandboxels.r74n.com/changelog",
-		  "screenshot": "https://sandboxels.r74n.com/icons/cover-3840x1240px-text.png",
+		  "screenshot": "cover-3840x1240px-text.png",
 		  "softwareRequirements": "HTML5",
 		  "archivedAt": "https://web.archive.org/web/20230519005427/https://sandboxels.r74n.com/",
 		  "copyrightYear": 2021,
@@ -18039,9 +18039,9 @@ for (var k = 0; k < b0.split(" AND ").length; k++) {
 			if (document.getElementById("saveFeaturedList").getAttribute("done")) return;
 			var saveItems = [];
 
-			// https://raw.githubusercontent.com/R74nCom/Sandboxels-Featured-Saves/refs/heads/main/meta.json
+			// meta.json
 
-			fetch("https://raw.githubusercontent.com/R74nCom/Sandboxels-Featured-Saves/refs/heads/main/meta.json").then(res => res.text())
+			fetch("meta.json").then(res => res.text())
 			.then(res => {
 				JSON.parse(res).forEach(info => {
 					saveItems.push({
@@ -20013,7 +20013,7 @@ Cancer, Landmine, Grenade, Smoke Grenade">?</span>
 		<script>
 			var aff = {};
 			var affRequest = new XMLHttpRequest();
-			affRequest.open("GET", "https://sandboxels.R74n.com/aff.json", true);
+			affRequest.open("GET", "aff.json", true);
 			affRequest.onload = function() {
 				if (affRequest.status >= 200 && affRequest.status < 400) {
 					aff = JSON.parse(affRequest.responseText);
@@ -20077,11 +20077,11 @@ if (document.referrer && document.referrer.indexOf("r74n.") === -1) {
 					if (!isOnSite) { location.href = "https://r74n.com"; return }
 					if (typeof playlightSDK === "undefined") {
 						document.getElementById("playlightButton").value = "Loading...";
-						document.head.insertAdjacentHTML("beforeend",`<link rel="stylesheet" href="https://sdk.playlight.dev/playlight-sdk.css">`);
+						document.head.insertAdjacentHTML("beforeend",`<link rel="stylesheet" href="playlight-sdk.css">`);
 						let script = document.createElement("script");
 						script.setAttribute("type","module");
 						script.innerHTML = `try {
-    const module = await import("https://sdk.playlight.dev/playlight-sdk.es.js");
+    const module = await import("playlight-sdk.es.js");
     const playlightSDK = module.default;
     await playlightSDK.init({
 		button: {
@@ -20166,7 +20166,7 @@ if (document.referrer && document.referrer.indexOf("r74n.") === -1) {
 				if (standalone) return;
 				if (window.location.protocol === "file:") return;
 				var adscript1 = document.createElement('script');
-				adscript1.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8485284630785740";
+				adscript1.src = "adsbygoogle.js";
 				adscript1.crossorigin = "anonymous";
 				document.getElementById('bottomLeftBox').appendChild(adscript1);
 				var ins1 = document.createElement('ins');
