@@ -1464,7 +1464,7 @@
         });
     } else if (hasBundledContent) {
       frame.src = url;
-    } else if (location.protocol === 'file:' && game.custom !== true) {
+    } else if (location.protocol === 'file:' && game.custom !== true && !game.url) {
       frame.removeAttribute('src');
       openSanitizedStandaloneGame(url, frame);
     } else {
