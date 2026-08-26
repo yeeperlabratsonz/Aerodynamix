@@ -1453,7 +1453,22 @@
     } else {
       frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock');
     }
-    if (hasBundledContent) {
+    if (hasBundledContent && /^data:text\/html/i.test(url)) {
+      frame.removeAttribute('src');
+      frame.srcdoc = '';
+      fetch(url)
+        .then(function (response) {
+          if (!response.ok) throw new Error('Bundled game could not be decoded');
+          return response.text();
+        })
+        .then(function (html) {
+          frame.srcdoc = html;
+        })
+        .catch(function () {
+          frame.removeAttribute('srcdoc');
+          frame.src = url;
+        });
+    } else if (hasBundledContent) {
       frame.src = url;
     } else if (location.protocol === 'file:' && game.custom !== true) {
       frame.removeAttribute('src');
