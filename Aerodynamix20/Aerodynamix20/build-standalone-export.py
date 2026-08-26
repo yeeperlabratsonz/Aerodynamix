@@ -13,6 +13,7 @@ import zipfile
 import lzma
 import mimetypes
 import posixpath
+import os
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -354,19 +355,21 @@ def main() -> None:
     dev_result = dev_result.rsplit("</body>", 1)[0] + "<script>\n" + dev_patch + "\n</script>\n</body>" + dev_result.rsplit("</body>", 1)[1]
     OUTPUT_DEV_HTML.write_text(dev_result, encoding="utf-8")
 
-    with zipfile.ZipFile(OUTPUT_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
-        archive.write(OUTPUT_HTML, arcname=OUTPUT_HTML.name)
-    with zipfile.ZipFile(OUTPUT_DEV_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
-        archive.write(OUTPUT_DEV_HTML, arcname=OUTPUT_DEV_HTML.name)
-    OUTPUT_XZ.write_bytes(lzma.compress(result.encode("utf-8"), preset=1))
-    OUTPUT_DEV_XZ.write_bytes(lzma.compress(dev_result.encode("utf-8"), preset=1))
+    if not os.environ.get("AERO_HTML_ONLY"):
+        with zipfile.ZipFile(OUTPUT_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
+            archive.write(OUTPUT_HTML, arcname=OUTPUT_HTML.name)
+        with zipfile.ZipFile(OUTPUT_DEV_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
+            archive.write(OUTPUT_DEV_HTML, arcname=OUTPUT_DEV_HTML.name)
+        OUTPUT_XZ.write_bytes(lzma.compress(result.encode("utf-8"), preset=1))
+        OUTPUT_DEV_XZ.write_bytes(lzma.compress(dev_result.encode("utf-8"), preset=1))
 
     print(f"Built {OUTPUT_HTML.name} ({OUTPUT_HTML.stat().st_size:,} bytes)")
-    print(f"Built {OUTPUT_ZIP.name} ({OUTPUT_ZIP.stat().st_size:,} bytes)")
     print(f"Built {OUTPUT_DEV_HTML.name} ({OUTPUT_DEV_HTML.stat().st_size:,} bytes)")
-    print(f"Built {OUTPUT_DEV_ZIP.name} ({OUTPUT_DEV_ZIP.stat().st_size:,} bytes)")
-    print(f"Built {OUTPUT_XZ.name} ({OUTPUT_XZ.stat().st_size:,} bytes)")
-    print(f"Built {OUTPUT_DEV_XZ.name} ({OUTPUT_DEV_XZ.stat().st_size:,} bytes)")
+    if not os.environ.get("AERO_HTML_ONLY"):
+        print(f"Built {OUTPUT_ZIP.name} ({OUTPUT_ZIP.stat().st_size:,} bytes)")
+        print(f"Built {OUTPUT_DEV_ZIP.name} ({OUTPUT_DEV_ZIP.stat().st_size:,} bytes)")
+        print(f"Built {OUTPUT_XZ.name} ({OUTPUT_XZ.stat().st_size:,} bytes)")
+        print(f"Built {OUTPUT_DEV_XZ.name} ({OUTPUT_DEV_XZ.stat().st_size:,} bytes)")
 
 
 if __name__ == "__main__":
