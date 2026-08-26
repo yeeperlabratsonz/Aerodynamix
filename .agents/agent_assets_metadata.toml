@@ -329,14 +329,14 @@ content_type = "application/octet-stream"
 id = "h1GSRyxjQErq9eMYxsfZE"
 uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-Slim.html.xz"
 type = "unspecified"
-title = "Aerodynamix Standalone Slim"
-description = "Updated compressed standalone Slim export with verified on-demand game URLs and runtime UGS Flash wrapper fixes."
+title = "Aerodynamix Standalone Slim — Updated"
+description = "Latest compressed Slim HTML export with the repaired HTML5 and Flash game loading."
 logical_id = "94e3a9ed-c9cb-475b-92f6-d63be87b7fd4"
 content_hash = "sha256:aedc5a8d93d23def59a147df9f38853a340884ca3e56af429c606c8d16e7342c"
 size = 93974048
 mtime_ms = 1787722251545
-storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/94e3a9ed-c9cb-475b-92f6-d63be87b7fd4/2be706ff-a4e7-4c5f-991b-234ecb53ce75"
-storage_version_token = "1787722522850229"
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/94e3a9ed-c9cb-475b-92f6-d63be87b7fd4/5dad8e23-ef00-49f7-872e-ef7a931eb165"
+storage_version_token = "1787722670854574"
 content_type = "application/octet-stream"
 
 [[outputs]]
