@@ -165,6 +165,36 @@ def bundle_catalogue_games(source: str) -> str:
             replacements["/" + target] = value
             replacements[target] = value
         html = replace_paths(html, replacements)
+
+        def rewrite_nested_data_url(match: re.Match[str]) -> str:
+            mime = match.group("mime")
+            try:
+                decoded = base64.b64decode(match.group("payload")).decode("utf-8")
+            except (ValueError, UnicodeDecodeError):
+                return match.group(0)
+            nested = {}
+            for target, value in bundled_uris.items():
+                if mime == "application/javascript" and Path(target).suffix.lower() in {
+                    ".js", ".mjs", ".html", ".htm", ".css", ".json"
+                }:
+                    continue
+                nested[target] = value
+                nested["./" + target] = value
+            if mime == "application/javascript" and (
+                "RufflePlayer" in decoded or "Ruffle" in decoded
+            ):
+                return match.group(0)
+            decoded = replace_paths(decoded, nested)
+            return (
+                "data:" + mime + ";base64," +
+                base64.b64encode(decoded.encode("utf-8")).decode("ascii")
+            )
+
+        html = re.sub(
+            r"data:(?P<mime>application/(?:json|javascript)|text/javascript);base64,(?P<payload>[A-Za-z0-9+/=]+)",
+            rewrite_nested_data_url,
+            html,
+        )
         game["content"] = "data:text/html;base64," + base64.b64encode(
             html.encode("utf-8")
         ).decode("ascii")
