@@ -82,6 +82,16 @@ def make_slim_catalogue(source: str) -> str:
     catalogue = json.loads(source[catalogue_start:end + 1])
     ugs_root = "https://cdn.jsdelivr.net/gh/bubbls/ugs-singlefile/UGS-Files/"
     attached_ids = {
+        "Papa's Pizzeria": "clpizzapapa",
+        "Super Smash Flash": "clsupersmashflash",
+        "Slope": "clslope",
+        "Papa'S Freezeria": "clpapasfreezeria",
+        "Adventure Capitalist": "clAdventureCapatalist",
+        "Friday Night Funkin'": "clfridaynightfunkin",
+        "Run 2": "clrun2",
+        "Pico'S School": "clpicosschool",
+        "World'S Hardest Game": "clworldshardestgame",
+        "Sandboxels": "clsandboxels",
         "Run 3": "clrun3",
         "Drive Mad": "cldrivemady",
         "Retrobowl": "clretrobowl",
@@ -119,11 +129,11 @@ def make_slim_catalogue(source: str) -> str:
     }
     for game in catalogue:
         title = str(game.get("title", ""))
-        if str(game.get("game", "")).startswith("games/"):
-            game["url"] = DEFAULT_PUBLIC_ROOT + str(game["game"])
-            game.pop("content", None)
-        elif title in attached_ids:
+        if title in attached_ids:
             game["url"] = ugs_root + attached_ids[title] + ".html"
+            game.pop("content", None)
+        elif str(game.get("game", "")).startswith("games/"):
+            game["url"] = DEFAULT_PUBLIC_ROOT + str(game["game"])
             game.pop("content", None)
         elif game.get("content"):
             # Keep the original wrapper when the remote catalogue has no
