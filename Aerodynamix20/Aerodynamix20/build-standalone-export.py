@@ -160,6 +160,16 @@ def bundle_catalogue_games(source: str) -> str:
         # both would duplicate multi-megabyte SWFs in the single-file export.
         if re.search(r"<object\b", html, flags=re.IGNORECASE):
             html = re.sub(r"<embed\b[^>]*>\s*", "", html, flags=re.IGNORECASE)
+        if compact_name(str(game.get("title", ""))) == "adventurecapitalist":
+            # This legacy Unity wrapper embeds webgl.js once as a script and
+            # once again in an obsolete Math.fround fallback XHR branch.
+            html = re.sub(
+                r"<script>\s*if\s*\(!\(!Math\.fround\)\).*?</script>",
+                '<script>var script = document.createElement("script"); script.src = "Release/webgl.js"; document.body.appendChild(script);</script>',
+                html,
+                count=1,
+                flags=re.IGNORECASE | re.DOTALL,
+            )
         parent = posixpath.dirname(index_file.relative_to(game_root).as_posix()) or "."
         replacements = {}
         for target, value in bundled_uris.items():
