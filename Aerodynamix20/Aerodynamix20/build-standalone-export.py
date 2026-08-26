@@ -121,6 +121,7 @@ def make_slim_catalogue(source: str) -> str:
         title = str(game.get("title", ""))
         if str(game.get("game", "")).startswith("games/"):
             game["url"] = DEFAULT_PUBLIC_ROOT + str(game["game"])
+            game.pop("content", None)
         elif title in attached_ids:
             game["url"] = ugs_root + attached_ids[title] + ".html"
             game.pop("content", None)
