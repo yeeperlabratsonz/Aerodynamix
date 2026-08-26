@@ -66,6 +66,26 @@ NEXTBOT_PEER_TTL = 20
 NEXTBOT_GAME_MODES = {'hangout', 'nextbots', 'deathmatch'}
 
 
+@app.route('/download/aerodynamix-standalone.html')
+def download_standalone_export():
+    return send_from_directory(
+        os.path.abspath('attached_assets'),
+        'Aerodynamix-Standalone.html',
+        as_attachment=True,
+        download_name='Aerodynamix-Standalone.html',
+    )
+
+
+@app.route('/download/aerodynamix-dev-edition.html')
+def download_dev_export():
+    return send_from_directory(
+        os.path.abspath('attached_assets'),
+        'Aerodynamix-Dev-Edition.html',
+        as_attachment=True,
+        download_name='Aerodynamix-Dev-Edition.html',
+    )
+
+
 @app.route('/api/nextbot/room/join', methods=['POST'])
 def nextbot_room_join():
     data = request.get_json(silent=True) or {}
