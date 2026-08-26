@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071226">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Aerodynamix">
+    <title>Music - Aerodynamix</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="theme.js"></script>
+    <script src="tab-cloak.js"></script>
+    <script src="auth-overlay.js" defer></script>
+    <script src="boot-screen.js"></script>
+    <script src="mobile-nav.js" defer></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            color: #fff;
+            background:
+                radial-gradient(circle at 18% 0%, rgba(44,127,252,.18), transparent 34rem),
+                radial-gradient(circle at 90% 18%, rgba(168,85,247,.14), transparent 30rem),
+                #030509;
+        }
+
+        .music-page {
+            width: min(1320px, 100%);
+            min-height: 100vh;
+            margin: 0 auto;
+            padding: 10vw 5vw 8rem;
+        }
+
+        .music-hero {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .music-kicker {
+            margin: 0 0 .5rem;
+            color: #79b4ff;
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .24em;
+            text-transform: uppercase;
+        }
+
+        .music-title {
+            margin: 0;
+            color: #fff;
+            font-size: clamp(2.25rem, 5vw, 4.8rem);
+            font-weight: 900;
+            letter-spacing: -.055em;
+            line-height: .95;
+        }
+
+        .music-subtitle {
+            max-width: 560px;
+            margin: .9rem 0 0;
+            color: rgba(220,235,255,.62);
+            font-size: clamp(.86rem, 1.2vw, 1rem);
+            line-height: 1.7;
+        }
+
+        .music-status {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .65rem .85rem;
+            border: 1px solid rgba(130,183,255,.18);
+            border-radius: 999px;
+            color: rgba(220,235,255,.65);
+            background: rgba(255,255,255,.04);
+            font-size: .72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .music-status::before {
+            width: .5rem;
+            height: .5rem;
+            border-radius: 50%;
+            background: #61d5ff;
+            box-shadow: 0 0 14px rgba(97,213,255,.85);
+            content: '';
+        }
+
+        .album-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+            gap: clamp(.9rem, 1.6vw, 1.35rem);
+        }
+
+        .album-card {
+            position: relative;
+            aspect-ratio: 1;
+            overflow: hidden;
+            padding: 0;
+            border: 1px solid rgba(160,205,255,.2);
+            border-radius: 24px;
+            color: #fff;
+            background: linear-gradient(145deg, #132849, #111827);
+            box-shadow: 0 16px 40px rgba(0,0,0,.25);
+            cursor: pointer;
+            isolation: isolate;
+            text-align: left;
+            transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+        }
+
+        .album-card:hover,
+        .album-card:focus-visible {
+            border-color: rgba(121,180,255,.72);
+            box-shadow: 0 22px 55px rgba(0,0,0,.4), 0 0 0 3px rgba(44,127,252,.13);
+            outline: none;
+            transform: translateY(-5px);
+        }
+
+        .album-card-art {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+        }
+
+        .album-card-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,.8);
+            background:
+                radial-gradient(circle at 25% 20%, rgba(255,255,255,.25), transparent 25%),
+                linear-gradient(140deg, #2477d4, #6326a8 58%, #111827);
+            font-size: 3rem;
+            font-weight: 900;
+            z-index: -2;
+        }
+
+        .album-card::after {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 28%, rgba(2,5,12,.08) 42%, rgba(2,5,12,.92) 100%);
+            content: '';
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .album-card-copy {
+            position: absolute;
+            right: 1rem;
+            bottom: 1rem;
+            left: 1rem;
+        }
+
+        .album-card-title {
+            margin: 0;
+            overflow: hidden;
+            color: #fff;
+            font-size: clamp(.92rem, 1.3vw, 1.12rem);
+            font-weight: 800;
+            line-height: 1.15;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .album-card-meta {
+            margin: .35rem 0 0;
+            overflow: hidden;
+            color: rgba(225,238,255,.62);
+            font-size: .72rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .album-card-play {
+            position: absolute;
+            top: .9rem;
+            right: .9rem;
+            display: grid;
+            width: 2.35rem;
+            height: 2.35rem;
+            place-items: center;
+            border: 1px solid rgba(255,255,255,.35);
+            border-radius: 50%;
+            color: #071226;
+            background: rgba(255,255,255,.88);
+            box-shadow: 0 8px 20px rgba(0,0,0,.3);
+            font-size: .8rem;
+            opacity: 0;
+            transform: translateY(5px);
+            transition: opacity .22s ease, transform .22s ease;
+        }
+
+        .album-card:hover .album-card-play,
+        .album-card:focus-visible .album-card-play {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .music-message {
+            display: grid;
+            min-height: 250px;
+            place-items: center;
+            padding: 2rem;
+            border: 1px dashed rgba(130,183,255,.25);
+            border-radius: 24px;
+            color: rgba(220,235,255,.7);
+            background: rgba(255,255,255,.025);
+            text-align: center;
+        }
+
+        .music-message[hidden],
+        .album-panel[hidden] {
+            display: none;
+        }
+
+        .music-message i {
+            margin-bottom: .85rem;
+            color: rgba(121,180,255,.7);
+            font-size: 2rem;
+        }
+
+        .music-message h2 {
+            margin: 0 0 .55rem;
+            color: #fff;
+            font-size: 1.15rem;
+        }
+
+        .music-message p {
+            max-width: 520px;
+            margin: 0;
+            font-size: .82rem;
+            line-height: 1.7;
+        }
+
+        .album-panel {
+            margin-top: 2rem;
+            padding: clamp(1rem, 2vw, 1.5rem);
+            border: 1px solid rgba(130,183,255,.18);
+            border-radius: 24px;
+            background: rgba(9,18,38,.74);
+            box-shadow: 0 22px 60px rgba(0,0,0,.25);
+        }
+
+        .album-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: .8rem;
+        }
+
+        .album-panel-title {
+            margin: 0;
+            color: #fff;
+            font-size: 1.25rem;
+        }
+
+        .album-panel-subtitle {
+            margin: .3rem 0 0;
+            color: rgba(220,235,255,.55);
+            font-size: .76rem;
+        }
+
+        .album-close {
+            display: grid;
+            width: 2.2rem;
+            height: 2.2rem;
+            place-items: center;
+            border: 1px solid rgba(255,255,255,.14);
+            border-radius: 50%;
+            color: rgba(255,255,255,.7);
+            background: rgba(255,255,255,.06);
+            cursor: pointer;
+        }
+
+        .album-track-list {
+            display: grid;
+            gap: .4rem;
+        }
+
+        .album-track {
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+            width: 100%;
+            padding: .72rem .8rem;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            color: rgba(235,244,255,.84);
+            background: rgba(255,255,255,.035);
+            cursor: pointer;
+            text-align: left;
+            transition: background .18s ease, border-color .18s ease;
+        }
+
+        .album-track:hover,
+        .album-track:focus-visible {
+            border-color: rgba(121,180,255,.3);
+            background: rgba(44,127,252,.14);
+            outline: none;
+        }
+
+        .album-track i {
+            width: 1.1rem;
+            color: #79b4ff;
+            text-align: center;
+        }
+
+        .album-track-name {
+            flex: 1;
+            overflow: hidden;
+            font-size: .82rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .album-track-meta {
+            color: rgba(220,235,255,.4);
+            font-size: .7rem;
+        }
+
+        @media (max-width: 700px) {
+            .music-page { padding: calc(5.5rem + env(safe-area-inset-top)) .9rem 6rem; }
+            .music-hero { display: block; margin-bottom: 1.35rem; }
+            .music-status { margin-top: 1rem; }
+            .album-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; }
+            .album-card { border-radius: 16px; }
+            .album-card-copy { right: .7rem; bottom: .7rem; left: .7rem; }
+            .album-card-play { top: .65rem; right: .65rem; opacity: 1; transform: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <img src="images/logo.gif" alt="logo" onclick="window.location='index.html'">
+        <h1><span class="logo-a" id="logo-a">A</span>ERODYNAMIX</h1>
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:0.4vw;">
+            <a href="index.html">Games</a>
+            <a href="apps.html">Apps</a>
+            <a href="media-player.html">Media Player</a>
+            <a href="music.html" class="active">Music</a>
+            <a href="dynamix-connect.html">Connect</a>
+        </div>
+        <a href="colors.html">Settings</a>
+    </nav>
+
+    <main class="music-page">
+        <header class="music-hero">
+            <div>
+                <p class="music-kicker">Aerodynamix Music</p>
+                <h1 class="music-title">Your albums.</h1>
+                <p class="music-subtitle">A public home for your music, streamed directly from your Cloudflare library.</p>
+            </div>
+            <div class="music-status" id="music-status">Connecting to library…</div>
+        </header>
+
+        <section class="album-grid" id="album-grid" aria-label="Albums"></section>
+
+        <section class="music-message" id="music-message" hidden>
+            <div>
+                <i class="fa-solid fa-compact-disc" aria-hidden="true"></i>
+                <h2 id="music-message-title">Your albums are almost ready</h2>
+                <p id="music-message-copy">Add a public <strong>Music/library.json</strong> file to your R2 bucket so Aerodynamix can list the album folders and songs.</p>
+            </div>
+        </section>
+
+        <section class="album-panel" id="album-panel" hidden>
+            <div class="album-panel-head">
+                <div>
+                    <h2 class="album-panel-title" id="album-panel-title"></h2>
+                    <p class="album-panel-subtitle" id="album-panel-subtitle"></p>
+                </div>
+                <button class="album-close" id="album-close" type="button" aria-label="Close album"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="album-track-list" id="album-track-list"></div>
+        </section>
+    </main>
+
+    <script src="music-player.js"></script>
+    <script src="music-library.js"></script>
+    <script src="bubble-overlay.js"></script>
+</body>
+</html>
