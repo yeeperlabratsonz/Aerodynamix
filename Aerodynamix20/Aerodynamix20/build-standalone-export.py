@@ -31,7 +31,7 @@ if os.environ.get("AERO_SLIM"):
 
 
 CONNECT_ORIGIN = "https://aerodynamix20.onrender.com"
-DEFAULT_PUBLIC_ROOT = "https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/"
+DEFAULT_PUBLIC_ROOT = "https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/docs/"
 
 
 def data_uri(filename: str, mime: str) -> str:
