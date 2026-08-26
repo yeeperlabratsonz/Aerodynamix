@@ -351,9 +351,43 @@ def main() -> None:
         raise RuntimeError("The original standalone export has no closing body tag.")
     result = source.rsplit("</body>", 1)[0] + injection + "</body>" + source.rsplit("</body>", 1)[1]
     OUTPUT_HTML.write_text(result, encoding="utf-8")
-    dev_result = result.replace("window.AERODYNAMIX_EDITION='normal'", "window.AERODYNAMIX_EDITION='dev'", 1)
-    dev_result = dev_result.rsplit("</body>", 1)[0] + "<script>\n" + dev_patch + "\n</script>\n</body>" + dev_result.rsplit("</body>", 1)[1]
-    OUTPUT_DEV_HTML.write_text(dev_result, encoding="utf-8")
+    if os.environ.get("AERO_HTML_ONLY"):
+        # Do not duplicate the giant standalone string in memory. Assemble the
+        # Dev file from the finished Normal file using a streaming copy.
+        marker = b"</body>"
+        with OUTPUT_HTML.open("rb") as normal_file, OUTPUT_DEV_HTML.open("wb") as dev_file:
+            first = normal_file.read(1024 * 1024)
+            first = first.replace(
+                b"window.AERODYNAMIX_EDITION='normal'",
+                b"window.AERODYNAMIX_EDITION='dev'",
+                1,
+            )
+            dev_file.write(first)
+            while True:
+                chunk = normal_file.read(1024 * 1024)
+                if not chunk:
+                    break
+                dev_file.write(chunk)
+        with OUTPUT_DEV_HTML.open("rb+") as dev_file:
+            dev_file.seek(0, os.SEEK_END)
+            end = dev_file.tell()
+            tail_size = min(end, 1024 * 1024)
+            dev_file.seek(end - tail_size)
+            tail = dev_file.read(tail_size)
+            insert_at = tail.rfind(marker)
+            if insert_at < 0:
+                raise RuntimeError("The standalone export has no closing body tag.")
+            absolute_insert = end - tail_size + insert_at
+            dev_file.seek(absolute_insert)
+            remainder = dev_file.read()
+            dev_file.seek(absolute_insert)
+            dev_file.write(("<script>\n" + dev_patch + "\n</script>\n").encode("utf-8"))
+            dev_file.write(remainder)
+        dev_result = None
+    else:
+        dev_result = result.replace("window.AERODYNAMIX_EDITION='normal'", "window.AERODYNAMIX_EDITION='dev'", 1)
+        dev_result = dev_result.rsplit("</body>", 1)[0] + "<script>\n" + dev_patch + "\n</script>\n</body>" + dev_result.rsplit("</body>", 1)[1]
+        OUTPUT_DEV_HTML.write_text(dev_result, encoding="utf-8")
 
     if not os.environ.get("AERO_HTML_ONLY"):
         with zipfile.ZipFile(OUTPUT_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
