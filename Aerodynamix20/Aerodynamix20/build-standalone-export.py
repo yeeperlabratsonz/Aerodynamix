@@ -118,35 +118,25 @@ def bundle_catalogue_games(source: str) -> str:
             value = uri(path)
             raw_uris[rel] = value
 
-        text_extensions = {
-            ".html", ".htm", ".js", ".mjs", ".css", ".json", ".xml",
-            ".txt", ".shader", ".jslib",
-        }
         bundled_uris = {}
         for path in files:
             rel = path.relative_to(game_root).as_posix()
-            if path.suffix.lower() not in text_extensions:
-                bundled_uris[rel] = raw_uris[rel]
-                continue
-            text = path.read_text(encoding="utf-8", errors="replace")
-            parent = posixpath.dirname(rel) or "."
-            replacements = {}
-            for target, value in raw_uris.items():
-                if target == rel:
-                    continue
-                local = posixpath.relpath(target, parent)
-                replacements[local] = value
-                replacements["./" + local] = value
-                replacements["/" + target] = value
-                # Loaders commonly store a root-relative asset path even when
-                # the loader itself lives in a nested directory.
-                replacements[target] = value
-            text = replace_paths(text, replacements)
-            mime = mimetypes.guess_type(path.name)[0] or "text/plain"
-            bundled_uris[rel] = (
-                "data:" + mime + ";base64," +
-                base64.b64encode(text.encode("utf-8")).decode("ascii")
-            )
+            bundled_uris[rel] = raw_uris[rel]
+            if path.name == "ruffle.min.js":
+                text = path.read_text(encoding="utf-8", errors="replace")
+                # Keep Ruffle's shared WASM engine as a single runtime
+                # dependency rather than duplicating two 13 MB binaries into
+                # every Flash game document.
+                ruffle_base = (
+                    "https://cdn.jsdelivr.net/npm/@ruffle-rs/ruffle@"
+                    "0.2.0-nightly.2025.10.2/"
+                )
+                for name in ("4d882486fa9bfce731b9.wasm", "f7f28eb60b84863611ca.wasm"):
+                    text = text.replace(name, ruffle_base + name)
+                bundled_uris[rel] = (
+                    "data:application/javascript;base64," +
+                    base64.b64encode(text.encode("utf-8")).decode("ascii")
+                )
 
         html = index_file.read_text(encoding="utf-8", errors="replace")
         parent = posixpath.dirname(index_file.relative_to(game_root).as_posix()) or "."
