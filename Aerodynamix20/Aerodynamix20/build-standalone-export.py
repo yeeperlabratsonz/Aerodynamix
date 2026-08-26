@@ -12,6 +12,7 @@ import re
 import zipfile
 import lzma
 import mimetypes
+import posixpath
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -99,17 +100,50 @@ def bundle_catalogue_games(source: str) -> str:
             continue
 
         files = [path for path in game_root.rglob("*") if path.is_file()]
-        replacements = {}
+        raw_uris = {}
         for path in files:
             rel = path.relative_to(game_root).as_posix()
             value = uri(path)
-            replacements[rel] = value
-            replacements["./" + rel] = value
-            replacements["/" + rel] = value
+            raw_uris[rel] = value
+
+        text_extensions = {
+            ".html", ".htm", ".js", ".mjs", ".css", ".json", ".xml",
+            ".txt", ".shader", ".jslib",
+        }
+        bundled_uris = {}
+        for path in files:
+            rel = path.relative_to(game_root).as_posix()
+            if path.suffix.lower() not in text_extensions:
+                bundled_uris[rel] = raw_uris[rel]
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+            parent = posixpath.dirname(rel) or "."
+            replacements = {}
+            for target, value in raw_uris.items():
+                local = posixpath.relpath(target, parent)
+                replacements[local] = value
+                replacements["./" + local] = value
+                replacements["/" + target] = value
+                # Loaders commonly store a root-relative asset path even when
+                # the loader itself lives in a nested directory.
+                replacements[target] = value
+            for needle, value in sorted(replacements.items(), key=lambda item: len(item[0]), reverse=True):
+                text = text.replace(needle, value)
+            mime = mimetypes.guess_type(path.name)[0] or "text/plain"
+            bundled_uris[rel] = (
+                "data:" + mime + ";base64," +
+                base64.b64encode(text.encode("utf-8")).decode("ascii")
+            )
 
         html = index_file.read_text(encoding="utf-8", errors="replace")
-        # Longest first prevents a short filename from corrupting a directory
-        # or another filename that happens to contain it.
+        parent = posixpath.dirname(index_file.relative_to(game_root).as_posix()) or "."
+        replacements = {}
+        for target, value in bundled_uris.items():
+            local = posixpath.relpath(target, parent)
+            replacements[local] = value
+            replacements["./" + local] = value
+            replacements["/" + target] = value
+            replacements[target] = value
         for needle, value in sorted(replacements.items(), key=lambda item: len(item[0]), reverse=True):
             html = html.replace(needle, value)
         game["content"] = "data:text/html;base64," + base64.b64encode(
