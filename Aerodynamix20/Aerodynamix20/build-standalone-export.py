@@ -25,6 +25,9 @@ OUTPUT_DEV_HTML = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Dev-Edition.ht
 OUTPUT_DEV_ZIP = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Dev-Edition.zip"
 OUTPUT_XZ = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Standalone.html.xz"
 OUTPUT_DEV_XZ = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Dev-Edition.html.xz"
+if os.environ.get("AERO_SLIM"):
+    OUTPUT_HTML = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Standalone-Slim.html"
+    OUTPUT_DEV_HTML = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Dev-Edition-Slim.html"
 
 
 CONNECT_ORIGIN = "https://aerodynamix20.onrender.com"
@@ -64,6 +67,65 @@ def inline_new_game(source: str) -> str:
         raise RuntimeError("The standalone GAMES catalogue is malformed.")
     separator = "," if catalogue[:insert_at].rstrip().endswith("}") else ""
     updated = catalogue[:insert_at] + separator + new_game + catalogue[insert_at:]
+    return source[:catalogue_start] + updated + source[end + 1:]
+
+
+def make_slim_catalogue(source: str) -> str:
+    """Keep only remote game URLs, matching the original UGS loader model."""
+    marker = "const GAMES="
+    start = source.find(marker)
+    end = source.find("];", start)
+    if start < 0 or end < 0:
+        raise RuntimeError("The standalone source has no GAMES catalogue.")
+    catalogue_start = start + len(marker)
+    catalogue = json.loads(source[catalogue_start:end + 1])
+    ugs_root = "https://cdn.jsdelivr.net/gh/bubbls/ugs-singlefile/UGS-Files/"
+    attached_ids = {
+        "Run 3": "clrun3",
+        "Drive Mad": "cldrivemady",
+        "Retrobowl": "clretrobowl",
+        "Minecraft": "cleaglercraft112",
+        "Papa'S Pancakeria": "clpapaspancakeria",
+        "Papa'S Bakeria": "clpapabakeria",
+        "Meat Boy": "clmeatboy",
+        "Newgrounds Rumble": "clnewgroundsrumble",
+        "We Become What We Behold": "clwebecomewhatwebehold",
+        "Bad Time Simulator": "clbadtimesim",
+        "Deltarune": "cldeltarune",
+        "Alien Hominid": "clalienhominid",
+        "Subway Surfers San Francisco": "clsubwaysurferssanfrancisco",
+        "Hobo 1": "clhobo",
+        "Hobo 2": "clhobo2",
+        "Hobo 3": "clhobo3",
+        "Hobo 4": "clhobo4",
+        "Hobo 5": "clhobo5",
+        "Hobo 6": "clhobo6",
+        "Hobo 7": "clhobo7",
+        "Gladihoppers": "clgladdihoppers",
+        "Fruit Ninja": "clfruitninja",
+        "Binding Of Isaac Wrath Of The Lamb": "clbindingofisaccsheeptime",
+        "Crossy Road": "clcrossyroad",
+        "Cookie Clicker": "clcookieclicker",
+        "Duck Life": "clducklife",
+        "Geometry Dash Lite": "clgdlite",
+        "Doom": "cldoom",
+        "Doki Doki Literature Club": "cldokidokiliteratureclub",
+        "Baldi'S Basics Classic Remastered": "clbaldisbasicsremaster",
+        "Breaking The Bank": "clstickmanbreakingbank",
+        "Escaping The Prison": "clstickmanescapingprison",
+        "Stealing The Diamond": "clstickmanstealingdiamond",
+        "Infiltrating The Airship": "clstickmaninfiltratingtheairship",
+        "Fleeing The Complex": "clstickmanfleeingthecomplex",
+        "Nubby's Number Factory": "clnubbysnumberfactory",
+    }
+    for game in catalogue:
+        title = str(game.get("title", ""))
+        if str(game.get("game", "")).startswith("games/"):
+            game["url"] = DEFAULT_PUBLIC_ROOT + str(game["game"])
+        elif title in attached_ids:
+            game["url"] = ugs_root + attached_ids[title] + ".html"
+        game.pop("content", None)
+    updated = json.dumps(catalogue, separators=(",", ":"))
     return source[:catalogue_start] + updated + source[end + 1:]
 
 
