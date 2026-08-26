@@ -1417,6 +1417,32 @@
     }
   }
 
+  function patchUgsGameHtml(html) {
+    var movieMatch = html.match(/<param[^>]+name=["']movie["'][^>]+value=["']([^"']+)["']/i);
+    if (!movieMatch) {
+      movieMatch = html.match(/<embed[^>]+src=["']([^"']+\.swf(?:[?#][^"']*)?)["']/i);
+    }
+    if (!movieMatch) return html;
+    var movieUrl = JSON.stringify(movieMatch[1]);
+    return html.replace(
+      /player\.load\(\s*["']\$1["']\s*\)/g,
+      'player.load(' + movieUrl + ')'
+    );
+  }
+
+  async function openUgsGame(url, frame) {
+    try {
+      var response = await fetch(url, { credentials: 'omit' });
+      if (!response.ok) throw new Error('UGS game could not be loaded');
+      var html = await response.text();
+      frame.srcdoc = patchUgsGameHtml(html);
+    } catch (error) {
+      // Keep the direct URL fallback for hosts that block cross-origin reads.
+      frame.removeAttribute('srcdoc');
+      frame.src = url;
+    }
+  }
+
   function openGame(game) {
     var gamePath = game.game || game.gamePath || game.path || '';
     var hasBundledContent = !!(game && game.content);
@@ -1467,6 +1493,12 @@
     } else if (location.protocol === 'file:' && game.custom !== true && !game.url) {
       frame.removeAttribute('src');
       openSanitizedStandaloneGame(url, frame);
+    } else if (
+      !hasBundledContent &&
+      /^https?:\/\/cdn\.jsdelivr\.net\/gh\/bubbls\/ugs-singlefile\/UGS-Files\//i.test(url)
+    ) {
+      frame.removeAttribute('src');
+      openUgsGame(url, frame);
     } else {
       frame.src = url;
     }
