@@ -85,7 +85,6 @@ def make_slim_catalogue(source: str) -> str:
         "Run 3": "clrun3",
         "Drive Mad": "cldrivemady",
         "Retrobowl": "clretrobowl",
-        "Minecraft": "cleaglercraft112",
         "Papa'S Pancakeria": "clpapaspancakeria",
         "Papa'S Bakeria": "clpapabakeria",
         "Meat Boy": "clmeatboy",
@@ -112,11 +111,10 @@ def make_slim_catalogue(source: str) -> str:
         "Doom": "cldoom",
         "Doki Doki Literature Club": "cldokidokiliteratureclub",
         "Baldi'S Basics Classic Remastered": "clbaldisbasicsremaster",
-        "Breaking The Bank": "clstickmanbreakingbank",
-        "Escaping The Prison": "clstickmanescapingprison",
+        "Breaking The Bank": "clstickminbreakingbank",
+        "Escaping The Prison": "clstickminescapingprison",
         "Stealing The Diamond": "clstickmanstealingdiamond",
-        "Infiltrating The Airship": "clstickmaninfiltratingtheairship",
-        "Fleeing The Complex": "clstickmanfleeingthecomplex",
+        "Infiltrating The Airship": "clstickminairship",
         "Nubby's Number Factory": "clnubbysnumberfactory",
     }
     for game in catalogue:
@@ -125,7 +123,14 @@ def make_slim_catalogue(source: str) -> str:
             game["url"] = DEFAULT_PUBLIC_ROOT + str(game["game"])
         elif title in attached_ids:
             game["url"] = ugs_root + attached_ids[title] + ".html"
-        game.pop("content", None)
+            game.pop("content", None)
+        elif game.get("content"):
+            # Keep the original wrapper when the remote catalogue has no
+            # verified matching file. Its own published asset URLs are more
+            # reliable than inventing a CDN filename that returns 404.
+            game.pop("url", None)
+        else:
+            game.pop("content", None)
     updated = json.dumps(catalogue, separators=(",", ":"))
     return source[:catalogue_start] + updated + source[end + 1:]
 
