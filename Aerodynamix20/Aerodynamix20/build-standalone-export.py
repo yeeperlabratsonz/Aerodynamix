@@ -31,6 +31,7 @@ if os.environ.get("AERO_SLIM"):
 
 
 CONNECT_ORIGIN = "https://aerodynamix20.onrender.com"
+DEFAULT_PUBLIC_ROOT = "https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/"
 
 
 def data_uri(filename: str, mime: str) -> str:
@@ -373,7 +374,10 @@ def build_app_assets() -> tuple[str, str, str, str, str]:
 def main() -> None:
     source = SOURCE_EXPORT.read_text(encoding="utf-8")
     source = inline_new_game(source)
-    source = bundle_catalogue_games(source)
+    if os.environ.get("AERO_SLIM"):
+        source = make_slim_catalogue(source)
+    else:
+        source = bundle_catalogue_games(source)
     # Embed the user-provided tracks so the downloaded HTML does not depend on
     # a sibling assets directory or a hosted media route.
     sicko_uri = data_uri("sicko-mode.mp3", "audio/mpeg")
