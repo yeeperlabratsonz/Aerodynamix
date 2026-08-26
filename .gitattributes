@@ -27,3 +27,4 @@ Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Dev-Edition-latest.zip.p
 Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-latest.zip filter=lfs diff=lfs merge=lfs -text
 Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-latest.zip.part-00 filter=lfs diff=lfs merge=lfs -text
 Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-latest.zip.part-01 filter=lfs diff=lfs merge=lfs -text
+Aerodynamix20/Aerodynamix20/docs/games/adventure-capitalist/Release/webgl.data filter=lfs diff=lfs merge=lfs -text
