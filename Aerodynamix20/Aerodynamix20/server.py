@@ -86,6 +86,26 @@ def download_dev_export():
     )
 
 
+@app.route('/download/aerodynamix-standalone-slim.html')
+def download_slim_standalone_export():
+    return send_from_directory(
+        os.path.abspath('attached_assets'),
+        'Aerodynamix-Standalone-Slim.html',
+        as_attachment=True,
+        download_name='Aerodynamix-Standalone-Slim.html',
+    )
+
+
+@app.route('/download/aerodynamix-dev-edition-slim.html')
+def download_slim_dev_export():
+    return send_from_directory(
+        os.path.abspath('attached_assets'),
+        'Aerodynamix-Dev-Edition-Slim.html',
+        as_attachment=True,
+        download_name='Aerodynamix-Dev-Edition-Slim.html',
+    )
+
+
 @app.route('/api/nextbot/room/join', methods=['POST'])
 def nextbot_room_join():
     data = request.get_json(silent=True) or {}
