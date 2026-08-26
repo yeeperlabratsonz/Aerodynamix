@@ -9,7 +9,7 @@
   var CONNECT_ORIGIN = 'https://aerodynamix20.onrender.com';
   var DB_NAME = 'aerodynamixStandaloneLibrary';
   var DB_STORE = 'games';
-  var DEFAULT_PUBLIC_ROOT = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/';
+  var DEFAULT_PUBLIC_ROOT = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/docs/';
   var UPDATE_PROXY_ROOT = 'https://aerodynamix20.onrender.com/api/update-proxy/';
   var STANDALONE_VERSION = '1.1';
   var UPDATE_MANIFEST_PATH = 'standalone-updates.json';
@@ -1360,12 +1360,6 @@
     var base = getSiteBase();
     if (!base) return '';
     var normalizedPath = path.replace(/^\/+/, '');
-    if (
-      base === DEFAULT_PUBLIC_ROOT &&
-      /^(games|images|sounds)\//.test(normalizedPath)
-    ) {
-      normalizedPath = 'docs/' + normalizedPath;
-    }
     if (normalizedPath.endsWith('/')) normalizedPath += 'index.html';
     try {
       return new URL(normalizedPath, base).href;
