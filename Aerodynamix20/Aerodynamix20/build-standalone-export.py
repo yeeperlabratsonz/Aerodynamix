@@ -97,12 +97,27 @@ def bundle_catalogue_games(source: str) -> str:
             text = text.replace(token, value)
         return text
 
+    def compact_name(value: str) -> str:
+        return re.sub(r"[^a-z0-9]", "", value.lower())
+
+    game_directories = {
+        compact_name(path.name): path
+        for path in (PROJECT_ROOT / "docs" / "games").iterdir()
+        if path.is_dir()
+    }
+
     for game in catalogue:
         game_path = str(game.get("game", ""))
-        if not game_path.startswith("games/"):
-            continue
-        relative = game_path[len("games/"):].strip("/")
-        game_root = PROJECT_ROOT / "docs" / "games" / relative
+        if game_path.startswith("games/"):
+            relative = game_path[len("games/"):].strip("/")
+            game_root = PROJECT_ROOT / "docs" / "games" / relative
+        else:
+            # Older catalogue entries point to a small wrapper in
+            # attached_assets, while the actual downloadable game folder is
+            # named after the catalogue title.
+            game_root = game_directories.get(compact_name(str(game.get("title", ""))))
+            if not game_root:
+                continue
         if game_root.is_file():
             index_file = game_root
             game_root = game_root.parent
