@@ -181,7 +181,7 @@
             if (!response.ok) throw new Error('library.json returned ' + response.status);
             const albums = withFeaturedAlbums(normalizeLibrary(await response.json()));
             if (!albums.length) {
-                showMessage('No playable albums yet', 'Add albums with audio files and a public <strong>Music/library.json</strong> file to your R2 bucket.');
+                showMessage('No playable albums yet', 'Albums will appear here as they are added to the music library.');
                 status.textContent = 'Library is empty';
                 return;
             }
