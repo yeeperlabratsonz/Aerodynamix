@@ -74,6 +74,7 @@
             if (navLinks && navLinks.parentNode) navLinks.parentNode.insertBefore(status, navLinks.nextSibling);
             else nav.appendChild(status);
         }
+        if (!nav) return;
 
         const updateTopClock = () => {
             document.getElementById('aeroSiteClock').textContent = 'PST ' + new Intl.DateTimeFormat('en-US', {
