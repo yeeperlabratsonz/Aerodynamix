@@ -47,6 +47,10 @@ CONNECT_UPSTREAM_ORIGIN = os.environ.get(
     'CONNECT_UPSTREAM_ORIGIN',
     'https://aerodynamix20.onrender.com',
 ).rstrip('/')
+CONNECT_PROXY_TIMEOUT_SECONDS = max(
+    5,
+    float(os.environ.get('CONNECT_PROXY_TIMEOUT_SECONDS', '12'))
+)
 UPDATE_UPSTREAM_ORIGIN = os.environ.get(
     'UPDATE_UPSTREAM_ORIGIN',
     'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20',
@@ -1415,25 +1419,37 @@ def connect_proxy(upstream_path):
         headers=headers,
         method=request.method,
     )
-    try:
-        with urllib.request.urlopen(proxy_request, timeout=30) as upstream:
+    attempts = 2 if request.method in {'GET', 'DELETE'} else 1
+    for attempt in range(attempts):
+        try:
+            with urllib.request.urlopen(
+                proxy_request,
+                timeout=CONNECT_PROXY_TIMEOUT_SECONDS
+            ) as upstream:
+                body = upstream.read()
+                status = upstream.status
+                response_headers = {
+                    name: value
+                    for name, value in upstream.headers.items()
+                    if name.lower() in {'content-type', 'set-cookie'}
+                }
+                break
+        except urllib.error.HTTPError as upstream:
             body = upstream.read()
-            status = upstream.status
+            status = upstream.code
             response_headers = {
                 name: value
                 for name, value in upstream.headers.items()
                 if name.lower() in {'content-type', 'set-cookie'}
             }
-    except urllib.error.HTTPError as upstream:
-        body = upstream.read()
-        status = upstream.code
-        response_headers = {
-            name: value
-            for name, value in upstream.headers.items()
-            if name.lower() in {'content-type', 'set-cookie'}
-        }
-    except (urllib.error.URLError, TimeoutError) as error:
-        return jsonify({'error': f'Connect service unavailable: {error.reason if hasattr(error, "reason") else error}'}), 502
+            if status in {502, 503, 504} and attempt + 1 < attempts:
+                continue
+            break
+        except (urllib.error.URLError, TimeoutError) as error:
+            if attempt + 1 < attempts:
+                continue
+            reason = error.reason if hasattr(error, 'reason') else error
+            return jsonify({'error': f'Connect service unavailable: {reason}'}), 502
     return Response(body, status=status, headers=response_headers)
 
 
@@ -2257,13 +2273,40 @@ def call_config():
     if error:
         return error
 
-    ice_servers = [{'urls': ['stun:stun.l.google.com:19302']}]
-    turn_server = os.environ.get('TURN_SERVER', '').strip()
+    ice_servers = [{
+        'urls': [
+            'stun:stun.l.google.com:19302',
+            'stun:stun1.l.google.com:19302',
+        ]
+    }, {
+        'urls': ['stun:stun.cloudflare.com:3478']
+    }]
+
+    turn_urls = []
+    for env_name in ('TURN_SERVER', 'TURN_TLS_SERVER', 'TURN_TCP_SERVER'):
+        raw_value = os.environ.get(env_name, '')
+        turn_urls.extend(
+            value.strip()
+            for value in raw_value.split(',')
+            if value.strip()
+        )
+    raw_servers = os.environ.get('TURN_SERVERS', '').strip()
+    if raw_servers:
+        try:
+            parsed_servers = json.loads(raw_servers)
+            if isinstance(parsed_servers, list):
+                turn_urls.extend(str(value).strip() for value in parsed_servers if str(value).strip())
+            else:
+                turn_urls.extend(value.strip() for value in raw_servers.split(',') if value.strip())
+        except (TypeError, ValueError):
+            turn_urls.extend(value.strip() for value in raw_servers.split(',') if value.strip())
+
+    turn_urls = list(dict.fromkeys(turn_urls))
     turn_username = os.environ.get('TURN_USERNAME', '').strip()
     turn_credential = os.environ.get('TURN_CREDENTIAL', '').strip()
-    if turn_server and turn_username and turn_credential:
+    if turn_urls and turn_username and turn_credential:
         ice_servers.append({
-            'urls': turn_server,
+            'urls': turn_urls,
             'username': turn_username,
             'credential': turn_credential,
         })

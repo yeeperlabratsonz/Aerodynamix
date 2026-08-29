@@ -86,7 +86,11 @@
   let callPollTimer = null;
   let pendingCandidates = [];
   let remoteDescriptionReady = false;
-  let iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
+  const defaultIceServers = [
+    { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+    { urls: ['stun:stun.cloudflare.com:3478'] }
+  ];
+  let iceServers = defaultIceServers;
   const standaloneAudioOnly = window.location.protocol === 'file:' || !!window.AERO_CONNECT_ORIGIN;
   let walkieChannel = null;
   let walkieRecorder = null;
@@ -94,13 +98,82 @@
   let walkieAudioContext = null;
   let remoteAudio = null;
   let micBlocked = false;
+  let signalPollDelay = 1000;
+  let iceRestartTimer = null;
+  let iceRestartAttempts = 0;
 
   // ── API helper ──────────────────────────────────────────────────────────────
+  const API_TIMEOUT_MS = 12000;
+  const API_RETRY_DELAYS = [500, 1200, 2500];
+  const RETRYABLE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+  const RETRYABLE_STATUSES = new Set([408, 425, 429, 502, 503, 504]);
+
+  function apiTargets(path) {
+    if (/^(https?:|blob:|data:)/i.test(path)) return [path];
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    const targets = [];
+    if (window.AERO_CONNECT_PROXY && !window.AERO_CONNECT_PROXY_DISABLED) {
+      targets.push(`${window.AERO_CONNECT_PROXY.replace(/\/+$/, '')}${normalizedPath}`);
+    }
+    if (window.AERO_CONNECT_ORIGIN) {
+      targets.push(new URL(
+        normalizedPath,
+        `${window.AERO_CONNECT_ORIGIN.replace(/\/?$/, '/')}`
+      ).href);
+    }
+    if (!targets.length) targets.push(normalizedPath);
+    return [...new Set(targets)];
+  }
+
   async function api(path, options = {}) {
-    const res = await fetch(path, { credentials: 'same-origin', ...options });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
-    return data;
+    const { retryable, ...fetchOptions } = options;
+    const method = (fetchOptions.method || 'GET').toUpperCase();
+    const shouldRetry = retryable === true || (retryable !== false && RETRYABLE_METHODS.has(method));
+    const targets = apiTargets(path);
+    const isCrossOrigin = window.AERO_CONNECT_ORIGIN || window.AERO_CONNECT_PROXY;
+    let lastError = null;
+
+    for (let targetIndex = 0; targetIndex < targets.length; targetIndex += 1) {
+      const target = targets[targetIndex];
+      for (let attempt = 0; attempt <= (shouldRetry ? API_RETRY_DELAYS.length : 0); attempt += 1) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+        try {
+          const res = await fetch(target, {
+            credentials: isCrossOrigin ? 'include' : 'same-origin',
+            ...fetchOptions,
+            signal: controller.signal
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok) return data;
+          const error = new Error(data.error || `Request failed (${res.status})`);
+          error.status = res.status;
+          const canUseNextTarget =
+            targetIndex + 1 < targets.length &&
+            RETRYABLE_METHODS.has(method) &&
+            [404, 502, 503, 504].includes(res.status);
+          if (canUseNextTarget) {
+            window.AERO_CONNECT_PROXY_DISABLED = true;
+            lastError = error;
+            break;
+          }
+          if (!shouldRetry || !RETRYABLE_STATUSES.has(res.status) || attempt === API_RETRY_DELAYS.length) throw error;
+          lastError = error;
+        } catch (error) {
+          lastError = error.name === 'AbortError'
+            ? new Error('The Connect service took too long to respond.')
+            : error;
+          if (!shouldRetry || attempt === API_RETRY_DELAYS.length) {
+            if (targetIndex + 1 < targets.length && RETRYABLE_METHODS.has(method)) break;
+            throw lastError;
+          }
+        } finally {
+          clearTimeout(timeoutId);
+        }
+        await new Promise(resolve => setTimeout(resolve, API_RETRY_DELAYS[attempt]));
+      }
+    }
+    throw lastError || new Error('Connect service unavailable.');
   }
 
   // API media paths are returned as root-relative URLs. Resolve them against
@@ -905,12 +978,38 @@
   }
 
   async function loadIceConfig() {
+    iceServers = defaultIceServers;
     try {
       const data = await callApi('/api/calls/config');
       if (Array.isArray(data.iceServers) && data.iceServers.length) iceServers = data.iceServers;
     } catch (e) {
       // Keep the public STUN fallback if configuration is unavailable.
     }
+  }
+
+  function scheduleIceRestart() {
+    if (
+      !activeCall ||
+      !peerConnection ||
+      !currentUser ||
+      currentUser.id !== activeCall.caller_id ||
+      iceRestartTimer ||
+      iceRestartAttempts >= 2
+    ) return;
+
+    iceRestartTimer = setTimeout(async () => {
+      iceRestartTimer = null;
+      if (!activeCall || !peerConnection || peerConnection.signalingState !== 'stable') return;
+      iceRestartAttempts += 1;
+      videoStatus.textContent = `Reconnecting… (${iceRestartAttempts}/2)`;
+      try {
+        const offer = await peerConnection.createOffer({ iceRestart: true });
+        await peerConnection.setLocalDescription(offer);
+        await sendSignal('offer', peerConnection.localDescription.toJSON(), { retryable: true });
+      } catch (error) {
+        if (activeCall) setVideoError('Reconnect failed. Trying the next available network path.');
+      }
+    }, 1400);
   }
 
   function createPeer() {
@@ -947,9 +1046,25 @@
       });
     };
     peerConnection.onconnectionstatechange = () => {
-      if (peerConnection.connectionState === 'connected') videoStatus.textContent = 'Connected';
+      if (peerConnection.connectionState === 'connected') {
+        iceRestartAttempts = 0;
+        videoStatus.textContent = 'Connected';
+        setVideoError('');
+      }
       if (['failed', 'disconnected'].includes(peerConnection.connectionState)) {
-        videoStatus.textContent = 'Connection lost';
+        videoStatus.textContent = 'Reconnecting…';
+        scheduleIceRestart();
+      }
+    };
+    peerConnection.oniceconnectionstatechange = () => {
+      if (!peerConnection) return;
+      if (['connected', 'completed'].includes(peerConnection.iceConnectionState)) {
+        iceRestartAttempts = 0;
+        videoStatus.textContent = 'Connected';
+        setVideoError('');
+      } else if (['failed', 'disconnected'].includes(peerConnection.iceConnectionState)) {
+        videoStatus.textContent = 'Reconnecting…';
+        scheduleIceRestart();
       }
     };
     if (localStream) localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
@@ -964,12 +1079,13 @@
     }
   }
 
-  async function sendSignal(type, payload) {
+  async function sendSignal(type, payload, options = {}) {
     if (!activeCall) return;
     await callApi(`/api/calls/${activeCall.id}/signals`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, payload })
+      body: JSON.stringify({ type, payload }),
+      ...options
     });
   }
 
@@ -1017,7 +1133,7 @@
   }
 
   async function pollIncomingCalls() {
-    if (!currentUser || activeCall || incomingCall) return;
+    if (!currentUser || activeCall || incomingCall || navigator.onLine === false) return;
     try {
       const data = await callApi('/api/calls/incoming');
       if (data.calls && data.calls.length) {
@@ -1054,17 +1170,25 @@
           else pendingCandidates.push(signal.payload);
         }
       }
+      signalPollDelay = 1000;
       if (data.status === 'ended') cleanupCall(false);
     } catch (e) {
-      if (activeCall) setVideoError(e.message);
+      signalPollDelay = Math.min(signalPollDelay * 2, 8000);
+      if (activeCall) setVideoError('The connection is retrying…');
     }
-    if (activeCall) setTimeout(pollSignals, 1000);
+    if (activeCall) setTimeout(pollSignals, signalPollDelay);
   }
 
   async function cleanupCall(notify = true) {
     const call = activeCall;
     activeCall = null;
     signalCursor = 0;
+    signalPollDelay = 1000;
+    iceRestartAttempts = 0;
+    if (iceRestartTimer) {
+      clearTimeout(iceRestartTimer);
+      iceRestartTimer = null;
+    }
     pendingCandidates = [];
     remoteDescriptionReady = false;
     if (notify && call) {

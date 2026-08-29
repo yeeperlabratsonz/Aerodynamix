@@ -348,21 +348,13 @@ def build_connect_assets() -> tuple[str, str]:
         flags=re.DOTALL,
     )
     client = client.replace(
-        "  async function api(path, options = {}) {\n"
-        "    const res = await fetch(path, { credentials: 'same-origin', ...options });",
+        "\n  // ── Session check ───────────────────────────────────────────────────────────\n",
+        "\n"
         "  window.AERO_CONNECT_ORIGIN = " + repr(CONNECT_ORIGIN) + ";\n"
-        "  window.AERO_CONNECT_PROXY = " + repr(CONNECT_ORIGIN + "/api/connect-proxy") + ";\n\n"
-        "  window.AERO_CONNECT_PROXY_DISABLED = false;\n\n"
-        "  async function api(path, options = {}) {\n"
-        "    const requestOptions = { credentials: 'include', ...options };\n"
-        "    const target = window.AERO_CONNECT_PROXY_DISABLED\n"
-        "      ? new URL(path, window.AERO_CONNECT_ORIGIN).href\n"
-        "      : new URL(window.AERO_CONNECT_PROXY + path).href;\n"
-        "    const res = await fetch(target, requestOptions);\n"
-        "    if (res.status === 404 && !window.AERO_CONNECT_PROXY_DISABLED && (!options.method || options.method.toUpperCase() === 'GET')) {\n"
-        "      window.AERO_CONNECT_PROXY_DISABLED = true;\n"
-        "      return fetch(new URL(path, window.AERO_CONNECT_ORIGIN).href, requestOptions);\n"
-        "    }",
+        "  window.AERO_CONNECT_PROXY = " + repr(CONNECT_ORIGIN + "/api/connect-proxy") + ";\n"
+        "\n"
+        "  // ── Session check ───────────────────────────────────────────────────────────\n",
+        1,
     )
     return markup, styles, client
 

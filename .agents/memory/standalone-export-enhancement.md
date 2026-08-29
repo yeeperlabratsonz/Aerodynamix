@@ -8,3 +8,9 @@ Keep a giant standalone export immutable and maintain improvements in a small en
 **Why:** Direct edits to exports dominated by huge inline thumbnails and game payloads are slow and fragile, while duplicating the embedded manifest can create severe browser memory pressure.
 
 **How to apply:** Stream the source with a small external script for hosted preview, then inject the same script text immediately before the closing body tag for the final one-file download. Reuse the already-loaded manifest from page scope. For authenticated online pages, let a downloaded file open the configured secure server in an iframe so the existing client retains its same-origin session and signaling behavior; inline a maintained source snapshot for same-origin packaged use.
+
+Avoid routine full in-memory regeneration of the multi-hundred-megabyte editions. Validate the maintained client and `build_connect_assets()` independently, then use a streaming packaging path and verify every generated edition still ends with a complete HTML document.
+
+**Why:** A complete rebuild can be killed by memory pressure even when the maintained source and exporter are valid, and a partially written large output is harder to diagnose than a failed small validation.
+
+**How to apply:** Treat the source client and exporter as the primary change surface. Only refresh generated HTML/ZIP/XZ assets with a memory-bounded builder, and check the output tail plus embedded client marker before publishing downloads.
