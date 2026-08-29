@@ -1265,7 +1265,13 @@
   async function pollStandaloneMessages() {
     if (!window.fetch) return;
     try {
-      var response = await fetch(new URL('/api/dms', CONNECT_ORIGIN).href, { credentials: 'include' });
+      var messageUrl = (
+        location.protocol === 'file:' ||
+        location.hostname.endsWith('github.io')
+      )
+        ? new URL('/api/dms', CONNECT_ORIGIN).href
+        : new URL('/api/connect-proxy/api/dms', location.origin).href;
+      var response = await fetch(messageUrl, { credentials: 'include' });
       if (!response.ok) return;
       var data = await response.json();
       var conversations = Array.isArray(data.conversations) ? data.conversations : [];
@@ -2155,6 +2161,9 @@
       return new URL(UPDATE_MANIFEST_PATH, DEFAULT_PUBLIC_ROOT).href;
     }
     if (location.hostname === 'aerodynamix20.onrender.com') {
+      return new URL('/api/update-proxy/' + UPDATE_MANIFEST_PATH, location.origin).href;
+    }
+    if (location.pathname.includes('/aerodynamix-standalone')) {
       return new URL('/api/update-proxy/' + UPDATE_MANIFEST_PATH, location.origin).href;
     }
     return new URL(UPDATE_MANIFEST_PATH, new URL('./', location.href)).href;

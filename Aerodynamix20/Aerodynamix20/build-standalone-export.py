@@ -13,9 +13,11 @@ import re
 import zipfile
 import lzma
 import mimetypes
+import mmap
 import posixpath
 import os
 import shutil
+import subprocess
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -520,16 +522,37 @@ def validate_xz(path: Path, html_path: Path, expected_hash: str) -> None:
 
 
 def build_dev_html(normal_path: Path, dev_path: Path, dev_patch: str) -> None:
-    replace_bytes_stream(
-        normal_path,
-        dev_path,
-        {b"window.AERODYNAMIX_EDITION='normal'": b"window.AERODYNAMIX_EDITION='dev'"},
-    )
-    insert_before_last_marker(
-        dev_path,
-        b"</body>",
-        ("\n<script>\n" + dev_patch + "\n</script>\n").encode("utf-8"),
-    )
+    """Create Dev from Normal with a copy-on-write clone when supported."""
+    temporary = atomic_path(dev_path)
+    try:
+        subprocess.run(
+            ["cp", "--reflink=auto", str(normal_path), str(temporary)],
+            check=True,
+        )
+        old_marker = b"window.AERODYNAMIX_EDITION='normal'"
+        # Keep the byte length unchanged so the clone only copies the page
+        # containing the marker. The trailing space is outside the JS string.
+        new_marker = b"window.AERODYNAMIX_EDITION='dev' "
+        if len(new_marker) != len(old_marker):
+            raise RuntimeError("Standalone edition markers must have equal lengths.")
+        with temporary.open("r+b") as file:
+            mapped = mmap.mmap(file.fileno(), 0)
+            marker_index = mapped.find(old_marker)
+            if marker_index < 0:
+                raise RuntimeError("Normal export has no edition marker.")
+            mapped[marker_index:marker_index + len(old_marker)] = new_marker
+            mapped.flush()
+            mapped.close()
+        # A script after </body> still executes during parsing, without
+        # rewriting the giant shared prefix of the CoW clone.
+        with temporary.open("ab") as file:
+            file.write(
+                ("\n<script>\n" + dev_patch + "\n</script>\n").encode("utf-8")
+            )
+        os.replace(temporary, dev_path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
 
 
 def main() -> None:
