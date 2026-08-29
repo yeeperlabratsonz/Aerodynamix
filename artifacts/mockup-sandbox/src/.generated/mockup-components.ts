@@ -10,5 +10,8 @@ export const modules: ModuleMap = {
   "./components/mockups/aerodynamix-redesign/PlayStudio.tsx": () => import("../components/mockups/aerodynamix-redesign/PlayStudio.tsx"),
   "./components/mockups/aerodynamix-redesign/ReferenceArcade.tsx": () => import("../components/mockups/aerodynamix-redesign/ReferenceArcade.tsx"),
   "./components/mockups/aerodynamix-redesign/SystemGrid.tsx": () => import("../components/mockups/aerodynamix-redesign/SystemGrid.tsx"),
-  "./components/mockups/aerodynamix-redesign/TerminalDeck.tsx": () => import("../components/mockups/aerodynamix-redesign/TerminalDeck.tsx")
+  "./components/mockups/aerodynamix-redesign/TerminalDeck.tsx": () => import("../components/mockups/aerodynamix-redesign/TerminalDeck.tsx"),
+  "./components/mockups/boot-animations/arcade/ArcadeIgnition.tsx": () => import("../components/mockups/boot-animations/arcade/ArcadeIgnition.tsx"),
+  "./components/mockups/boot-animations/orbit/OrbitRise.tsx": () => import("../components/mockups/boot-animations/orbit/OrbitRise.tsx"),
+  "./components/mockups/boot-animations/signal/SignalLock.tsx": () => import("../components/mockups/boot-animations/signal/SignalLock.tsx")
 };
