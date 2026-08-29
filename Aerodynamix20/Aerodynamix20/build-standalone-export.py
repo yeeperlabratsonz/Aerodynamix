@@ -7,6 +7,7 @@ page itself. Connect API requests still go to the live Aerodynamix service.
 
 from pathlib import Path
 import base64
+import hashlib
 import json
 import re
 import zipfile
@@ -14,20 +15,21 @@ import lzma
 import mimetypes
 import posixpath
 import os
+import shutil
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 WORKSPACE_ROOT = PROJECT_ROOT.parents[1]
 SOURCE_EXPORT = WORKSPACE_ROOT / "attached_assets" / "presentation_1787450952428.html"
-OUTPUT_HTML = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Standalone.html"
-OUTPUT_ZIP = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Standalone.zip"
-OUTPUT_DEV_HTML = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Dev-Edition.html"
-OUTPUT_DEV_ZIP = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Dev-Edition.zip"
-OUTPUT_XZ = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Standalone.html.xz"
-OUTPUT_DEV_XZ = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Dev-Edition.html.xz"
-if os.environ.get("AERO_SLIM"):
-    OUTPUT_HTML = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Standalone-Slim.html"
-    OUTPUT_DEV_HTML = PROJECT_ROOT / "attached_assets" / "Aerodynamix-Dev-Edition-Slim.html"
+OUTPUT_DIR = PROJECT_ROOT / "attached_assets"
+VARIANT = "slim" if os.environ.get("AERO_SLIM") else "full"
+VARIANT_SUFFIX = "-Slim" if VARIANT == "slim" else ""
+OUTPUT_HTML = OUTPUT_DIR / f"Aerodynamix-Standalone{VARIANT_SUFFIX}.html"
+OUTPUT_ZIP = OUTPUT_DIR / f"Aerodynamix-Standalone{VARIANT_SUFFIX}.zip"
+OUTPUT_DEV_HTML = OUTPUT_DIR / f"Aerodynamix-Dev-Edition{VARIANT_SUFFIX}.html"
+OUTPUT_DEV_ZIP = OUTPUT_DIR / f"Aerodynamix-Dev-Edition{VARIANT_SUFFIX}.zip"
+OUTPUT_XZ = OUTPUT_DIR / f"Aerodynamix-Standalone{VARIANT_SUFFIX}.html.xz"
+OUTPUT_DEV_XZ = OUTPUT_DIR / f"Aerodynamix-Dev-Edition{VARIANT_SUFFIX}.html.xz"
 
 
 CONNECT_ORIGIN = "https://aerodynamix20.onrender.com"
