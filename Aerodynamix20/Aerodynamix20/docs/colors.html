@@ -20,109 +20,312 @@
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="mobile.css">
     <style>
-        .settings-container {
-            margin-top: 10vw;
-            padding: 3vw;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 1vw;
+        :root {
+            --settings-accent: #2c7ffc;
+            --settings-text: #fff;
+            --settings-muted: rgba(255, 255, 255, .66);
+            --settings-line: rgba(130, 185, 255, .23);
+            --settings-panel: rgba(7, 18, 38, .88);
         }
 
-        .settings-container h2 {
-            color: #fff;
-            font-size: 2.5vw;
-            margin-bottom: 2vw;
-            text-align: center;
+        body[data-theme="frutiger-aero"] {
+            --settings-accent: #0879bd;
+            --settings-text: #002244;
+            --settings-muted: rgba(0, 34, 68, .7);
+            --settings-line: rgba(0, 79, 139, .28);
+            --settings-panel: rgba(238, 251, 255, .78);
+        }
+
+        body[data-theme="purple"] {
+            --settings-accent: #9333ea;
+            --settings-text: #f0e0ff;
+            --settings-muted: rgba(240, 224, 255, .68);
+            --settings-line: rgba(190, 125, 255, .28);
+            --settings-panel: rgba(28, 8, 47, .9);
+        }
+
+        body[data-theme="blue"] {
+            --settings-accent: #3b82f6;
+            --settings-text: #e0f0ff;
+            --settings-muted: rgba(224, 240, 255, .68);
+            --settings-line: rgba(100, 165, 255, .3);
+            --settings-panel: rgba(4, 13, 36, .9);
+        }
+
+        body[data-theme="christmas"] {
+            --settings-accent: #c41e3a;
+            --settings-text: #fcebd4;
+            --settings-muted: rgba(252, 235, 212, .7);
+            --settings-line: rgba(255, 215, 160, .25);
+            --settings-panel: rgba(10, 24, 13, .91);
+        }
+
+        body[data-theme="bubble-gum-pink"] {
+            --settings-accent: #ff1493;
+            --settings-text: #fff;
+            --settings-muted: rgba(255, 255, 255, .78);
+            --settings-line: rgba(128, 0, 64, .28);
+            --settings-panel: rgba(255, 182, 217, .84);
+        }
+
+        .settings-container {
+            width: min(1060px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: clamp(7.5rem, 10vw, 9.5rem) 0 5rem;
+            color: var(--settings-text);
+        }
+
+        .settings-title {
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-kicker {
+            color: var(--settings-accent);
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+        }
+
+        .settings-title h2 {
+            margin: .45rem 0 .5rem;
+            color: var(--settings-text);
+            font-size: clamp(2rem, 5vw, 4rem);
+            letter-spacing: -.055em;
+            line-height: 1;
+        }
+
+        .settings-muted {
+            max-width: 680px;
+            margin: 0;
+            color: var(--settings-muted);
+            font-size: .9rem;
+            line-height: 1.55;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
+            gap: 1.1rem;
+            align-items: start;
+        }
+
+        .settings-card {
+            padding: clamp(1.15rem, 2.5vw, 1.5rem);
+            border: 1px solid var(--settings-line);
+            border-radius: 22px;
+            background: var(--settings-panel);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, .3);
+            backdrop-filter: blur(18px);
+        }
+
+        .settings-card h3 {
+            margin: 0 0 .35rem;
+            color: var(--settings-text);
+            font-size: 1.18rem;
         }
 
         .theme-options {
-            display: flex;
-            flex-direction: column;
-            gap: 1vw;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .65rem;
+            margin-top: 1.15rem;
         }
 
         .theme-button {
-            padding: 1.5vw;
-            font-size: 1.5vw;
-            border: 2px solid #fff;
-            border-radius: 1vw;
+            position: relative;
+            min-height: 5.1rem;
+            overflow: hidden;
+            padding: .9rem;
+            border: 1px solid var(--settings-line);
+            border-radius: 13px;
+            color: var(--theme-text, #fff);
+            background-color: var(--theme-color);
+            background-position: center;
+            background-size: cover;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            font-family: 'Montserrat', sans-serif;
+            font: inherit;
+            font-weight: 800;
+            text-align: left;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, .45);
+            transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+        }
+
+        .theme-button::after {
+            position: absolute;
+            inset: 0;
+            content: '';
+            background: linear-gradient(135deg, rgba(255, 255, 255, .2), transparent 48%);
+            pointer-events: none;
         }
 
         .theme-button:hover {
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            border-color: var(--settings-accent);
+        }
+
+        .theme-button.active {
+            outline: 2px solid var(--settings-accent);
+            outline-offset: 2px;
+            box-shadow: 0 12px 34px color-mix(in srgb, var(--settings-accent) 28%, transparent);
         }
 
         .theme-button.black {
-            background-color: #1b1b1b;
-            color: #fff;
+            --theme-color: #030509;
+            background-image: radial-gradient(ellipse at 50% 130%, rgba(44, 127, 252, .48), transparent 65%);
         }
 
         .theme-button.frutiger-aero {
-            background: url('images/frutiger-aero-btn-bg.png') center/cover no-repeat;
-            color: #fff;
-            border-color: rgba(255,255,255,0.8);
-            text-shadow: 0 2px 6px rgba(0,0,0,0.5), 0 0 10px rgba(0,0,0,0.3);
-            font-weight: 800;
+            --theme-color: #87ceeb;
+            background-image: url('images/frutiger-aero-btn-bg.png');
         }
 
         .theme-button.purple {
-            background-color: #663399;
-            color: #fff;
+            --theme-color: #180826;
+            background-image: radial-gradient(ellipse at 50% 130%, rgba(160, 80, 255, .58), transparent 65%);
         }
 
         .theme-button.blue {
-            background-color: #0000ff;
-            color: #fff;
+            --theme-color: #040d24;
+            background-image: radial-gradient(ellipse at 50% 130%, rgba(59, 130, 246, .6), transparent 65%);
         }
 
         .theme-button.christmas {
-            background-color: #c41e3a;
-            color: #fff;
-            border-color: #0d3b1e;
-            font-weight: 800;
+            --theme-color: #0a180d;
+            background-image: radial-gradient(ellipse at 50% 120%, rgba(180, 40, 40, .48), transparent 60%);
         }
 
         .theme-button.bubble-gum-pink {
-            background: #ff69b4;
-            color: #fff;
-            border-color: #ffb6d9;
-            text-shadow: 0 2px 6px #800040;
-            font-weight: 800;
-            box-shadow: 0 8px 22px #80004055;
+            --theme-color: #ff69b4;
+            background-image: radial-gradient(circle at 18% 8%, rgba(255, 255, 255, .35), transparent 30%);
         }
 
-        .theme-button.lite {
-            background-color: #2ecc71;
-            color: #fff;
-            border-color: #27ae60;
-            font-weight: 800;
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--settings-line);
         }
-        .theme-button.lite.active {
-            background-color: #e74c3c;
-            border-color: #c0392b;
+
+        .settings-row:last-of-type {
+            border-bottom: 0;
+        }
+
+        .settings-row strong {
+            display: block;
+            margin-bottom: .25rem;
+            color: var(--settings-text);
+            font-size: .95rem;
+        }
+
+        .settings-switch {
+            position: relative;
+            flex: 0 0 auto;
+            width: 3rem;
+            height: 1.7rem;
+            padding: 0;
+            border: 0;
+            border-radius: 999px;
+            background: rgba(80, 105, 130, .8);
+            cursor: pointer;
+        }
+
+        .settings-switch::after {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 1.2rem;
+            height: 1.2rem;
+            border-radius: 50%;
+            background: #e8f4ff;
+            content: '';
+            transition: transform .2s ease;
+        }
+
+        .settings-switch.active {
+            background: var(--settings-accent);
+        }
+
+        .settings-switch.active::after {
+            transform: translateX(1.3rem);
+        }
+
+        .settings-label {
+            display: block;
+            margin: 1.25rem 0 .45rem;
+            color: var(--settings-text);
+            font-size: .78rem;
+            font-weight: 800;
+            letter-spacing: .04em;
+        }
+
+        .settings-select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: .75rem .8rem;
+            border: 1px solid var(--settings-line);
+            border-radius: 11px;
+            color: var(--settings-text);
+            background: rgba(0, 0, 0, .26);
+            font: inherit;
+            outline: 0;
+        }
+
+        .settings-select:focus {
+            border-color: var(--settings-accent);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--settings-accent) 18%, transparent);
+        }
+
+        .lite-status {
+            min-height: 1.4em;
+            margin: .65rem 0 0;
+            color: var(--settings-muted);
+            font-size: .82rem;
+            line-height: 1.45;
         }
 
         .back-button {
             display: inline-block;
-            margin-top: 2vw;
-            padding: 1vw 2vw;
-            background-color: #2c7ffc;
-            color: #fff;
+            margin-top: 1.25rem;
+            color: var(--settings-muted);
             text-decoration: none;
-            border-radius: 0.5vw;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            font-family: 'Montserrat', sans-serif;
+            font-size: .88rem;
         }
 
         .back-button:hover {
-            background-color: #1e5bc4;
+            color: var(--settings-text);
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+        }
+
+        @media (max-width: 760px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .settings-container {
+                width: min(100% - 28px, 600px);
+                padding-top: 6.7rem;
+            }
+
+            .theme-options {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-row {
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
@@ -139,34 +342,97 @@
         <a href="colors.html" style="margin-right:1.5vw; color:#fff; text-decoration:none; padding:0.55vw 1.3vw; background-color:#2c7ffc; border-radius:0.5vw; font-weight:600; font-size:0.95vw; transition:all 0.3s ease;">Settings</a>
     </nav>
 
-    <div class="content">
-        <div class="settings-container">
-            <h2>Choose Theme</h2>
-            <p id="theme-info" style="text-align:center; font-size:0.85rem; color:#aaa; margin:-1vw 0 1vw;">All themes and effects are free.</p>
-            <div class="theme-options" id="theme-options">
-                <button class="theme-button black" data-theme="black" onclick="setTheme('black')">Black</button>
-                <button class="theme-button frutiger-aero" data-theme="frutiger-aero" onclick="setTheme('frutiger-aero')">Frutiger Aero <span class="theme-price">· 200 <img src="images/disc.png" alt="Disc" class="disc-icon sm"></span></button>
-                <button class="theme-button purple" data-theme="purple" onclick="setTheme('purple')">Midnight Purple <span class="theme-price">· 200 <img src="images/disc.png" alt="Disc" class="disc-icon sm"></span></button>
-                <button class="theme-button blue" data-theme="blue" onclick="setTheme('blue')">Genesis Blue <span class="theme-price">· 200 <img src="images/disc.png" alt="Disc" class="disc-icon sm"></span></button>
-                <button class="theme-button christmas" data-theme="christmas" onclick="setTheme('christmas')">Christmas <span class="theme-price">· 200 <img src="images/disc.png" alt="Disc" class="disc-icon sm"></span></button>
-                <button class="theme-button bubble-gum-pink" data-theme="bubble-gum-pink" onclick="setTheme('bubble-gum-pink')">Bubble Gum Pink <span class="theme-price">· 200 <img src="images/disc.png" alt="Disc" class="disc-icon sm"></span></button>
-            </div>
-            <h2 style="margin-top: 2.5vw;">Performance</h2>
-            <button id="lite-mode-btn" class="theme-button lite" onclick="toggleLiteMode()">Lite Mode</button>
-            <p id="lite-status" style="text-align:center; font-size:0.9rem; color:#aaa; margin-top:0.5vw;">Toggle performance effects anytime.</p>
-            <button onclick="enableTabCloak()" class="back-button" style="background-color: #e74c3c; margin-top: 2vw;">Tab Cloak</button>
-            <label for="tab-cloak-preset" style="display:block; margin-top:1vw; color:#fff; font-weight:600;">Cloak preset</label>
-            <select id="tab-cloak-preset" onchange="setTabCloakPreset(this.value)" style="display:block; margin:0.5vw auto; padding:0.65vw 1vw; min-width:220px; border:0; border-radius:0.5vw; font:inherit;">
-                <option value="google">Google · G favicon</option>
-                <option value="deltaMath">DeltaMath · grad cap</option>
-                <option value="classroom">Google Classroom · chalkboard</option>
-            </select>
-            <a href="index.html" class="back-button">Back to Home</a>
+    <main class="settings-container">
+        <header class="settings-title">
+            <div class="settings-kicker">Aerodynamix settings</div>
+            <h2>Make it yours.</h2>
+            <p class="settings-muted">Themes and preferences are saved in this browser and restored the next time you visit.</p>
+        </header>
+        <div class="settings-grid">
+            <section class="settings-card">
+                <h3>Choose Theme</h3>
+                <p id="theme-info" class="settings-muted">The complete Aerodynamix visual collection, including its original animated effects.</p>
+                <div class="theme-options" id="theme-options">
+                    <button class="theme-button black" data-theme="black" type="button" onclick="setTheme('black')">Black</button>
+                    <button class="theme-button frutiger-aero" data-theme="frutiger-aero" type="button" onclick="setTheme('frutiger-aero')">Frutiger Aero</button>
+                    <button class="theme-button purple" data-theme="purple" type="button" onclick="setTheme('purple')">Midnight Purple</button>
+                    <button class="theme-button blue" data-theme="blue" type="button" onclick="setTheme('blue')">Genesis Blue</button>
+                    <button class="theme-button christmas" data-theme="christmas" type="button" onclick="setTheme('christmas')">Christmas</button>
+                    <button class="theme-button bubble-gum-pink" data-theme="bubble-gum-pink" type="button" onclick="setTheme('bubble-gum-pink')">Bubble Gum Pink</button>
+                </div>
+            </section>
+            <section class="settings-card">
+                <h3>Experience</h3>
+                <p class="settings-muted">Control privacy, performance, and the visual effects used across Aerodynamix.</p>
+                <div class="settings-row">
+                    <div>
+                        <strong>Tab Cloak</strong>
+                        <div class="settings-muted">Use a familiar school tab title and icon.</div>
+                    </div>
+                    <button id="tab-cloak-btn" class="settings-switch" type="button" aria-label="Toggle Tab Cloak" aria-pressed="false" onclick="toggleTabCloakSetting()"><span class="sr-only">Toggle Tab Cloak</span></button>
+                </div>
+                <label class="settings-label" for="tab-cloak-preset">Cloak preset</label>
+                <select id="tab-cloak-preset" class="settings-select" onchange="setTabCloakPreset(this.value); syncSettingsControls()">
+                    <option value="google">Google · G favicon</option>
+                    <option value="deltaMath">DeltaMath · grad cap</option>
+                    <option value="classroom">Google Classroom · chalkboard</option>
+                </select>
+                <div class="settings-row">
+                    <div>
+                        <strong>Reduce effects</strong>
+                        <div class="settings-muted">Disable bubbles, snow, and most motion.</div>
+                    </div>
+                    <button id="lite-mode-btn" class="settings-switch" type="button" aria-label="Toggle reduced effects" aria-pressed="false" onclick="toggleLiteMode()"><span class="sr-only">Toggle reduced effects</span></button>
+                </div>
+                <p id="lite-status" class="lite-status">Animations and heavy visual effects are enabled.</p>
+                <a href="index.html" class="back-button">← Back to Games</a>
+            </section>
         </div>
-    </div>
+    </main>
 
     <script>
         let purchasedThemes = [];
+
+        const themeAccents = {
+            black: '#2c7ffc',
+            'frutiger-aero': '#0879bd',
+            purple: '#9333ea',
+            blue: '#3b82f6',
+            christmas: '#c41e3a',
+            'bubble-gum-pink': '#ff1493'
+        };
+
+        function syncThemeControls() {
+            const theme = document.body.dataset.theme || localStorage.getItem('aerodynamixTheme') || 'black';
+            document.documentElement.style.setProperty('--settings-accent', themeAccents[theme] || themeAccents.black);
+            document.querySelectorAll('.theme-button[data-theme]').forEach(button => {
+                const active = button.dataset.theme === theme;
+                button.classList.toggle('active', active);
+                button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+        }
+
+        function syncSettingsControls() {
+            const cloakEnabled = localStorage.getItem('aerodynamixTabCloak') === 'true';
+            const cloakButton = document.getElementById('tab-cloak-btn');
+            const cloakState = document.getElementById('tab-cloak-state');
+            if (cloakButton) {
+                cloakButton.classList.toggle('active', cloakEnabled);
+                cloakButton.setAttribute('aria-pressed', cloakEnabled ? 'true' : 'false');
+            }
+            if (cloakState) cloakState.textContent = cloakEnabled ? 'Enabled' : 'Disabled';
+            const preset = localStorage.getItem('aerodynamixTabCloakPreset') || 'google';
+            const presetSelect = document.getElementById('tab-cloak-preset');
+            if (presetSelect) presetSelect.value = preset;
+            const liteEnabled = localStorage.getItem('aerodynamixLite') === 'true';
+            const liteButton = document.getElementById('lite-mode-btn');
+            if (liteButton) liteButton.setAttribute('aria-pressed', liteEnabled ? 'true' : 'false');
+        }
+
+        function toggleTabCloakSetting() {
+            enableTabCloak();
+            syncSettingsControls();
+        }
 
         async function refreshPurchasedThemes() {
             if (AeroDiscs.isPaid()) {
@@ -183,22 +449,16 @@
         }
 
         function updateThemeButtons() {
-            const empty = document.getElementById('no-themes-msg');
-            const options = document.getElementById('theme-options');
-            const info = document.getElementById('theme-info');
-            document.querySelectorAll('.theme-price').forEach(price => {
-                price.remove();
-            });
             document.querySelectorAll('.theme-button[data-theme]').forEach(btn => {
                 btn.hidden = false;
             });
-            if (empty) empty.style.display = 'none';
-            if (options) options.style.display = '';
+            syncThemeControls();
         }
 
         async function setTheme(theme) {
             localStorage.setItem('aerodynamixTheme', theme);
             applyTheme(theme);
+            syncThemeControls();
         }
 
         async function toggleLiteMode() {
@@ -207,6 +467,7 @@
             localStorage.setItem('aerodynamixLite', next ? 'true' : 'false');
             applyLiteMode(next);
             window.dispatchEvent(new CustomEvent('aerodynamixLiteChanged', { detail: { enabled: next } }));
+            syncSettingsControls();
         }
 
         function applyLiteMode(enabled) {
@@ -215,32 +476,25 @@
             if (!btn || !status) return;
             if (enabled) {
                 btn.classList.add('active');
-                btn.textContent = 'Lite Mode: ON';
                 status.textContent = 'Lite Mode is active. Animations, particle effects, and heavy visual effects are disabled.';
-                status.style.color = '#2ecc71';
                 document.body.classList.add('lite-mode');
             } else {
                 btn.classList.remove('active');
-                btn.textContent = 'Lite Mode';
-                status.style.color = '#aaa';
+                status.textContent = 'Animations and heavy visual effects are enabled.';
                 document.body.classList.remove('lite-mode');
             }
-            checkLiteLock();
+            btn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
         }
 
         function checkLiteLock() {
-            const btn = document.getElementById('lite-mode-btn');
-            const status = document.getElementById('lite-status');
-            if (!btn || !status) return;
-            status.textContent = 'Disables animations, particle effects, and heavy visual effects';
-            status.style.color = '#aaa';
-            btn.style.opacity = '1';
-            btn.style.pointerEvents = 'auto';
+            syncSettingsControls();
         }
 
         // Load saved theme and lite mode on page load
         document.addEventListener('DOMContentLoaded', () => {
             applyLiteMode(localStorage.getItem('aerodynamixLite') === 'true');
+            syncThemeControls();
+            syncSettingsControls();
         });
 
         // Refresh purchased theme state once discs module is ready
