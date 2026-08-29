@@ -10,6 +10,16 @@
       ]
     }
   ],
-  "download": "attached_assets/Aerodynamix-Standalone.html",
-  "dev_download": "attached_assets/Aerodynamix-Dev-Edition.html"
+  "download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html",
+  "zip_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone.zip",
+  "xz_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html.xz",
+  "slim_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.html",
+  "slim_zip_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.zip",
+  "slim_xz_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.html.xz",
+  "dev_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html",
+  "dev_zip_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.zip",
+  "dev_xz_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html.xz",
+  "dev_slim_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.html",
+  "dev_slim_zip_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.zip",
+  "dev_slim_xz_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.html.xz"
 }

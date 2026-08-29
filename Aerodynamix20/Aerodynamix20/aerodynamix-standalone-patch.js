@@ -26,9 +26,15 @@
     download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html',
     zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.zip',
     xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html.xz',
+    slim_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.html',
+    slim_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.zip',
+    slim_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.html.xz',
     dev_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html',
     dev_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.zip',
-    dev_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html.xz'
+    dev_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html.xz',
+    dev_slim_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.html',
+    dev_slim_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.zip',
+    dev_slim_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.html.xz'
   };
   var CLOAK_PRESETS = {
     google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
@@ -2178,9 +2184,11 @@
       var manifest = await response.json();
       renderChangelog(manifest.changelog);
       var latest = manifest.version || STANDALONE_VERSION;
-      var downloadPath = window.AERODYNAMIX_EDITION === 'dev'
-        ? manifest.dev_download
-        : manifest.download;
+      var isDev = window.AERODYNAMIX_EDITION === 'dev';
+      var isSlim = window.AERODYNAMIX_VARIANT === 'slim';
+      var downloadPath = isDev
+        ? (isSlim ? manifest.dev_slim_download : manifest.dev_download)
+        : (isSlim ? manifest.slim_download : manifest.download);
       if (compareVersions(latest, STANDALONE_VERSION) > 0 && downloadPath) {
         button.disabled = false;
         button.textContent = 'Download Ver ' + latest;
