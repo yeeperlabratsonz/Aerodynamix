@@ -531,8 +531,9 @@ def build_dev_html(normal_path: Path, dev_path: Path, dev_patch: str) -> None:
         )
         old_marker = b"window.AERODYNAMIX_EDITION='normal'"
         # Keep the byte length unchanged so the clone only copies the page
-        # containing the marker. The trailing space is outside the JS string.
-        new_marker = b"window.AERODYNAMIX_EDITION='dev' "
+        # containing the marker. The extra semicolon and space are valid JS
+        # between this assignment and the source's following statement.
+        new_marker = b"window.AERODYNAMIX_EDITION='dev';  "
         if len(new_marker) != len(old_marker):
             raise RuntimeError("Standalone edition markers must have equal lengths.")
         with temporary.open("r+b") as file:
