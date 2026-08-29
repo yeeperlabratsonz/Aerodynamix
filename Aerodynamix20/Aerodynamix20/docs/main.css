@@ -751,6 +751,176 @@ img[src$="disc.png"] {
     }
 }
 
+/* ── Top bar refresh ─────────────────────────────────────────────────────────
+   Keep the navigation compact and intentional on desktop. The existing mobile
+   menu rules in mobile.css remain the source of truth below 700px. */
+@media (min-width: 701px) {
+    nav {
+        box-sizing: border-box;
+        height: 74px !important;
+        min-height: 74px !important;
+        padding: 10px clamp(14px, 2.5vw, 36px) !important;
+        gap: clamp(8px, 1vw, 16px) !important;
+        background: linear-gradient(180deg, rgba(11, 16, 28, .96), rgba(6, 10, 19, .9));
+        border-bottom: 1px solid rgba(125, 184, 255, .16);
+        box-shadow: 0 12px 34px rgba(0, 0, 0, .28);
+    }
+
+    nav::after {
+        content: '';
+        position: absolute;
+        left: clamp(14px, 2.5vw, 36px);
+        right: clamp(14px, 2.5vw, 36px);
+        bottom: -1px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(44, 127, 252, .72), rgba(168, 85, 247, .58), transparent);
+        pointer-events: none;
+    }
+
+    nav img {
+        width: 48px !important;
+        height: 48px !important;
+        flex: 0 0 48px !important;
+        margin: 0 !important;
+        padding: 4px !important;
+        border: 1px solid rgba(255, 255, 255, .16);
+        border-radius: 14px !important;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, .34), 0 0 0 4px rgba(44, 127, 252, .06);
+    }
+
+    nav h1 {
+        min-width: max-content !important;
+        margin: 0 !important;
+        font-size: clamp(1rem, 1.35vw, 1.28rem) !important;
+        font-weight: 900 !important;
+        letter-spacing: .075em;
+        line-height: 1;
+    }
+
+    nav h1 .logo-a {
+        color: #2c7ffc;
+    }
+
+    nav > div,
+    nav .collection-nav-links,
+    nav .discs-nav-links {
+        flex: 0 1 auto !important;
+        width: auto !important;
+        min-width: 0 !important;
+        margin-left: auto !important;
+        padding: 4px !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center !important;
+        gap: 2px !important;
+        overflow-x: auto;
+        border: 1px solid rgba(125, 184, 255, .14);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, .045);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), 0 8px 24px rgba(0, 0, 0, .16);
+    }
+
+    nav > div a,
+    nav .collection-nav-links a,
+    nav .discs-nav-links a {
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 13px !important;
+        border: 1px solid transparent !important;
+        border-radius: 11px !important;
+        background: transparent !important;
+        color: rgba(235, 243, 255, .68) !important;
+        font-size: .72rem !important;
+        font-weight: 800 !important;
+        letter-spacing: .015em;
+    }
+
+    nav > div a:hover,
+    nav .collection-nav-links a:hover,
+    nav .discs-nav-links a:hover {
+        color: #fff !important;
+        background: rgba(125, 184, 255, .1) !important;
+        border-color: rgba(125, 184, 255, .18) !important;
+        transform: none;
+    }
+
+    nav > div a.active,
+    nav > div a[style*="background"],
+    nav .collection-nav-links a.active,
+    nav .discs-nav-links a.active {
+        color: #fff !important;
+        background: linear-gradient(135deg, #327ff5, #704be3) !important;
+        border-color: rgba(255, 255, 255, .18) !important;
+        box-shadow: 0 6px 18px rgba(44, 127, 252, .28);
+    }
+
+    nav > a,
+    nav > .collection-nav-settings,
+    nav > .discs-nav-settings {
+        flex: 0 0 auto;
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 !important;
+        padding: 0 14px !important;
+        border: 1px solid rgba(125, 184, 255, .24) !important;
+        border-radius: 11px !important;
+        background: rgba(125, 184, 255, .08) !important;
+        color: rgba(235, 243, 255, .82) !important;
+        font-size: .72rem !important;
+        font-weight: 800 !important;
+        letter-spacing: .02em;
+        white-space: nowrap;
+    }
+
+    nav > a:hover,
+    nav > .collection-nav-settings:hover,
+    nav > .discs-nav-settings:hover {
+        color: #fff !important;
+        background: linear-gradient(135deg, #327ff5, #704be3) !important;
+        border-color: rgba(255, 255, 255, .26) !important;
+        transform: translateY(-1px);
+    }
+
+    nav > .aero-site-status {
+        flex: 0 0 auto !important;
+        gap: 5px !important;
+        margin: 0 !important;
+        white-space: nowrap;
+    }
+
+    nav > .aero-site-status .aero-site-status-item {
+        padding: 7px 9px !important;
+        border: 1px solid rgba(125, 184, 255, .16) !important;
+        border-radius: 999px !important;
+        background: rgba(6, 12, 24, .72) !important;
+        box-shadow: none !important;
+        font-size: .62rem !important;
+        letter-spacing: .015em;
+    }
+}
+
+@media (min-width: 701px) and (max-width: 1040px) {
+    nav h1 {
+        max-width: 155px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    nav > .aero-site-status .aero-site-online {
+        display: none;
+    }
+
+    nav > div a,
+    nav .collection-nav-links a,
+    nav .discs-nav-links a {
+        padding: 0 9px !important;
+    }
+}
+
 @media (max-width: 380px) {
     nav h1 {
         font-size: .86rem;
