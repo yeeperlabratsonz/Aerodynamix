@@ -610,56 +610,29 @@ def main() -> None:
     if "</body>" not in source:
         raise RuntimeError("The original standalone export has no closing body tag.")
     result = source.rsplit("</body>", 1)[0] + injection + "</body>" + source.rsplit("</body>", 1)[1]
-    OUTPUT_HTML.write_text(result, encoding="utf-8")
-    if os.environ.get("AERO_HTML_ONLY"):
-        # Do not duplicate the giant standalone string in memory. Assemble the
-        # Dev file from the finished Normal file using a streaming copy.
-        marker = b"</body>"
-        with OUTPUT_HTML.open("rb") as normal_file, OUTPUT_DEV_HTML.open("wb") as dev_file:
-            first = normal_file.read(1024 * 1024)
-            first = first.replace(
-                b"window.AERODYNAMIX_EDITION='normal'",
-                b"window.AERODYNAMIX_EDITION='dev'",
-                1,
-            )
-            dev_file.write(first)
-            while True:
-                chunk = normal_file.read(1024 * 1024)
-                if not chunk:
-                    break
-                dev_file.write(chunk)
-        with OUTPUT_DEV_HTML.open("rb+") as dev_file:
-            dev_file.seek(0, os.SEEK_END)
-            end = dev_file.tell()
-            tail_size = min(end, 1024 * 1024)
-            dev_file.seek(end - tail_size)
-            tail = dev_file.read(tail_size)
-            insert_at = tail.rfind(marker)
-            if insert_at < 0:
-                raise RuntimeError("The standalone export has no closing body tag.")
-            absolute_insert = end - tail_size + insert_at
-            dev_file.seek(absolute_insert)
-            remainder = dev_file.read()
-            dev_file.seek(absolute_insert)
-            dev_file.write(("<script>\n" + dev_patch + "\n</script>\n").encode("utf-8"))
-            dev_file.write(remainder)
-        dev_result = None
-    else:
-        dev_result = result.replace("window.AERODYNAMIX_EDITION='normal'", "window.AERODYNAMIX_EDITION='dev'", 1)
-        dev_result = dev_result.rsplit("</body>", 1)[0] + "<script>\n" + dev_patch + "\n</script>\n</body>" + dev_result.rsplit("</body>", 1)[1]
-        OUTPUT_DEV_HTML.write_text(dev_result, encoding="utf-8")
+    write_atomic_text(OUTPUT_HTML, result)
+    build_dev_html(OUTPUT_HTML, OUTPUT_DEV_HTML, dev_patch)
+
+    normal_hash = validate_html(OUTPUT_HTML, "normal")
+    dev_hash = validate_html(OUTPUT_DEV_HTML, "dev")
+    print(
+        f"Built {OUTPUT_HTML.name} ({OUTPUT_HTML.stat().st_size:,} bytes, "
+        f"sha256 {normal_hash})"
+    )
+    print(
+        f"Built {OUTPUT_DEV_HTML.name} ({OUTPUT_DEV_HTML.stat().st_size:,} bytes, "
+        f"sha256 {dev_hash})"
+    )
 
     if not os.environ.get("AERO_HTML_ONLY"):
-        with zipfile.ZipFile(OUTPUT_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
-            archive.write(OUTPUT_HTML, arcname=OUTPUT_HTML.name)
-        with zipfile.ZipFile(OUTPUT_DEV_ZIP, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
-            archive.write(OUTPUT_DEV_HTML, arcname=OUTPUT_DEV_HTML.name)
-        OUTPUT_XZ.write_bytes(lzma.compress(result.encode("utf-8"), preset=1))
-        OUTPUT_DEV_XZ.write_bytes(lzma.compress(dev_result.encode("utf-8"), preset=1))
-
-    print(f"Built {OUTPUT_HTML.name} ({OUTPUT_HTML.stat().st_size:,} bytes)")
-    print(f"Built {OUTPUT_DEV_HTML.name} ({OUTPUT_DEV_HTML.stat().st_size:,} bytes)")
-    if not os.environ.get("AERO_HTML_ONLY"):
+        build_zip(OUTPUT_HTML, OUTPUT_ZIP)
+        build_zip(OUTPUT_DEV_HTML, OUTPUT_DEV_ZIP)
+        build_xz(OUTPUT_HTML, OUTPUT_XZ)
+        build_xz(OUTPUT_DEV_HTML, OUTPUT_DEV_XZ)
+        validate_zip(OUTPUT_ZIP, OUTPUT_HTML, normal_hash)
+        validate_zip(OUTPUT_DEV_ZIP, OUTPUT_DEV_HTML, dev_hash)
+        validate_xz(OUTPUT_XZ, OUTPUT_HTML, normal_hash)
+        validate_xz(OUTPUT_DEV_XZ, OUTPUT_DEV_HTML, dev_hash)
         print(f"Built {OUTPUT_ZIP.name} ({OUTPUT_ZIP.stat().st_size:,} bytes)")
         print(f"Built {OUTPUT_DEV_ZIP.name} ({OUTPUT_DEV_ZIP.stat().st_size:,} bytes)")
         print(f"Built {OUTPUT_XZ.name} ({OUTPUT_XZ.stat().st_size:,} bytes)")

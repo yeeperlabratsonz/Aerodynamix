@@ -23,8 +23,12 @@
         'Kept updates manual so games change only when you choose to update.'
       ]
     }],
-    download: 'attached_assets/Aerodynamix-Standalone.html',
-    dev_download: 'attached_assets/Aerodynamix-Dev-Edition.html'
+    download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html',
+    zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.zip',
+    xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html.xz',
+    dev_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html',
+    dev_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.zip',
+    dev_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html.xz'
   };
   var CLOAK_PRESETS = {
     google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
@@ -869,6 +873,21 @@
       .aero-connect-page .fa-trash::before { content: "⌫"; }
       .aero-connect-page .fa-arrow-left::before { content: "←"; }
       .aero-connect-page .fa-user::before { content: "●"; }
+      @supports not (color: color-mix(in srgb, white 50%, black)) {
+        .aero-muted,
+        .aero-update-status,
+        .aero-changelog-item ul,
+        .aero-clock-heading p,
+        .aero-clock-date,
+        .aero-clock-control,
+        .aero-clock-back { color: rgba(255,255,255,.68); }
+        .aero-settings-card,
+        .aero-update-card,
+        .aero-clock-display,
+        .aero-connect-empty { background: rgba(7,18,38,.92); }
+        .aero-theme-button.active { box-shadow: 0 12px 34px rgba(44,127,252,.28); }
+        .aero-plus { background: rgba(44,127,252,.12) !important; }
+      }
       @media (max-width: 620px) {
         .aero-connect-page { min-height: calc(100vh - 78px); }
       }

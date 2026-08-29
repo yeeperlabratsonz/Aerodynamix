@@ -53,7 +53,7 @@ CONNECT_PROXY_TIMEOUT_SECONDS = max(
 )
 UPDATE_UPSTREAM_ORIGIN = os.environ.get(
     'UPDATE_UPSTREAM_ORIGIN',
-    'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20',
+    'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/docs',
 ).rstrip('/')
 
 app = Flask(__name__, static_folder='docs', static_url_path='')
@@ -70,44 +70,73 @@ NEXTBOT_PEER_TTL = 20
 NEXTBOT_GAME_MODES = {'hangout', 'nextbots', 'deathmatch'}
 
 
+def _download_standalone_file(filename):
+    return send_from_directory(
+        os.path.join(app.root_path, 'attached_assets'),
+        filename,
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
 @app.route('/download/aerodynamix-standalone.html')
 def download_standalone_export():
-    return send_from_directory(
-        os.path.abspath('attached_assets'),
-        'Aerodynamix-Standalone.html',
-        as_attachment=True,
-        download_name='Aerodynamix-Standalone.html',
-    )
+    return _download_standalone_file('Aerodynamix-Standalone.html')
 
 
 @app.route('/download/aerodynamix-dev-edition.html')
 def download_dev_export():
-    return send_from_directory(
-        os.path.abspath('attached_assets'),
-        'Aerodynamix-Dev-Edition.html',
-        as_attachment=True,
-        download_name='Aerodynamix-Dev-Edition.html',
-    )
+    return _download_standalone_file('Aerodynamix-Dev-Edition.html')
 
 
 @app.route('/download/aerodynamix-standalone-slim.html')
 def download_slim_standalone_export():
-    return send_from_directory(
-        os.path.abspath('attached_assets'),
-        'Aerodynamix-Standalone-Slim.html',
-        as_attachment=True,
-        download_name='Aerodynamix-Standalone-Slim.html',
-    )
+    return _download_standalone_file('Aerodynamix-Standalone-Slim.html')
 
 
 @app.route('/download/aerodynamix-dev-edition-slim.html')
 def download_slim_dev_export():
-    return send_from_directory(
-        os.path.abspath('attached_assets'),
-        'Aerodynamix-Dev-Edition-Slim.html',
-        as_attachment=True,
-        download_name='Aerodynamix-Dev-Edition-Slim.html',
-    )
+    return _download_standalone_file('Aerodynamix-Dev-Edition-Slim.html')
+
+
+@app.route('/download/aerodynamix-standalone.zip')
+def download_standalone_zip():
+    return _download_standalone_file('Aerodynamix-Standalone.zip')
+
+
+@app.route('/download/aerodynamix-dev-edition.zip')
+def download_dev_zip():
+    return _download_standalone_file('Aerodynamix-Dev-Edition.zip')
+
+
+@app.route('/download/aerodynamix-standalone-slim.zip')
+def download_slim_standalone_zip():
+    return _download_standalone_file('Aerodynamix-Standalone-Slim.zip')
+
+
+@app.route('/download/aerodynamix-dev-edition-slim.zip')
+def download_slim_dev_zip():
+    return _download_standalone_file('Aerodynamix-Dev-Edition-Slim.zip')
+
+
+@app.route('/download/aerodynamix-standalone.html.xz')
+def download_standalone_xz():
+    return _download_standalone_file('Aerodynamix-Standalone.html.xz')
+
+
+@app.route('/download/aerodynamix-dev-edition.html.xz')
+def download_dev_xz():
+    return _download_standalone_file('Aerodynamix-Dev-Edition.html.xz')
+
+
+@app.route('/download/aerodynamix-standalone-slim.html.xz')
+def download_slim_standalone_xz():
+    return _download_standalone_file('Aerodynamix-Standalone-Slim.html.xz')
+
+
+@app.route('/download/aerodynamix-dev-edition-slim.html.xz')
+def download_slim_dev_xz():
+    return _download_standalone_file('Aerodynamix-Dev-Edition-Slim.html.xz')
 
 
 @app.route('/api/nextbot/room/join', methods=['POST'])
