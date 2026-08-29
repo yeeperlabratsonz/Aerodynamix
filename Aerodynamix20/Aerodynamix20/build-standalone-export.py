@@ -336,6 +336,13 @@ def build_connect_assets() -> tuple[str, str]:
     # The standalone owns navigation. Keep only the real Connect page content.
     markup = body.group(1)
     markup = re.sub(r"\s*<nav>.*?</nav>", "", markup, count=1, flags=re.DOTALL | re.IGNORECASE)
+    disc_path = docs / "images" / "disc.png"
+    if disc_path.exists():
+        disc_uri = (
+            "data:image/png;base64,"
+            + base64.b64encode(disc_path.read_bytes()).decode("ascii")
+        )
+        markup = markup.replace("images/disc.png", disc_uri)
     styles = styles.replace("body.dc-embedded nav", ".aero-connect-page nav")
     styles = styles.replace("body.dc-embedded .dc-container", ".aero-connect-page .dc-container")
     styles += "\n.aero-connect-page nav { display: none !important; }\n"
@@ -379,6 +386,150 @@ def build_app_assets() -> tuple[str, str, str, str, str]:
     drawing_styles = (docs / "drawing.css").read_text(encoding="utf-8")
     drawing_client = (docs / "drawing.js").read_text(encoding="utf-8")
     return apps_markup, apps_styles + "\n", drawing_markup, drawing_styles + "\n", drawing_client
+
+
+def atomic_path(path: Path) -> Path:
+    return path.with_name(path.name + ".tmp")
+
+
+def write_atomic_text(path: Path, content: str) -> None:
+    temporary = atomic_path(path)
+    try:
+        temporary.write_text(content, encoding="utf-8")
+        os.replace(temporary, path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+
+
+def replace_bytes_stream(source: Path, destination: Path, replacements: dict[bytes, bytes]) -> None:
+    """Copy a large file while replacing tokens even when they cross chunks."""
+    longest = max(len(token) for token in replacements)
+    temporary = atomic_path(destination)
+    try:
+        with source.open("rb") as input_file, temporary.open("wb") as output_file:
+            carry = b""
+            while chunk := input_file.read(1024 * 1024):
+                data = carry + chunk
+                keep = max(0, longest - 1)
+                if keep and len(data) > keep:
+                    safe, carry = data[:-keep], data[-keep:]
+                else:
+                    safe, carry = b"", data
+                for old, new in replacements.items():
+                    safe = safe.replace(old, new)
+                output_file.write(safe)
+            for old, new in replacements.items():
+                carry = carry.replace(old, new)
+            output_file.write(carry)
+        os.replace(temporary, destination)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+
+
+def insert_before_last_marker(path: Path, marker: bytes, insertion: bytes) -> None:
+    """Insert into a generated file without loading the whole export."""
+    with path.open("rb+") as file:
+        file.seek(0, os.SEEK_END)
+        end = file.tell()
+        tail_size = min(end, 2 * 1024 * 1024)
+        file.seek(end - tail_size)
+        tail = file.read(tail_size)
+        marker_index = tail.rfind(marker)
+        if marker_index < 0:
+            raise RuntimeError(f"{path.name} has no final {marker!r} marker.")
+        absolute_index = end - tail_size + marker_index
+        file.seek(absolute_index)
+        remainder = file.read()
+        file.seek(absolute_index)
+        file.write(insertion)
+        file.write(remainder)
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as file:
+        while chunk := file.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def build_zip(html_path: Path, archive_path: Path) -> None:
+    temporary = atomic_path(archive_path)
+    try:
+        with zipfile.ZipFile(
+            temporary, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1
+        ) as archive:
+            archive.write(html_path, arcname=html_path.name)
+        os.replace(temporary, archive_path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+
+
+def build_xz(html_path: Path, archive_path: Path) -> None:
+    temporary = atomic_path(archive_path)
+    try:
+        with html_path.open("rb") as source, lzma.open(temporary, "wb", preset=1) as target:
+            shutil.copyfileobj(source, target, length=1024 * 1024)
+        os.replace(temporary, archive_path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+
+
+def validate_html(path: Path, edition: str) -> str:
+    marker = f"window.AERODYNAMIX_EDITION='{edition}'".encode("ascii")
+    data = path.read_bytes()
+    markers = re.findall(rb"window\.AERODYNAMIX_EDITION='([^']+)'", data)
+    if markers != [edition.encode("ascii")]:
+        raise RuntimeError(
+            f"{path.name} has invalid edition markers: "
+            + ", ".join(item.decode("ascii", "replace") for item in markers)
+        )
+    if data.count(marker) != 1 or b"</body>" not in data:
+        raise RuntimeError(f"{path.name} failed standalone HTML validation.")
+    return sha256_file(path)
+
+
+def validate_zip(path: Path, html_path: Path, expected_hash: str) -> None:
+    with zipfile.ZipFile(path) as archive:
+        if archive.namelist() != [html_path.name]:
+            raise RuntimeError(f"{path.name} contains unexpected members: {archive.namelist()}")
+        member = archive.getinfo(html_path.name)
+        if member.file_size != html_path.stat().st_size:
+            raise RuntimeError(f"{path.name} has a stale member size.")
+        digest = hashlib.sha256()
+        with archive.open(member) as file:
+            while chunk := file.read(1024 * 1024):
+                digest.update(chunk)
+        if digest.hexdigest() != expected_hash:
+            raise RuntimeError(f"{path.name} does not match {html_path.name}.")
+
+
+def validate_xz(path: Path, html_path: Path, expected_hash: str) -> None:
+    digest = hashlib.sha256()
+    size = 0
+    with lzma.open(path, "rb") as file:
+        while chunk := file.read(1024 * 1024):
+            digest.update(chunk)
+            size += len(chunk)
+    if size != html_path.stat().st_size or digest.hexdigest() != expected_hash:
+        raise RuntimeError(f"{path.name} does not match {html_path.name}.")
+
+
+def build_dev_html(normal_path: Path, dev_path: Path, dev_patch: str) -> None:
+    replace_bytes_stream(
+        normal_path,
+        dev_path,
+        {b"window.AERODYNAMIX_EDITION='normal'": b"window.AERODYNAMIX_EDITION='dev'"},
+    )
+    insert_before_last_marker(
+        dev_path,
+        b"</body>",
+        ("\n<script>\n" + dev_patch + "\n</script>\n").encode("utf-8"),
+    )
 
 
 def main() -> None:
