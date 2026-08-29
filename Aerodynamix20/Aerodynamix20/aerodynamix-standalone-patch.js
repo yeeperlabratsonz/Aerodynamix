@@ -1044,9 +1044,6 @@
     `;
     if (nav && nav.parentNode) nav.parentNode.insertBefore(clockView, nav.nextSibling);
     else document.body.prepend(clockView);
-    // The standalone keeps the compact status clock in the top bar, but does
-    // not expose the optional clock easter-egg page.
-    clockView.remove();
 
     var updatesNav = document.createElement('a');
     updatesNav.id = 'updatesNav';
@@ -2141,6 +2138,34 @@
     }, 4200);
   }
 
+  function getUpdateManifestUrl() {
+    if (location.protocol === 'file:') {
+      return new URL(UPDATE_MANIFEST_PATH, UPDATE_PROXY_ROOT).href;
+    }
+    if (
+      location.hostname.endsWith('github.io') &&
+      location.pathname.includes('/Aerodynamix/Aerodynamix20/Aerodynamix20/')
+    ) {
+      return new URL(UPDATE_MANIFEST_PATH, DEFAULT_PUBLIC_ROOT).href;
+    }
+    if (location.hostname === 'aerodynamix20.onrender.com') {
+      return new URL('/api/update-proxy/' + UPDATE_MANIFEST_PATH, location.origin).href;
+    }
+    return new URL(UPDATE_MANIFEST_PATH, new URL('./', location.href)).href;
+  }
+
+  function getUpdateDownloadUrl(path) {
+    if (!path) return '';
+    if (/^(https?:|blob:|data:)/i.test(path)) return path;
+    if (location.protocol === 'file:') {
+      return new URL(path.replace(/^\/+/, ''), UPDATE_PROXY_ROOT).href;
+    }
+    if (location.hostname === 'aerodynamix20.onrender.com' && /^download\//i.test(path.replace(/^\/+/, ''))) {
+      return new URL('/' + path.replace(/^\/+/, ''), location.origin).href;
+    }
+    return new URL(path, new URL('./', location.href)).href;
+  }
+
   async function checkForStandaloneUpdate() {
     var status = document.getElementById('aeroUpdateStatus');
     var button = document.getElementById('aeroUpdateButton');
@@ -2148,13 +2173,13 @@
     status.className = 'aero-update-status';
     status.textContent = 'Checking for updates…';
     try {
-      var response = await fetch(new URL(UPDATE_MANIFEST_PATH, UPDATE_PROXY_ROOT).href, { credentials: 'omit', cache: 'no-store' });
+      var response = await fetch(getUpdateManifestUrl(), { credentials: 'omit', cache: 'no-store' });
       if (!response.ok) throw new Error('Update server returned HTTP ' + response.status);
       var manifest = await response.json();
       renderChangelog(manifest.changelog);
       var latest = manifest.version || STANDALONE_VERSION;
       var downloadPath = window.AERODYNAMIX_EDITION === 'dev'
-        ? (manifest.dev_download || manifest.download)
+        ? manifest.dev_download
         : manifest.download;
       if (compareVersions(latest, STANDALONE_VERSION) > 0 && downloadPath) {
         button.disabled = false;
@@ -2167,7 +2192,9 @@
         button.disabled = false;
         button.textContent = 'Check again';
         status.className += ' ready';
-        status.textContent = 'You have the latest normal standalone version.';
+        status.textContent = 'You have the latest ' +
+          (window.AERODYNAMIX_EDITION === 'dev' ? 'Developer Edition' : 'standalone') +
+          ' version.';
       }
     } catch (error) {
       renderChangelog(FALLBACK_UPDATE_MANIFEST.changelog);
@@ -2213,7 +2240,7 @@
       if (updateButton.dataset.download) {
         showUpdateOverlay();
         var link = document.createElement('a');
-        link.href = new URL(updateButton.dataset.download, UPDATE_PROXY_ROOT).href;
+        link.href = getUpdateDownloadUrl(updateButton.dataset.download);
         link.download = '';
         document.body.appendChild(link);
         link.click();
@@ -2389,7 +2416,6 @@
       : 'games';
     showView(validView);
     checkForStandaloneUpdate();
-    if (validView === 'updates') checkForStandaloneUpdate();
     if (params.get('preview') === 'update') {
       window.setTimeout(showUpdateOverlay, 120);
     }

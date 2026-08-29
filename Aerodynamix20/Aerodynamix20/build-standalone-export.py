@@ -601,7 +601,7 @@ def main() -> None:
         + "<script type=\"text/plain\" id=\"aeroDrawingClient\">\n"
         + drawing_client
         + "\n</script>\n"
-        + "<script>window.AERODYNAMIX_EDITION='normal';</script>\n"
+        + f"<script>window.AERODYNAMIX_EDITION='normal';window.AERODYNAMIX_VARIANT='{VARIANT}';</script>\n"
         + "<script>\n"
         + patch
         + "\n</script>\n"
