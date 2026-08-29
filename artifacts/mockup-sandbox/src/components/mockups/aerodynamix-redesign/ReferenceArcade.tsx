@@ -86,7 +86,6 @@ const spotlight = [
   games[36],
 ];
 
-const categories = ["All", "Action", "Chill", "Classic", "Story"];
 const navItems = [
   { label: "Games", icon: Gamepad2 },
   { label: "Apps", icon: Grid2X2 },
@@ -97,7 +96,6 @@ const navItems = [
 
 export function ReferenceArcade() {
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("All");
   const [activeNav, setActiveNav] = useState("Games");
   const [menuOpen, setMenuOpen] = useState(false);
   const [savedOnly, setSavedOnly] = useState(false);
@@ -115,11 +113,10 @@ export function ReferenceArcade() {
         !normalized ||
         game.name.toLowerCase().includes(normalized) ||
         game.genre.toLowerCase().includes(normalized);
-      const matchesCategory = category === "All" || game.genre === category;
       const matchesSaved = !savedOnly || favorites.includes(game.name);
-      return matchesQuery && matchesCategory && matchesSaved;
+       return matchesQuery && matchesSaved;
     });
-  }, [category, favorites, query, savedOnly]);
+  }, [favorites, query, savedOnly]);
 
   const toggleFavorite = (name: string) => {
     setFavorites((current) =>
@@ -362,29 +359,6 @@ export function ReferenceArcade() {
           transition: color .2s ease, border-color .2s ease, background .2s ease;
         }
         .saved-toggle:hover, .saved-toggle:focus-visible, .saved-toggle.active { border-color: rgba(182,255,107,.58); color: var(--acid); background: var(--acid-dim); outline: none; }
-        .category-row {
-          display: flex;
-          justify-content: center;
-          gap: 4px;
-          width: 100%;
-          margin-top: 11px;
-          overflow-x: auto;
-          scrollbar-width: none;
-        }
-        .category-row::-webkit-scrollbar { display: none; }
-        .category-button {
-          flex: none;
-          padding: 4px 9px;
-          border: 0;
-          border-radius: 999px;
-          color: #70757b;
-          background: transparent;
-          cursor: pointer;
-          font-size: .62rem;
-          transition: color .18s ease, background .18s ease;
-        }
-        .category-button:hover, .category-button:focus-visible { color: #fff; outline: none; }
-        .category-button.active { color: #10140c; background: var(--acid); font-weight: 800; }
         .library {
           width: min(100%, 804px);
           margin: 13px auto 0;
@@ -633,20 +607,6 @@ export function ReferenceArcade() {
           saved {favorites.length}
         </button>
       </section>
-
-      <div className="category-row" aria-label="Game categories">
-        {categories.map((item) => (
-          <button
-            className={`category-button ${category === item ? "active" : ""}`}
-            type="button"
-            key={item}
-            onClick={() => setCategory(item)}
-            aria-pressed={category === item}
-          >
-            {item}
-          </button>
-        ))}
-      </div>
 
       <section className="library" aria-labelledby="library-title">
         <div className="library-meta">
