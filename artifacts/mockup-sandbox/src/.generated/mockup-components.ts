@@ -5,5 +5,9 @@ export const modules: ModuleMap = {
   "./components/mockups/aerodynamix-redesign/CinematicArcade.tsx": () => import("../components/mockups/aerodynamix-redesign/CinematicArcade.tsx"),
   "./components/mockups/aerodynamix-redesign/Current.tsx": () => import("../components/mockups/aerodynamix-redesign/Current.tsx"),
   "./components/mockups/aerodynamix-redesign/GlassPortal.tsx": () => import("../components/mockups/aerodynamix-redesign/GlassPortal.tsx"),
-  "./components/mockups/aerodynamix-redesign/PlayStudio.tsx": () => import("../components/mockups/aerodynamix-redesign/PlayStudio.tsx")
+  "./components/mockups/aerodynamix-redesign/NeonNetwork.tsx": () => import("../components/mockups/aerodynamix-redesign/NeonNetwork.tsx"),
+  "./components/mockups/aerodynamix-redesign/OpsConsole.tsx": () => import("../components/mockups/aerodynamix-redesign/OpsConsole.tsx"),
+  "./components/mockups/aerodynamix-redesign/PlayStudio.tsx": () => import("../components/mockups/aerodynamix-redesign/PlayStudio.tsx"),
+  "./components/mockups/aerodynamix-redesign/SystemGrid.tsx": () => import("../components/mockups/aerodynamix-redesign/SystemGrid.tsx"),
+  "./components/mockups/aerodynamix-redesign/TerminalDeck.tsx": () => import("../components/mockups/aerodynamix-redesign/TerminalDeck.tsx")
 };
