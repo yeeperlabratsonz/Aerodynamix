@@ -1308,7 +1308,9 @@
       ) {
         return DEFAULT_PUBLIC_ROOT;
       }
-      return location.origin.replace(/\/?$/, '/');
+      // A hosted copy may live below a repository or application subdirectory.
+      // Resolve sibling assets from the page directory, not the host root.
+      return new URL('./', location.href).href;
     }
     return (settings.sourceOrigin || DEFAULT_PUBLIC_ROOT).replace(/\/?$/, '/');
   }
@@ -1398,10 +1400,18 @@
     var documentCopy = parser.parseFromString(html, 'text/html');
     var adPattern = /adservice|adsbygoogle|googlesyndication|doubleclick|popunder|popads|adsterra|propellerads|juicyads|exoclick|clickadu|monetag|hilltopads|trafficjunky|adroll|advertising|(^|[-_])ads?([._-]|$)/i;
 
-    documentCopy.querySelectorAll('script[src], iframe, object, embed, meta[http-equiv]').forEach(function (element) {
+    documentCopy.querySelectorAll('script[src], meta[http-equiv]').forEach(function (element) {
       var source = element.getAttribute('src') || element.getAttribute('data') || '';
       var metaRefresh = element.tagName === 'META' && /refresh/i.test(element.getAttribute('http-equiv') || '');
       if (element.tagName !== 'SCRIPT' || adPattern.test(source) || metaRefresh) element.remove();
+    });
+    // Legacy games often use Ruffle-compatible object/embed markup. Removing
+    // every embedded element made otherwise safe games render as blank frames.
+    documentCopy.querySelectorAll('iframe, object, embed').forEach(function (element) {
+      var source = element.getAttribute('src') || element.getAttribute('data') || '';
+      if (adPattern.test(source) || /^(javascript|data:text\/html)/i.test(source)) {
+        element.remove();
+      }
     });
     documentCopy.querySelectorAll('[id], [class], [style]').forEach(function (element) {
       var label = [element.id, element.className, element.getAttribute('style') || ''].join(' ');
@@ -1418,7 +1428,11 @@
     guard.textContent = '(function(){window.open=function(){return null;};try{Object.defineProperty(window,"opener",{value:null,configurable:false});}catch(e){}})();';
     documentCopy.head.insertBefore(guard, documentCopy.head.firstChild);
     var base = documentCopy.createElement('base');
-    base.href = gameUrl;
+    try {
+      base.href = new URL('./', gameUrl).href;
+    } catch (error) {
+      base.href = gameUrl;
+    }
     documentCopy.head.insertBefore(base, documentCopy.head.firstChild);
     return '<!doctype html>\n' + documentCopy.documentElement.outerHTML;
   }
@@ -1436,10 +1450,20 @@
     }
   }
 
-  function patchUgsGameHtml(html) {
+  function patchUgsGameHtml(html, gameUrl) {
     var movieMatch = html.match(/<param[^>]+name=["']movie["'][^>]+value=["']([^"']+)["']/i);
     if (!movieMatch) {
       movieMatch = html.match(/<embed[^>]+src=["']([^"']+\.swf(?:[?#][^"']*)?)["']/i);
+    }
+    var baseUrl = gameUrl;
+    try {
+      baseUrl = new URL('./', gameUrl).href;
+    } catch (error) {}
+    var baseTag = '<base href="' + String(baseUrl).replace(/"/g, '&quot;') + '">';
+    if (/<head\b[^>]*>/i.test(html)) {
+      html = html.replace(/<head\b[^>]*>/i, function (tag) { return tag + baseTag; });
+    } else {
+      html = '<head>' + baseTag + '</head>' + html;
     }
     if (!movieMatch) return html;
     var movieUrl = JSON.stringify(movieMatch[1]);
@@ -1454,7 +1478,7 @@
       var response = await fetch(url, { credentials: 'omit' });
       if (!response.ok) throw new Error('UGS game could not be loaded');
       var html = await response.text();
-      frame.srcdoc = patchUgsGameHtml(html);
+       frame.srcdoc = patchUgsGameHtml(html, url);
     } catch (error) {
       // Keep the direct URL fallback for hosts that block cross-origin reads.
       frame.removeAttribute('srcdoc');
@@ -1623,12 +1647,17 @@
 
   function openDatabase() {
     return new Promise(function (resolve, reject) {
-      var request = indexedDB.open(DB_NAME, 1);
+      if (!window.indexedDB) {
+        reject(new Error('IndexedDB is unavailable'));
+        return;
+      }
+      var request = indexedDB.open(DB_NAME, 2);
       request.onupgradeneeded = function () {
         if (!request.result.objectStoreNames.contains(DB_STORE)) {
           request.result.createObjectStore(DB_STORE, { keyPath: 'id', autoIncrement: true });
         }
       };
+      request.onblocked = function () { reject(new Error('Custom game storage is blocked')); };
       request.onsuccess = function () { resolve(request.result); };
       request.onerror = function () { reject(request.error); };
     });
@@ -1662,24 +1691,54 @@
       var database = await openDatabase();
       var request = database.transaction(DB_STORE, 'readonly').objectStore(DB_STORE).getAll();
       var records = await requestResult(request);
+      database.close();
       if (loadVersion !== libraryLoadVersion) return;
       revokeObjectUrls();
-      customGames = records.map(function (record) {
-        var gameUrl = URL.createObjectURL(record.html);
-        objectUrls.push(gameUrl);
-        var thumbUrl = '';
-        if (record.thumbnail) {
-          thumbUrl = URL.createObjectURL(record.thumbnail);
-          objectUrls.push(thumbUrl);
+      var invalidIds = [];
+      customGames = records.reduce(function (games, record) {
+        if (!record || record.id == null || !record.title || !record.html) {
+          if (record && record.id != null) invalidIds.push(record.id);
+          return games;
         }
-        return {
-          id: record.id,
-          title: record.title,
-          url: gameUrl,
-          thumb: thumbUrl,
-          custom: true
-        };
-      });
+        try {
+          var htmlBlob = record.html instanceof Blob
+            ? record.html
+            : typeof record.html === 'string'
+              ? new Blob([record.html], { type: 'text/html' })
+              : null;
+          if (!htmlBlob) throw new Error('Invalid game payload');
+          var gameUrl = URL.createObjectURL(htmlBlob);
+          objectUrls.push(gameUrl);
+          var thumbUrl = '';
+          if (record.thumbnail instanceof Blob) {
+            thumbUrl = URL.createObjectURL(record.thumbnail);
+            objectUrls.push(thumbUrl);
+          }
+          games.push({
+            id: record.id,
+            title: String(record.title).slice(0, 80),
+            url: gameUrl,
+            thumb: thumbUrl,
+            custom: true
+          });
+        } catch (error) {
+          invalidIds.push(record.id);
+        }
+        return games;
+      }, []);
+      if (invalidIds.length) {
+        try {
+          var cleanupDatabase = await openDatabase();
+          var cleanupTransaction = cleanupDatabase.transaction(DB_STORE, 'readwrite');
+          invalidIds.forEach(function (id) { cleanupTransaction.objectStore(DB_STORE).delete(id); });
+          await transactionComplete(cleanupTransaction);
+          cleanupDatabase.close();
+        } catch (error) {
+          // A corrupt record is already excluded from this session. Cleanup can
+          // be retried on the next load if the browser is temporarily locked.
+        }
+      }
+      if (loadVersion !== libraryLoadVersion) return;
       drawLibrary();
     } catch (error) {
       toast('Custom game storage is unavailable in this browser.');
@@ -1692,6 +1751,7 @@
       var transaction = database.transaction(DB_STORE, 'readwrite');
       transaction.objectStore(DB_STORE).add(record);
       await transactionComplete(transaction);
+      database.close();
       await loadCustomGames();
       toast('Game added to your library.');
     } catch (error) {
@@ -1705,6 +1765,7 @@
       var transaction = database.transaction(DB_STORE, 'readwrite');
       transaction.objectStore(DB_STORE).delete(id);
       await transactionComplete(transaction);
+      database.close();
       await loadCustomGames();
       toast('Game removed.');
     } catch (error) {
