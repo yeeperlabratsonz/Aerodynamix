@@ -1555,6 +1555,10 @@
     } else {
       frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock');
     }
+    frame.setAttribute(
+      'allow',
+      'gamepad *; fullscreen *; autoplay *; pointer-lock *'
+    );
     if (hasBundledContent && /^data:text\/html/i.test(url)) {
       frame.removeAttribute('src');
       frame.srcdoc = '';
