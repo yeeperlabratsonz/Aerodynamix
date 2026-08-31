@@ -71,9 +71,17 @@ NEXTBOT_GAME_MODES = {'hangout', 'nextbots', 'deathmatch'}
 
 
 def _download_standalone_file(filename):
+    content_type = (
+        'application/x-xz'
+        if filename.endswith('.xz')
+        else 'application/zip'
+        if filename.endswith('.zip')
+        else 'text/html; charset=utf-8'
+    )
     return send_from_directory(
         os.path.join(app.root_path, 'attached_assets'),
         filename,
+        mimetype=content_type,
         as_attachment=True,
         download_name=filename,
     )
