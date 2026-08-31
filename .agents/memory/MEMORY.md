@@ -10,4 +10,3 @@
 - [Large download delivery](large-download-delivery.md) — attach oversized standalone exports as compressed XZ files and retain direct uncompressed download routes.
 - [Slim UGS hosting](ugs-slim-hosting.md) — prefer verified UGS entries and expand their Flash `$1` movie placeholder at runtime.
 - [Ruffle self-hosted bundles](ruffle-self-hosted-bundles.md) — code-split Ruffle builds require their matching core chunks and WASM assets at the loader’s public path.
-- [Branded self-contained browser variants](aerodynamix-gust-skin.md) — first-paint overrides must be injected before the embedded engine’s own startup defaults.
