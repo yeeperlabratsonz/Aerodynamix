@@ -329,14 +329,14 @@ content_type = "application/octet-stream"
 id = "h1GSRyxjQErq9eMYxsfZE"
 uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-Slim.html.xz"
 type = "unspecified"
-title = "Aerodynamix Standalone Slim — Updated"
-description = "Latest compressed Slim HTML export with the repaired HTML5 and Flash game loading."
+title = "Aerodynamix Standalone — UGS CDN version"
+description = "Compressed standalone Aerodynamix file with games connected to the UGS jsDelivr library. Decompress the XZ file before opening the HTML."
 logical_id = "94e3a9ed-c9cb-475b-92f6-d63be87b7fd4"
-content_hash = "sha256:aedc5a8d93d23def59a147df9f38853a340884ca3e56af429c606c8d16e7342c"
-size = 93974048
-mtime_ms = 1787722251545
-storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/94e3a9ed-c9cb-475b-92f6-d63be87b7fd4/5dad8e23-ef00-49f7-872e-ef7a931eb165"
-storage_version_token = "1787722670854574"
+content_hash = "sha256:a7416aea4cc561f43c6f6efed5be868bbbb9034dfc0c835dfb48e9f843634231"
+size = 104439192
+mtime_ms = 1788141064284
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/94e3a9ed-c9cb-475b-92f6-d63be87b7fd4/8f208366-70dd-45fe-952d-6df895f4bc3b"
+storage_version_token = "1788144379576936"
 content_type = "application/octet-stream"
 
 [[outputs]]
@@ -393,4 +393,18 @@ size = 1444
 mtime_ms = 1788144127828
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/0ad9c179-f2b9-4d63-9148-cd52a27178bc/9ab64164-52ce-4ae9-a486-b7ec49dec6e2"
 storage_version_token = "1788144150644914"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "Cn7P0w6HG42HiyYVDvWqe"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-Slim.zip"
+type = "unspecified"
+title = "Aerodynamix Standalone — ZIP version"
+description = "ZIP containing the standalone HTML file with games connected to the UGS jsDelivr library."
+logical_id = "6f47be69-bdee-4421-9c71-b9643e600475"
+content_hash = "sha256:8070d7612547945ef0a61f8d4c74da8ec8483cfbfd1ef9042478dce1a37c2966"
+size = 104510695
+mtime_ms = 1788141134612
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/6f47be69-bdee-4421-9c71-b9643e600475/7d421a49-ab87-4412-ac4e-0de51a5a516d"
+storage_version_token = "1788144381546822"
 content_type = "application/octet-stream"
