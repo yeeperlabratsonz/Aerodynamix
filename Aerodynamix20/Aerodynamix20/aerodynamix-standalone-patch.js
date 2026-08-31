@@ -1489,11 +1489,21 @@
   }
 
   async function openUgsGame(url, frame) {
+    // Most UGS wrappers are complete pages that expect to run at their
+    // original URL. Loading them through srcdoc changes location, storage,
+    // and parent-frame behavior, which breaks GameMaker/OpenFL/EJS games.
+    // Keep direct navigation as the default and only fetch wrappers that
+    // need the Flash movie placeholder repaired.
+    if (!/\/clmeatboyflash\.html(?:[?#]|$)/i.test(url)) {
+      frame.removeAttribute('srcdoc');
+      frame.src = url;
+      return;
+    }
     try {
       var response = await fetch(url, { credentials: 'omit' });
       if (!response.ok) throw new Error('UGS game could not be loaded');
       var html = await response.text();
-       frame.srcdoc = patchUgsGameHtml(html, url);
+      frame.srcdoc = patchUgsGameHtml(html, url);
     } catch (error) {
       // Keep the direct URL fallback for hosts that block cross-origin reads.
       frame.removeAttribute('srcdoc');
