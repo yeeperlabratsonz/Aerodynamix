@@ -5,6 +5,7 @@
 - [PostgreSQL startup migrations](postgres-startup-migrations.md) — only run schema-altering type migrations when introspection shows they are needed, avoiding concurrent-start deadlocks.
 - [Lite export streaming patches](lite-export-streaming-patches.md) — inject hosted Lite patches early and use compact game data, not the giant inline manifest.
 - [Standalone export enhancement](standalone-export-enhancement.md) — keep giant exports immutable; inject a small layer and inline it only when packaging.
+- [Standalone auto-updates](standalone-auto-updates.md) — local HTML needs an early cached-document bootstrap plus a CORS-enabled direct manifest endpoint.
 - [Standalone Connect browser constraints](standalone-connect-browser-constraints.md) — rewrite remote media paths in file exports; camera and microphone require an HTTPS context.
 - [Hosted standalone game root](hosted-standalone-game-root.md) — Slim game URLs must target the deployed repository’s published docs path.
 - [Large download delivery](large-download-delivery.md) — attach oversized standalone exports as compressed XZ files and retain direct uncompressed download routes.
