@@ -1218,6 +1218,12 @@ def index():
     return send_from_directory('docs', 'index.html')
 
 
+@app.route('/gust/')
+@app.route('/gust.html')
+def gust_browser():
+    return send_from_directory('docs', 'gust.html')
+
+
 @app.route('/attached_assets/<path:filename>')
 def attached_game_asset(filename):
     return send_from_directory('attached_assets', filename)

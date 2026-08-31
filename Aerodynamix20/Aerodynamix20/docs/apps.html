@@ -23,6 +23,8 @@
         .app-card:hover { transform:translateY(-5px); border-color:rgba(125,184,255,.65); box-shadow:0 22px 48px rgba(0,0,0,.4),0 0 28px rgba(44,127,252,.12); }
         .app-card-art { display:grid; place-items:center; height:175px; background:linear-gradient(135deg,#173f87,#6b37a8 60%,#ef7b9a); }
         .app-card-art i { color:#fff; font-size:4.5rem; filter:drop-shadow(0 7px 8px rgba(0,0,0,.3)); transform:rotate(-8deg); }
+        .app-card-art.gust-art { background:linear-gradient(145deg,#0d0f12,#1d2838 52%,#173f87); }
+        .app-card-art.gust-art i { color:#9de5ff; transform:none; }
         .app-card-body { display:flex; flex:1; flex-direction:column; gap:.65rem; padding:1.1rem 1.2rem 1.2rem; }
         .app-card-body h2 { margin:0; font-size:1.05rem; }
         .app-card-body p { margin:0; color:rgba(255,255,255,.58); font-size:.78rem; line-height:1.5; }
@@ -63,6 +65,14 @@
                     <h2>Canvas</h2>
                     <p>Draw on a blank canvas or load an image from your device and sketch over it.</p>
                     <span class="app-card-launch">Open app <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </a>
+            <a class="app-card" href="gust/" data-app-name="gust browser web search tabs proxy">
+                <div class="app-card-art gust-art"><i class="fas fa-wind"></i></div>
+                <div class="app-card-body">
+                    <h2>GUST Browser</h2>
+                    <p>Browse the web in a tabbed, privacy-focused browser with search, settings, extensions, and proxy support.</p>
+                    <span class="app-card-launch">Open browser <i class="fas fa-arrow-right"></i></span>
                 </div>
             </a>
         </div>
