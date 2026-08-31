@@ -1221,7 +1221,8 @@ def index():
 @app.route('/gust/')
 @app.route('/gust.html')
 def gust_browser():
-    return send_from_directory('docs', 'gust.html')
+    # Keep old bookmarks useful without exposing a second browser product.
+    return redirect('/aerodynamix-browser/', code=302)
 
 
 _AERODYNAMIX_BROWSER_HTML = None
