@@ -352,3 +352,45 @@ mtime_ms = 1787722274517
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/15c7ad57-c2af-430a-bd48-e36a2dbee639/6d92f698-82a5-40b7-86f5-c907ece595b9"
 storage_version_token = "1787722525602146"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "ygLtq9b55X6somBOlpD8h"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/UGS-Files-CDN.html"
+type = "text"
+title = "UGS Files — minimized CDN version"
+description = "Openable minimized HTML launcher. It keeps the same jsDelivr game catalogue, search script, and game loader as the uploaded file, so selected games require internet access."
+logical_id = "a0f0bc6c-d159-4ee2-91a0-7ce734c38b1b"
+content_hash = "sha256:e4093856cbbc824f322d98e74cc0f5cba136252f0beec0ab6265231ba2de7d44"
+size = 3934
+mtime_ms = 1788144127514
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/a0f0bc6c-d159-4ee2-91a0-7ce734c38b1b/29d50caf-2fd6-4ade-b6f2-08865eed600a"
+storage_version_token = "1788144147245740"
+content_type = "text/html"
+
+[[outputs]]
+id = "YfXIxjBwPjL7f_XgHR2Q5"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/UGS-Files-CDN.zip"
+type = "unspecified"
+title = "UGS Files — ZIP download"
+description = "Compressed ZIP containing the minimized CDN-backed HTML launcher."
+logical_id = "1f3c4720-38f5-4968-9c24-eafe1fece374"
+content_hash = "sha256:bf7d68293de6c8c5e664d0258a99a043db4e24cb4439b692bef992c043fe63f5"
+size = 1517
+mtime_ms = 1788144127835
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/1f3c4720-38f5-4968-9c24-eafe1fece374/9c68f277-c0d2-4739-bd73-1e1f0c1e903e"
+storage_version_token = "1788144148999248"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "zwGV2Xrplxqu2WDeE9807"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/UGS-Files-CDN.html.xz"
+type = "unspecified"
+title = "UGS Files — XZ download"
+description = "Smallest compressed archive option for the minimized CDN-backed HTML launcher. Decompress before opening."
+logical_id = "0ad9c179-f2b9-4d63-9148-cd52a27178bc"
+content_hash = "sha256:12f8acad89209228bae8bfd4e05500e8cd66b60d6ff7eeadb2e75332847ad28b"
+size = 1444
+mtime_ms = 1788144127828
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/0ad9c179-f2b9-4d63-9148-cd52a27178bc/9ab64164-52ce-4ae9-a486-b7ec49dec6e2"
+storage_version_token = "1788144150644914"
+content_type = "application/octet-stream"
