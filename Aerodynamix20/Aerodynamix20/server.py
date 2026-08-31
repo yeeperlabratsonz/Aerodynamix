@@ -162,6 +162,35 @@ def standalone_updates_manifest():
     return response
 
 
+@app.route('/api/music-catalog.json')
+def music_catalog_manifest():
+    response = send_from_directory(
+        os.path.join(app.root_path, 'docs'),
+        'music-catalog.json',
+        mimetype='application/json',
+        max_age=0,
+    )
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Cache-Control'] = 'no-store, max-age=0'
+    return response
+
+
+@app.route('/api/music/<path:filename>')
+def music_asset(filename):
+    extension = os.path.splitext(filename)[1].lower()
+    if extension not in {'.mp3', '.m4a', '.wav', '.ogg', '.flac', '.webp', '.jpg', '.jpeg', '.png'}:
+        abort(404)
+    response = send_from_directory(
+        os.path.join(app.root_path, 'attached_assets'),
+        filename,
+        as_attachment=False,
+        max_age=86400,
+    )
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Cache-Control'] = 'public, max-age=86400'
+    return response
+
+
 @app.route('/api/nextbot/room/join', methods=['POST'])
 def nextbot_room_join():
     data = request.get_json(silent=True) or {}

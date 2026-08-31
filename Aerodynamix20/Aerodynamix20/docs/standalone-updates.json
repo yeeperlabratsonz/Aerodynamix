@@ -1,12 +1,12 @@
 {
-  "version": "1.2",
+  "version": "1.3",
   "changelog": [
     {
-      "version": "Aerodynamix Ver 1.2",
+      "version": "Aerodynamix Ver 1.3",
       "changes": [
-        "Added Nubby’s Number Factory to the game catalogue.",
-        "Added its thumbnail and bundled game file to the standalone release.",
-        "Standalone files now check for and apply newer releases automatically."
+        "Added a Spotify-like Aerodynamix Music tab with album browsing and search.",
+        "Music downloads automatically into browser storage for offline playback.",
+        "Added liked songs, shuffle, progress, volume, and background library caching."
       ]
     }
   ],

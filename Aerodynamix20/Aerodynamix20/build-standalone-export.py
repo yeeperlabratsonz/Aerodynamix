@@ -600,7 +600,7 @@ def main() -> None:
     patch = (PROJECT_ROOT / "aerodynamix-standalone-patch.js").read_text(encoding="utf-8")
     dev_patch = (PROJECT_ROOT / "aerodynamix-dev-edition-patch.js").read_text(encoding="utf-8")
     updater = (PROJECT_ROOT / "aerodynamix-standalone-updater.js").read_text(encoding="utf-8")
-    updater = updater.replace("__AERODYNAMIX_VERSION__", "1.2")
+    updater = updater.replace("__AERODYNAMIX_VERSION__", "1.3")
     updater = updater.replace("__AERODYNAMIX_VARIANT__", VARIANT)
     edition_marker = (
         f"<script>window.AERODYNAMIX_EDITION='normal';"

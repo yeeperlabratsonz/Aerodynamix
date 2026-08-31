@@ -11,16 +11,16 @@
   var DB_STORE = 'games';
   var DEFAULT_PUBLIC_ROOT = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/docs/';
   var UPDATE_PROXY_ROOT = 'https://aerodynamix20.onrender.com/api/update-proxy/';
-  var STANDALONE_VERSION = '1.2';
+  var STANDALONE_VERSION = '1.3';
   var UPDATE_MANIFEST_PATH = 'standalone-updates.json';
   var FALLBACK_UPDATE_MANIFEST = {
-    version: '1.1',
+    version: '1.3',
     changelog: [{
-      version: 'Aerodynamix Ver 1.1',
+      version: 'Aerodynamix Ver 1.3',
       changes: [
-        'Added Nubby’s Number Factory to the game catalogue.',
-        'Added its thumbnail and bundled game file to the standalone release.',
-        'Standalone files now check for and apply newer releases automatically.'
+        'Added a Spotify-like Aerodynamix Music tab with album browsing and search.',
+        'Music downloads automatically into browser storage for offline playback.',
+        'Added liked songs, shuffle, progress, volume, and background library caching.'
       ]
     }],
     download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html',
@@ -49,6 +49,22 @@
   var effectTimer = null;
   var effectLayer = null;
   var clockTimer = null;
+  var MUSIC_ORIGIN = 'https://aerodynamix20.onrender.com';
+  var MUSIC_DB_NAME = 'aerodynamixStandaloneMusic';
+  var MUSIC_DB_STORE = 'assets';
+  var musicDbPromise = null;
+  var musicCatalog = [];
+  var musicCurrentId = '';
+  var musicQueue = [];
+  var musicQueueIndex = -1;
+  var musicAudio = null;
+  var musicObjectUrls = {};
+  var musicSelectedAlbum = 'All albums';
+  var musicSearch = '';
+  var musicInitialized = false;
+  var musicPrefetchStarted = false;
+  var musicLikedOnly = false;
+  var musicPlayToken = 0;
 
   var themes = {
     black: {
@@ -780,6 +796,101 @@
       .aero-changelog-item strong { display: block; margin-bottom: 6px; }
       .aero-changelog-item ul { margin: 0; padding-left: 20px; color: color-mix(in srgb, var(--standalone-text) 72%, transparent); line-height: 1.55; }
       @media (max-width: 760px) { .aero-updates-grid { grid-template-columns: 1fr; } #aeroUpdatesView { padding-left: 14px; padding-right: 14px; } }
+      #aeroMusicView {
+        display: none;
+        min-height: 100vh;
+        padding: clamp(105px, 10vw, 145px) 20px 150px;
+        box-sizing: border-box;
+        color: var(--standalone-text);
+      }
+      #aeroMusicView.active { display: block; animation: aeroViewIn .24s ease both; }
+      .aero-music-shell { width: min(1220px, 100%); margin: 0 auto; }
+      .aero-music-heading { margin-bottom: 22px; }
+      .aero-music-heading h2 { margin: 7px 0 8px; font-size: clamp(2rem, 5vw, 4rem); letter-spacing: -.055em; }
+      .aero-music-heading p { max-width: 720px; }
+      .aero-music-toolbar {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+      .aero-music-search {
+        flex: 1 1 260px;
+        min-width: 0;
+        padding: 12px 14px;
+        border: 1px solid var(--standalone-line);
+        border-radius: 12px;
+        background: rgba(0,0,0,.24);
+        color: inherit;
+        font: inherit;
+        outline: 0;
+      }
+      .aero-music-search:focus { border-color: var(--standalone-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--standalone-accent) 18%, transparent); }
+      .aero-music-status { flex: 1 1 100%; min-height: 1.4em; font-size: .78rem; }
+      .aero-music-layout { display: grid; grid-template-columns: 245px minmax(0, 1fr); gap: 18px; align-items: start; }
+      .aero-music-panel { border: 1px solid var(--standalone-line); border-radius: 22px; background: var(--standalone-panel); box-shadow: 0 24px 70px rgba(0,0,0,.3); overflow: hidden; }
+      .aero-music-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 17px 18px; border-bottom: 1px solid var(--standalone-line); }
+      .aero-music-panel-head h3 { margin: 0; font-size: .92rem; letter-spacing: .05em; text-transform: uppercase; }
+      .aero-music-albums { display: grid; gap: 3px; padding: 9px; }
+      .aero-music-album {
+        display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px; border: 0; border-radius: 11px;
+        background: transparent; color: inherit; text-align: left; cursor: pointer; font: inherit;
+      }
+      .aero-music-album:hover, .aero-music-album.active { background: color-mix(in srgb, var(--standalone-accent) 17%, transparent); }
+      .aero-music-album-art { width: 43px; height: 43px; flex: 0 0 43px; border-radius: 9px; object-fit: cover; background: linear-gradient(135deg, var(--standalone-accent), #15284d); }
+      .aero-music-album-copy { min-width: 0; }
+      .aero-music-album-title, .aero-music-album-meta { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .aero-music-album-title { font-size: .78rem; font-weight: 800; }
+      .aero-music-album-meta { margin-top: 3px; color: color-mix(in srgb, var(--standalone-text) 54%, transparent); font-size: .68rem; }
+      .aero-music-tracks { min-height: 330px; }
+      .aero-music-track {
+        display: grid; grid-template-columns: 34px minmax(0, 1fr) auto auto; align-items: center; gap: 12px;
+        width: 100%; padding: 11px 17px; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--standalone-line) 55%, transparent);
+        background: transparent; color: inherit; text-align: left; cursor: pointer; font: inherit;
+      }
+      .aero-music-track:hover, .aero-music-track.active { background: color-mix(in srgb, var(--standalone-accent) 14%, transparent); }
+      .aero-music-track-number { color: color-mix(in srgb, var(--standalone-text) 44%, transparent); font-size: .72rem; text-align: center; }
+      .aero-music-track-copy { min-width: 0; }
+      .aero-music-track-title, .aero-music-track-meta { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .aero-music-track-title { font-size: .82rem; font-weight: 800; }
+      .aero-music-track-meta { margin-top: 3px; color: color-mix(in srgb, var(--standalone-text) 54%, transparent); font-size: .7rem; }
+      .aero-music-track-state { color: var(--standalone-accent); font-size: .68rem; }
+      .aero-music-like { border: 0; background: transparent; color: color-mix(in srgb, var(--standalone-text) 52%, transparent); cursor: pointer; font-size: 1rem; }
+      .aero-music-like.liked { color: #ff78b7; }
+      .aero-music-empty { display: grid; place-items: center; min-height: 290px; padding: 30px; color: color-mix(in srgb, var(--standalone-text) 60%, transparent); text-align: center; }
+      .aero-music-player {
+        position: fixed; right: 18px; bottom: 18px; left: 18px; z-index: 10010; display: grid;
+        grid-template-columns: auto minmax(130px, 1fr) minmax(210px, 1.6fr) auto; align-items: center; gap: 15px;
+        width: min(1050px, calc(100% - 36px)); margin: auto; padding: 12px 15px; border: 1px solid color-mix(in srgb, var(--standalone-accent) 42%, transparent);
+        border-radius: 18px; background: rgba(4,11,26,.94); color: var(--standalone-text); box-shadow: 0 18px 55px rgba(0,0,0,.52); backdrop-filter: blur(18px);
+      }
+      .aero-music-player[hidden] { display: none; }
+      .aero-music-now-art { width: 49px; height: 49px; border-radius: 11px; object-fit: cover; background: linear-gradient(135deg, var(--standalone-accent), #15284d); }
+      .aero-music-now-copy { min-width: 0; }
+      .aero-music-now-title, .aero-music-now-meta { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .aero-music-now-title { font-size: .8rem; font-weight: 900; }
+      .aero-music-now-meta { margin-top: 3px; color: rgba(255,255,255,.58); font-size: .68rem; }
+      .aero-music-controls { display: flex; align-items: center; justify-content: center; gap: 7px; }
+      .aero-music-control { width: 33px; height: 33px; border: 1px solid var(--standalone-line); border-radius: 50%; background: rgba(255,255,255,.07); color: inherit; cursor: pointer; }
+      .aero-music-control.primary { width: 41px; height: 41px; background: var(--standalone-accent); color: #04101f; font-weight: 900; }
+      .aero-music-progress { display: grid; grid-template-columns: 42px minmax(0, 1fr) 42px; align-items: center; gap: 8px; color: rgba(255,255,255,.58); font-size: .65rem; }
+      .aero-music-progress input, .aero-music-volume { width: 100%; accent-color: var(--standalone-accent); cursor: pointer; }
+      .aero-music-volume { max-width: 95px; }
+      @media (max-width: 820px) {
+        .aero-music-layout { grid-template-columns: 1fr; }
+        .aero-music-albums { display: flex; overflow-x: auto; }
+        .aero-music-album { min-width: 190px; }
+        .aero-music-player { grid-template-columns: auto 1fr; }
+        .aero-music-controls { grid-column: 1 / -1; grid-row: 2; }
+        .aero-music-progress { grid-column: 1 / -1; grid-row: 3; }
+        .aero-music-volume { display: none; }
+      }
+      @media (max-width: 480px) {
+        #aeroMusicView { padding-left: 12px; padding-right: 12px; }
+        .aero-music-track { grid-template-columns: 25px minmax(0, 1fr) auto; gap: 8px; padding-inline: 11px; }
+        .aero-music-track-state { display: none; }
+      }
       .aero-clock-shell { max-width: 1180px; margin: 0 auto; }
       .aero-clock-heading { text-align: center; }
       .aero-clock-heading h2 { margin: 0 0 .45rem; color: var(--standalone-text); font-size: clamp(1.8rem, 4vw, 3.5rem); letter-spacing: .08em; text-transform: uppercase; }
@@ -904,6 +1015,11 @@
   function createMarkup() {
     var nav = document.querySelector('.real-nav');
     var navLinks = nav && nav.querySelector('.nav-links');
+    var existingMediaNav = document.getElementById('mediaNav');
+    if (existingMediaNav) {
+      existingMediaNav.textContent = 'Music';
+      existingMediaNav.title = 'Aerodynamix Music';
+    }
     if (navLinks && !document.getElementById('connectNav')) {
       var connectNav = document.createElement('a');
       connectNav.id = 'connectNav';
@@ -998,6 +1114,48 @@
     appsView.innerHTML = appsTemplate ? appsTemplate.innerHTML : '<main class="apps-page"><h1 class="apps-title">Apps</h1></main>';
     if (nav && nav.parentNode) nav.parentNode.insertBefore(appsView, nav.nextSibling);
     else document.body.prepend(appsView);
+
+    var musicView = document.createElement('main');
+    musicView.id = 'aeroMusicView';
+    musicView.innerHTML = `
+      <div class="aero-music-shell">
+        <header class="aero-music-heading">
+          <div class="aero-kicker">Aerodynamix music</div>
+          <h2>Your collection.</h2>
+          <p class="aero-muted">The catalog is downloaded once and saved in this browser for offline playback. No imports are needed, and the music page does not use remote audio after caching.</p>
+        </header>
+        <div class="aero-music-toolbar">
+          <input id="aeroMusicSearch" class="aero-music-search" type="search" placeholder="Search songs, artists, or albums…" autocomplete="off">
+          <button id="aeroMusicDownload" class="aero-button" type="button">Download library</button>
+          <button id="aeroMusicLiked" class="aero-button secondary" type="button">Liked songs</button>
+          <div id="aeroMusicStatus" class="aero-music-status aero-muted" aria-live="polite">Open Music to load your catalog.</div>
+        </div>
+        <div class="aero-music-layout">
+          <aside class="aero-music-panel">
+            <div class="aero-music-panel-head"><h3>Albums</h3><span id="aeroMusicAlbumCount" class="aero-muted"></span></div>
+            <div id="aeroMusicAlbums" class="aero-music-albums"></div>
+          </aside>
+          <section class="aero-music-panel aero-music-tracks" aria-label="Songs">
+            <div class="aero-music-panel-head"><h3 id="aeroMusicTrackHeading">All songs</h3><span id="aeroMusicTrackCount" class="aero-muted"></span></div>
+            <div id="aeroMusicTrackList"></div>
+          </section>
+        </div>
+      </div>
+      <div id="aeroMusicPlayer" class="aero-music-player" hidden>
+        <img id="aeroMusicNowArt" class="aero-music-now-art" alt="">
+        <div class="aero-music-now-copy"><div id="aeroMusicNowTitle" class="aero-music-now-title">Nothing playing</div><div id="aeroMusicNowMeta" class="aero-music-now-meta"></div></div>
+        <div class="aero-music-progress"><span id="aeroMusicElapsed">0:00</span><input id="aeroMusicSeek" type="range" min="0" max="1000" value="0" aria-label="Seek"><span id="aeroMusicDuration">0:00</span></div>
+        <div class="aero-music-controls">
+          <button id="aeroMusicPrev" class="aero-music-control" type="button" aria-label="Previous song">‹</button>
+          <button id="aeroMusicPlay" class="aero-music-control primary" type="button" aria-label="Play or pause">▶</button>
+          <button id="aeroMusicNext" class="aero-music-control" type="button" aria-label="Next song">›</button>
+          <button id="aeroMusicShuffle" class="aero-music-control" type="button" aria-label="Toggle shuffle">↝</button>
+          <input id="aeroMusicVolume" class="aero-music-volume" type="range" min="0" max="1" step=".01" value=".85" aria-label="Volume">
+        </div>
+      </div>
+    `;
+    if (nav && nav.parentNode) nav.parentNode.insertBefore(musicView, nav.nextSibling);
+    else document.body.prepend(musicView);
 
     var drawingView = document.createElement('main');
     drawingView.id = 'aeroDrawingView';
@@ -1307,6 +1465,397 @@
     } catch (error) {
       return [];
     }
+  }
+
+  function openMusicDatabase() {
+    if (musicDbPromise) return musicDbPromise;
+    musicDbPromise = new Promise(function (resolve, reject) {
+      if (!window.indexedDB) {
+        reject(new Error('This browser does not support offline music storage.'));
+        return;
+      }
+      var request = indexedDB.open(MUSIC_DB_NAME, 1);
+      request.onupgradeneeded = function () {
+        if (!request.result.objectStoreNames.contains(MUSIC_DB_STORE)) {
+          request.result.createObjectStore(MUSIC_DB_STORE, { keyPath: 'key' });
+        }
+      };
+      request.onsuccess = function () { resolve(request.result); };
+      request.onerror = function () { reject(request.error || new Error('Could not open music storage.')); };
+    });
+    return musicDbPromise;
+  }
+
+  function getMusicCache(key) {
+    return openMusicDatabase().then(function (database) {
+      return new Promise(function (resolve, reject) {
+        var transaction = database.transaction(MUSIC_DB_STORE, 'readonly');
+        var request = transaction.objectStore(MUSIC_DB_STORE).get(key);
+        request.onsuccess = function () { resolve(request.result || null); };
+        request.onerror = function () { reject(request.error || new Error('Could not read music storage.')); };
+      });
+    });
+  }
+
+  function putMusicCache(key, value) {
+    return openMusicDatabase().then(function (database) {
+      return new Promise(function (resolve, reject) {
+        var transaction = database.transaction(MUSIC_DB_STORE, 'readwrite');
+        transaction.objectStore(MUSIC_DB_STORE).put({ key: key, value: value });
+        transaction.oncomplete = resolve;
+        transaction.onerror = function () { reject(transaction.error || new Error('Could not save music.')); };
+      });
+    });
+  }
+
+  function musicUrl(path) {
+    return /^https?:\/\//i.test(String(path || ''))
+      ? path
+      : new URL(String(path || '').replace(/^\/+/, ''), getMusicOrigin() + '/').href;
+  }
+
+  function getMusicOrigin() {
+    if (location.protocol !== 'file:' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+      return location.origin;
+    }
+    if (location.hostname === 'aerodynamix20.onrender.com') return location.origin;
+    return MUSIC_ORIGIN;
+  }
+
+  function musicTrackById(id) {
+    return musicCatalog.find(function (track) { return track.id === id; }) || null;
+  }
+
+  function musicFormatTime(seconds) {
+    if (!isFinite(seconds)) return '0:00';
+    var minutes = Math.floor(seconds / 60);
+    var remaining = Math.floor(seconds % 60);
+    return minutes + ':' + String(remaining).padStart(2, '0');
+  }
+
+  function musicStatus(text, isError) {
+    var status = document.getElementById('aeroMusicStatus');
+    if (!status) return;
+    status.textContent = text;
+    status.classList.toggle('aero-music-error', !!isError);
+  }
+
+  function musicFavorites() {
+    return Array.isArray(settings.musicFavorites) ? settings.musicFavorites : [];
+  }
+
+  function isMusicFavorite(id) {
+    return musicFavorites().indexOf(id) >= 0;
+  }
+
+  function toggleMusicFavorite(id) {
+    var favorites = musicFavorites().filter(function (item) { return item !== id; });
+    if (!isMusicFavorite(id)) favorites.push(id);
+    settings.musicFavorites = favorites;
+    saveSettings();
+    renderMusicTracks();
+  }
+
+  function musicAlbums() {
+    var result = [];
+    var seen = {};
+    musicCatalog.forEach(function (track) {
+      var name = track.album || 'Singles';
+      if (seen[name]) return;
+      seen[name] = true;
+      result.push({
+        name: name,
+        artist: track.albumArtist || track.artist || 'Aerodynamix',
+        track: track
+      });
+    });
+    return result;
+  }
+
+  function musicFilteredTracks() {
+    var query = musicSearch.trim().toLowerCase();
+    return musicCatalog.filter(function (track) {
+      if (musicSelectedAlbum !== 'All albums' && (track.album || 'Singles') !== musicSelectedAlbum) return false;
+      if (musicLikedOnly && !isMusicFavorite(track.id)) return false;
+      if (!query) return true;
+      return [track.title, track.artist, track.album, track.genre].join(' ').toLowerCase().includes(query);
+    });
+  }
+
+  function musicSetArtwork(image, track) {
+    if (!image || !track) return;
+    image.alt = (track.album || track.title || 'Album') + ' artwork';
+    image.style.opacity = '.55';
+    getMusicAsset(track, 'cover').then(function (url) {
+      if (url) {
+        image.src = url;
+        image.style.opacity = '1';
+      }
+    }).catch(function () {});
+  }
+
+  function musicRenderAlbums() {
+    var container = document.getElementById('aeroMusicAlbums');
+    var count = document.getElementById('aeroMusicAlbumCount');
+    if (!container) return;
+    var albums = musicAlbums();
+    if (count) count.textContent = albums.length + (albums.length === 1 ? ' album' : ' albums');
+    container.innerHTML = '';
+    var all = document.createElement('button');
+    all.className = 'aero-music-album' + (musicSelectedAlbum === 'All albums' ? ' active' : '');
+    all.type = 'button';
+    all.innerHTML = '<span class="aero-music-album-art" aria-hidden="true">♫</span><span class="aero-music-album-copy"><span class="aero-music-album-title">All albums</span><span class="aero-music-album-meta">' + musicCatalog.length + ' songs</span></span>';
+    all.onclick = function () { musicSelectedAlbum = 'All albums'; renderMusicAlbumsAndTracks(); };
+    container.appendChild(all);
+    albums.forEach(function (album) {
+      var button = document.createElement('button');
+      button.className = 'aero-music-album' + (musicSelectedAlbum === album.name ? ' active' : '');
+      button.type = 'button';
+      var image = document.createElement('img');
+      image.className = 'aero-music-album-art';
+      image.alt = '';
+      button.appendChild(image);
+      var copy = document.createElement('span');
+      copy.className = 'aero-music-album-copy';
+      copy.innerHTML = '<span class="aero-music-album-title"></span><span class="aero-music-album-meta"></span>';
+      copy.querySelector('.aero-music-album-title').textContent = album.name;
+      copy.querySelector('.aero-music-album-meta').textContent = album.artist;
+      button.appendChild(copy);
+      musicSetArtwork(image, album.track);
+      button.onclick = function () { musicSelectedAlbum = album.name; musicLikedOnly = false; renderMusicAlbumsAndTracks(); };
+      container.appendChild(button);
+    });
+  }
+
+  function renderMusicTracks() {
+    var container = document.getElementById('aeroMusicTrackList');
+    var heading = document.getElementById('aeroMusicTrackHeading');
+    var count = document.getElementById('aeroMusicTrackCount');
+    if (!container) return;
+    var tracks = musicFilteredTracks();
+    if (heading) heading.textContent = musicLikedOnly ? 'Liked songs' : (musicSelectedAlbum === 'All albums' ? 'All songs' : musicSelectedAlbum);
+    if (count) count.textContent = tracks.length + (tracks.length === 1 ? ' song' : ' songs');
+    container.innerHTML = '';
+    if (!tracks.length) {
+      container.innerHTML = '<div class="aero-music-empty">No songs match this view yet.</div>';
+      return;
+    }
+    tracks.forEach(function (track, index) {
+      var row = document.createElement('article');
+      row.className = 'aero-music-track' + (track.id === musicCurrentId ? ' active' : '');
+      row.tabIndex = 0;
+      var number = document.createElement('span');
+      number.className = 'aero-music-track-number';
+      number.textContent = track.id === musicCurrentId ? '▶' : String(index + 1);
+      row.appendChild(number);
+      var copy = document.createElement('span');
+      copy.className = 'aero-music-track-copy';
+      copy.innerHTML = '<span class="aero-music-track-title"></span><span class="aero-music-track-meta"></span>';
+      copy.querySelector('.aero-music-track-title').textContent = track.title || 'Untitled';
+      copy.querySelector('.aero-music-track-meta').textContent = (track.artist || 'Aerodynamix') + ' · ' + (track.album || 'Single');
+      row.appendChild(copy);
+      var state = document.createElement('span');
+      state.className = 'aero-music-track-state';
+      state.textContent = track.id === musicCurrentId ? 'Playing' : 'Offline-ready';
+      row.appendChild(state);
+      var like = document.createElement('button');
+      like.className = 'aero-music-like' + (isMusicFavorite(track.id) ? ' liked' : '');
+      like.type = 'button';
+      like.textContent = isMusicFavorite(track.id) ? '♥' : '♡';
+      like.title = isMusicFavorite(track.id) ? 'Remove from liked songs' : 'Like song';
+      like.setAttribute('aria-label', like.title);
+      like.onclick = function (event) { event.stopPropagation(); toggleMusicFavorite(track.id); };
+      row.appendChild(like);
+      row.onclick = function () {
+        var queue = musicFilteredTracks();
+        playMusicTrack(track, queue);
+      };
+      row.onkeydown = function (event) {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); row.click(); }
+      };
+      container.appendChild(row);
+    });
+  }
+
+  function renderMusicAlbumsAndTracks() {
+    musicRenderAlbums();
+    renderMusicTracks();
+  }
+
+  function getMusicAsset(track, kind) {
+    var key = kind + ':' + track.id;
+    if (musicObjectUrls[key]) return Promise.resolve(musicObjectUrls[key]);
+    return getMusicCache(key).then(function (cached) {
+      if (cached && cached.value instanceof Blob) {
+        musicObjectUrls[key] = URL.createObjectURL(cached.value);
+        return musicObjectUrls[key];
+      }
+      if (navigator.onLine === false) throw new Error('This song is not cached yet.');
+      var path = kind === 'audio' ? track.audio : track.cover;
+      if (!path) return '';
+      return fetch(musicUrl(path), { credentials: 'omit', cache: 'no-store' })
+        .then(function (response) {
+          if (!response.ok) throw new Error('Music asset returned HTTP ' + response.status);
+          return response.blob();
+        })
+        .then(function (blob) {
+          return putMusicCache(key, blob).then(function () {
+            musicObjectUrls[key] = URL.createObjectURL(blob);
+            return musicObjectUrls[key];
+          });
+        });
+    });
+  }
+
+  function playMusicTrack(track, queue) {
+    if (!musicAudio || !track) return;
+    musicQueue = queue && queue.length ? queue.slice() : musicCatalog.slice();
+    musicQueueIndex = Math.max(0, musicQueue.findIndex(function (item) { return item.id === track.id; }));
+    musicCurrentId = track.id;
+    var player = document.getElementById('aeroMusicPlayer');
+    var title = document.getElementById('aeroMusicNowTitle');
+    var meta = document.getElementById('aeroMusicNowMeta');
+    var art = document.getElementById('aeroMusicNowArt');
+    if (player) player.hidden = false;
+    if (title) title.textContent = track.title || 'Untitled';
+    if (meta) meta.textContent = (track.artist || 'Aerodynamix') + ' · ' + (track.album || 'Single');
+    musicSetArtwork(art, track);
+    renderMusicTracks();
+    var token = ++musicPlayToken;
+    musicStatus('Loading ' + (track.title || 'song') + ' for offline playback…');
+    getMusicAsset(track, 'audio').then(function (url) {
+      if (token !== musicPlayToken || !url) return;
+      musicAudio.src = url;
+      musicAudio.load();
+      return musicAudio.play();
+    }).then(function () {
+      if (token === musicPlayToken) musicStatus('Playing from the offline library.');
+    }).catch(function () {
+      if (token === musicPlayToken) musicStatus('This song could not be downloaded yet. Open the file while online once.', true);
+    });
+  }
+
+  function playNextMusicTrack(direction) {
+    if (!musicQueue.length) musicQueue = musicFilteredTracks();
+    if (!musicQueue.length) return;
+    if (musicQueueIndex < 0) musicQueueIndex = 0;
+    if (musicShuffle && musicQueue.length > 1) {
+      var next = Math.floor(Math.random() * musicQueue.length);
+      if (next === musicQueueIndex) next = (next + 1) % musicQueue.length;
+      musicQueueIndex = next;
+    } else {
+      musicQueueIndex = (musicQueueIndex + direction + musicQueue.length) % musicQueue.length;
+    }
+    playMusicTrack(musicQueue[musicQueueIndex], musicQueue);
+  }
+
+  function prefetchMusicLibrary() {
+    if (musicPrefetchStarted || !musicCatalog.length || navigator.onLine === false) return;
+    musicPrefetchStarted = true;
+    var index = 0;
+    function next() {
+      if (index >= musicCatalog.length) {
+        musicStatus('Your music library is saved and ready for offline playback.');
+        return;
+      }
+      var track = musicCatalog[index++];
+      musicStatus('Saving music for offline playback… ' + index + ' of ' + musicCatalog.length);
+      getMusicAsset(track, 'audio').then(function () {
+        return getMusicAsset(track, 'cover');
+      }).then(next).catch(function () {
+        musicPrefetchStarted = false;
+        musicStatus('Some music could not be cached. You can retry while online.', true);
+      });
+    }
+    next();
+  }
+
+  function loadMusicCatalog() {
+    var cachedCatalog = getMusicCache('catalog').then(function (cached) {
+      if (cached && cached.value && Array.isArray(cached.value.tracks)) {
+        musicCatalog = cached.value.tracks;
+        renderMusicAlbumsAndTracks();
+        musicStatus('Offline catalog ready. Checking for new music…');
+      }
+    }).catch(function () {});
+    return cachedCatalog.then(function () {
+      return fetch(getMusicOrigin() + '/api/music-catalog.json', { credentials: 'omit', cache: 'no-store' })
+        .then(function (response) {
+          if (!response.ok) throw new Error('Music catalog returned HTTP ' + response.status);
+          return response.json();
+        })
+        .then(function (catalog) {
+          if (!catalog || !Array.isArray(catalog.tracks)) throw new Error('Music catalog is invalid.');
+          musicCatalog = catalog.tracks;
+          return putMusicCache('catalog', catalog);
+        })
+        .then(function () {
+          renderMusicAlbumsAndTracks();
+          prefetchMusicLibrary();
+        })
+        .catch(function () {
+          if (musicCatalog.length) {
+            renderMusicAlbumsAndTracks();
+            prefetchMusicLibrary();
+            musicStatus('Using the cached catalog. Music remains available offline.');
+          } else {
+            musicStatus('Connect once to download the Aerodynamix music catalog.', true);
+          }
+        });
+    });
+  }
+
+  function initMusicPage() {
+    if (musicInitialized) return;
+    musicInitialized = true;
+    musicAudio = document.createElement('audio');
+    musicAudio.preload = 'auto';
+    musicAudio.volume = .85;
+    document.body.appendChild(musicAudio);
+    var search = document.getElementById('aeroMusicSearch');
+    var download = document.getElementById('aeroMusicDownload');
+    var liked = document.getElementById('aeroMusicLiked');
+    var play = document.getElementById('aeroMusicPlay');
+    var previous = document.getElementById('aeroMusicPrev');
+    var next = document.getElementById('aeroMusicNext');
+    var shuffleButton = document.getElementById('aeroMusicShuffle');
+    var volume = document.getElementById('aeroMusicVolume');
+    var seek = document.getElementById('aeroMusicSeek');
+    if (search) search.oninput = function () { musicSearch = search.value; renderMusicTracks(); };
+    if (download) download.onclick = function () { musicPrefetchStarted = false; prefetchMusicLibrary(); };
+    if (liked) liked.onclick = function () {
+      musicLikedOnly = !musicLikedOnly;
+      liked.classList.toggle('active', musicLikedOnly);
+      renderMusicTracks();
+    };
+    if (play) play.onclick = function () {
+      if (!musicAudio.src) {
+        var first = musicFilteredTracks()[0] || musicCatalog[0];
+        if (first) playMusicTrack(first, musicFilteredTracks());
+      } else if (musicAudio.paused) musicAudio.play().catch(function () {});
+      else musicAudio.pause();
+    };
+    if (previous) previous.onclick = function () { playNextMusicTrack(-1); };
+    if (next) next.onclick = function () { playNextMusicTrack(1); };
+    if (shuffleButton) shuffleButton.onclick = function () {
+      musicShuffle = !musicShuffle;
+      shuffleButton.classList.toggle('active', musicShuffle);
+    };
+    if (volume) volume.oninput = function () { musicAudio.volume = Number(volume.value); };
+    if (seek) seek.oninput = function () {
+      if (musicAudio.duration) musicAudio.currentTime = (Number(seek.value) / 1000) * musicAudio.duration;
+    };
+    musicAudio.onplay = function () { if (play) play.textContent = 'Ⅱ'; };
+    musicAudio.onpause = function () { if (play) play.textContent = '▶'; };
+    musicAudio.ontimeupdate = function () {
+      var elapsed = document.getElementById('aeroMusicElapsed');
+      var duration = document.getElementById('aeroMusicDuration');
+      if (elapsed) elapsed.textContent = musicFormatTime(musicAudio.currentTime);
+      if (duration) duration.textContent = musicFormatTime(musicAudio.duration);
+      if (seek && musicAudio.duration) seek.value = String(Math.round((musicAudio.currentTime / musicAudio.duration) * 1000));
+    };
+    musicAudio.onended = function () { playNextMusicTrack(1); };
+    loadMusicCatalog();
   }
 
   function getSiteBase() {
@@ -1892,12 +2441,14 @@
   function showView(view) {
     var gamesView = document.querySelector('main.content');
     var mediaView = document.getElementById('mediaView');
+    var musicView = document.getElementById('aeroMusicView');
     var settingsView = document.getElementById('aeroSettingsView');
     var connectView = document.getElementById('aeroConnectView');
     var appsView = document.getElementById('aeroAppsView');
     var drawingView = document.getElementById('aeroDrawingView');
     if (gamesView) gamesView.style.display = view === 'games' ? 'block' : 'none';
-    if (mediaView) mediaView.classList.toggle('active', view === 'media');
+    if (mediaView) mediaView.classList.toggle('active', view === 'media' && !musicView);
+    if (musicView) musicView.classList.toggle('active', view === 'music');
     if (settingsView) settingsView.classList.toggle('active', view === 'settings');
     if (connectView) connectView.classList.toggle('active', view === 'connect');
     if (appsView) appsView.classList.toggle('active', view === 'apps');
@@ -1912,8 +2463,11 @@
     });
     var active = view === 'settings'
       ? document.getElementById('settingsToggle')
-      : document.getElementById(view + 'Nav');
+      : view === 'music'
+        ? document.getElementById('mediaNav')
+        : document.getElementById(view + 'Nav');
     if (active) active.classList.add('active');
+    if (view === 'music') initMusicPage();
     if (view === 'drawing' && drawingView && !drawingView.dataset.loaded) {
       var drawingClient = document.getElementById('aeroDrawingClient');
       var drawingStyles = document.getElementById('aeroDrawingStyles');
@@ -2269,7 +2823,7 @@
     };
     if (mediaNav) mediaNav.onclick = function (event) {
       event.preventDefault();
-      showView('media');
+      showView('music');
     };
     if (connectNav) connectNav.onclick = function (event) {
       event.preventDefault();
@@ -2461,7 +3015,7 @@
     loadCustomGames();
     var params = new URLSearchParams(location.search);
     var requestedView = params.get('view');
-    var validView = requestedView === 'media' || requestedView === 'settings' || requestedView === 'connect' ||
+    var validView = requestedView === 'media' || requestedView === 'music' || requestedView === 'settings' || requestedView === 'connect' ||
       requestedView === 'apps' || requestedView === 'drawing' || requestedView === 'clock' || requestedView === 'updates'
       ? requestedView
       : 'games';
