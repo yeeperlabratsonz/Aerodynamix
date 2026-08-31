@@ -599,6 +599,24 @@ def main() -> None:
     )
     patch = (PROJECT_ROOT / "aerodynamix-standalone-patch.js").read_text(encoding="utf-8")
     dev_patch = (PROJECT_ROOT / "aerodynamix-dev-edition-patch.js").read_text(encoding="utf-8")
+    updater = (PROJECT_ROOT / "aerodynamix-standalone-updater.js").read_text(encoding="utf-8")
+    updater = updater.replace("__AERODYNAMIX_VERSION__", "1.2")
+    updater = updater.replace("__AERODYNAMIX_VARIANT__", VARIANT)
+    edition_marker = (
+        f"<script>window.AERODYNAMIX_EDITION='normal';"
+        f"window.AERODYNAMIX_VARIANT='{VARIANT}';</script>"
+    )
+    early_update_bootstrap = (
+        "\n<style>html[data-aerodynamix-update-pending] body"
+        "{visibility:hidden!important}</style>\n"
+        + edition_marker
+        + "\n<script>\n"
+        + updater
+        + "\n</script>\n"
+    )
+    if "</head>" not in source:
+        raise RuntimeError("The original standalone export has no closing head tag.")
+    source = source.replace("</head>", early_update_bootstrap + "</head>", 1)
     markup, styles, client = build_connect_assets()
     apps_markup, apps_styles, drawing_markup, drawing_styles, drawing_client = build_app_assets()
     injection = (
@@ -626,7 +644,6 @@ def main() -> None:
         + "<script type=\"text/plain\" id=\"aeroDrawingClient\">\n"
         + drawing_client
         + "\n</script>\n"
-        + f"<script>window.AERODYNAMIX_EDITION='normal';window.AERODYNAMIX_VARIANT='{VARIANT}';</script>\n"
         + "<script>\n"
         + patch
         + "\n</script>\n"

@@ -78,13 +78,15 @@ def _download_standalone_file(filename):
         if filename.endswith('.zip')
         else 'text/html; charset=utf-8'
     )
-    return send_from_directory(
+    response = send_from_directory(
         os.path.join(app.root_path, 'attached_assets'),
         filename,
         mimetype=content_type,
         as_attachment=True,
         download_name=filename,
     )
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
 
 
 @app.route('/download/aerodynamix-standalone.html')
@@ -1494,7 +1496,11 @@ def connect_proxy(upstream_path):
 def update_proxy(update_path):
     """Serve the fixed public update host through a read-only gateway."""
     if request.method == 'OPTIONS':
-        return ('', 204)
+        return ('', 204, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+        })
     target = f'{UPDATE_UPSTREAM_ORIGIN}/{update_path}'
     if request.query_string:
         target += '?' + request.query_string.decode('utf-8', 'replace')
@@ -1522,6 +1528,7 @@ def update_proxy(update_path):
         }
     except (urllib.error.URLError, TimeoutError) as error:
         return jsonify({'error': f'Update service unavailable: {error.reason if hasattr(error, "reason") else error}'}), 502
+    response_headers['Access-Control-Allow-Origin'] = '*'
     return Response(body, status=status, headers=response_headers)
 
 

@@ -11,7 +11,7 @@
   var DB_STORE = 'games';
   var DEFAULT_PUBLIC_ROOT = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/docs/';
   var UPDATE_PROXY_ROOT = 'https://aerodynamix20.onrender.com/api/update-proxy/';
-  var STANDALONE_VERSION = '1.1';
+  var STANDALONE_VERSION = '1.2';
   var UPDATE_MANIFEST_PATH = 'standalone-updates.json';
   var FALLBACK_UPDATE_MANIFEST = {
     version: '1.1',
@@ -20,7 +20,7 @@
       changes: [
         'Added Nubby’s Number Factory to the game catalogue.',
         'Added its thumbnail and bundled game file to the standalone release.',
-        'Kept updates manual so games change only when you choose to update.'
+        'Standalone files now check for and apply newer releases automatically.'
       ]
     }],
     download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html',
@@ -1065,7 +1065,7 @@
         <header class="aero-updates-title">
           <div class="aero-kicker">Aerodynamix updates</div>
           <h2>Stay up to date.</h2>
-          <p class="aero-muted">Review what is changing before downloading an updated copy of this standalone file.</p>
+          <p class="aero-muted">This file checks for updates when it opens and applies newer releases automatically.</p>
         </header>
         <div class="aero-updates-grid">
           <section class="aero-update-card">
@@ -2186,7 +2186,7 @@
 
   function getUpdateManifestUrl() {
     if (location.protocol === 'file:') {
-      return new URL(UPDATE_MANIFEST_PATH, UPDATE_PROXY_ROOT).href;
+      return new URL('/api/standalone-updates.json', UPDATE_PROXY_ROOT).href;
     }
     if (
       location.hostname.endsWith('github.io') &&
@@ -2195,10 +2195,10 @@
       return new URL(UPDATE_MANIFEST_PATH, DEFAULT_PUBLIC_ROOT).href;
     }
     if (location.hostname === 'aerodynamix20.onrender.com') {
-      return new URL('/api/update-proxy/' + UPDATE_MANIFEST_PATH, location.origin).href;
+      return new URL('/api/standalone-updates.json', location.origin).href;
     }
     if (location.pathname.includes('/aerodynamix-standalone')) {
-      return new URL('/api/update-proxy/' + UPDATE_MANIFEST_PATH, location.origin).href;
+      return new URL('/api/standalone-updates.json', location.origin).href;
     }
     return new URL(UPDATE_MANIFEST_PATH, new URL('./', location.href)).href;
   }
@@ -2236,7 +2236,7 @@
         button.disabled = false;
         button.textContent = 'Download Ver ' + latest;
         status.className += ' ready';
-        status.textContent = 'A newer version is available: Aerodynamix Ver ' + latest + '.';
+        status.textContent = 'Aerodynamix Ver ' + latest + ' will be applied automatically the next time this file opens.';
         button.dataset.download = downloadPath;
         showOutdatedNotification();
       } else {

@@ -1,12 +1,12 @@
 {
-  "version": "1.1",
+  "version": "1.2",
   "changelog": [
     {
-      "version": "Aerodynamix Ver 1.1",
+      "version": "Aerodynamix Ver 1.2",
       "changes": [
         "Added Nubby’s Number Factory to the game catalogue.",
         "Added its thumbnail and bundled game file to the standalone release.",
-        "Kept updates manual so games change only when you choose to update."
+        "Standalone files now check for and apply newer releases automatically."
       ]
     }
   ],
