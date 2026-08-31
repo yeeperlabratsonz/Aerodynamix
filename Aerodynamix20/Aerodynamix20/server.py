@@ -149,6 +149,19 @@ def download_slim_dev_xz():
     return _download_standalone_file('Aerodynamix-Dev-Edition-Slim.html.xz')
 
 
+@app.route('/api/standalone-updates.json')
+def standalone_updates_manifest():
+    response = send_from_directory(
+        os.path.join(app.root_path, 'docs'),
+        'standalone-updates.json',
+        mimetype='application/json',
+        max_age=0,
+    )
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Cache-Control'] = 'no-store, max-age=0'
+    return response
+
+
 @app.route('/api/nextbot/room/join', methods=['POST'])
 def nextbot_room_join():
     data = request.get_json(silent=True) or {}
