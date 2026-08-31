@@ -1468,11 +1468,17 @@
     try {
       baseUrl = new URL('./', gameUrl).href;
     } catch (error) {}
-    var baseTag = '<base href="' + String(baseUrl).replace(/"/g, '&quot;') + '">';
-    if (/<head\b[^>]*>/i.test(html)) {
-      html = html.replace(/<head\b[^>]*>/i, function (tag) { return tag + baseTag; });
-    } else {
-      html = '<head>' + baseTag + '</head>' + html;
+    // UGS wrappers sometimes already declare the real asset repository as
+    // their base URL. Adding a second base tag would override it and make
+    // every relative script, WASM file, or texture load from UGS-Files
+    // instead. Only add a base when the wrapper has none.
+    if (!/<base\b[^>]*\bhref\s*=/i.test(html)) {
+      var baseTag = '<base href="' + String(baseUrl).replace(/"/g, '&quot;') + '">';
+      if (/<head\b[^>]*>/i.test(html)) {
+        html = html.replace(/<head\b[^>]*>/i, function (tag) { return tag + baseTag; });
+      } else {
+        html = '<head>' + baseTag + '</head>' + html;
+      }
     }
     if (!movieMatch) return html;
     var movieUrl = JSON.stringify(movieMatch[1]);
