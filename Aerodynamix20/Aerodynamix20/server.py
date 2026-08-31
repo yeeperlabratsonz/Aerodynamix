@@ -55,6 +55,7 @@ UPDATE_UPSTREAM_ORIGIN = os.environ.get(
     'UPDATE_UPSTREAM_ORIGIN',
     'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/docs',
 ).rstrip('/')
+STANDALONE_RELEASE_VERSION = '1.4'
 
 app = Flask(__name__, static_folder='docs', static_url_path='')
 app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-key')
@@ -70,7 +71,7 @@ NEXTBOT_PEER_TTL = 20
 NEXTBOT_GAME_MODES = {'hangout', 'nextbots', 'deathmatch'}
 
 
-def _download_standalone_file(filename):
+def _download_standalone_file(filename, download_name=None):
     content_type = (
         'application/x-xz'
         if filename.endswith('.xz')
@@ -83,70 +84,116 @@ def _download_standalone_file(filename):
         filename,
         mimetype=content_type,
         as_attachment=True,
-        download_name=filename,
+        download_name=download_name or filename,
     )
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
 
 
+def _versioned_release_name(filename):
+    if filename.endswith('.html.xz'):
+        return filename[:-len('.html.xz')] + f'-v{STANDALONE_RELEASE_VERSION}.html.xz'
+    if filename.endswith('.html'):
+        return filename[:-len('.html')] + f'-v{STANDALONE_RELEASE_VERSION}.html'
+    if filename.endswith('.zip'):
+        return filename[:-len('.zip')] + f'-v{STANDALONE_RELEASE_VERSION}.zip'
+    return filename
+
+
+def _download_release_file(legacy_filename):
+    versioned_filename = _versioned_release_name(legacy_filename)
+    target = versioned_filename if os.path.exists(
+        os.path.join(app.root_path, 'attached_assets', versioned_filename)
+    ) else legacy_filename
+    return _download_standalone_file(target, download_name=versioned_filename)
+
+
 @app.route('/download/aerodynamix-standalone.html')
 def download_standalone_export():
-    return _download_standalone_file('Aerodynamix-Standalone.html')
+    return _download_release_file('Aerodynamix-Standalone.html')
 
 
 @app.route('/download/aerodynamix-dev-edition.html')
 def download_dev_export():
-    return _download_standalone_file('Aerodynamix-Dev-Edition.html')
+    return _download_release_file('Aerodynamix-Dev-Edition.html')
 
 
 @app.route('/download/aerodynamix-standalone-slim.html')
 def download_slim_standalone_export():
-    return _download_standalone_file('Aerodynamix-Standalone-Slim.html')
+    return _download_release_file('Aerodynamix-Standalone-Slim.html')
 
 
 @app.route('/download/aerodynamix-dev-edition-slim.html')
 def download_slim_dev_export():
-    return _download_standalone_file('Aerodynamix-Dev-Edition-Slim.html')
+    return _download_release_file('Aerodynamix-Dev-Edition-Slim.html')
 
 
 @app.route('/download/aerodynamix-standalone.zip')
 def download_standalone_zip():
-    return _download_standalone_file('Aerodynamix-Standalone.zip')
+    return _download_release_file('Aerodynamix-Standalone.zip')
 
 
 @app.route('/download/aerodynamix-dev-edition.zip')
 def download_dev_zip():
-    return _download_standalone_file('Aerodynamix-Dev-Edition.zip')
+    return _download_release_file('Aerodynamix-Dev-Edition.zip')
 
 
 @app.route('/download/aerodynamix-standalone-slim.zip')
 def download_slim_standalone_zip():
-    return _download_standalone_file('Aerodynamix-Standalone-Slim.zip')
+    return _download_release_file('Aerodynamix-Standalone-Slim.zip')
 
 
 @app.route('/download/aerodynamix-dev-edition-slim.zip')
 def download_slim_dev_zip():
-    return _download_standalone_file('Aerodynamix-Dev-Edition-Slim.zip')
+    return _download_release_file('Aerodynamix-Dev-Edition-Slim.zip')
 
 
 @app.route('/download/aerodynamix-standalone.html.xz')
 def download_standalone_xz():
-    return _download_standalone_file('Aerodynamix-Standalone.html.xz')
+    return _download_release_file('Aerodynamix-Standalone.html.xz')
 
 
 @app.route('/download/aerodynamix-dev-edition.html.xz')
 def download_dev_xz():
-    return _download_standalone_file('Aerodynamix-Dev-Edition.html.xz')
+    return _download_release_file('Aerodynamix-Dev-Edition.html.xz')
 
 
 @app.route('/download/aerodynamix-standalone-slim.html.xz')
 def download_slim_standalone_xz():
-    return _download_standalone_file('Aerodynamix-Standalone-Slim.html.xz')
+    return _download_release_file('Aerodynamix-Standalone-Slim.html.xz')
 
 
 @app.route('/download/aerodynamix-dev-edition-slim.html.xz')
 def download_slim_dev_xz():
-    return _download_standalone_file('Aerodynamix-Dev-Edition-Slim.html.xz')
+    return _download_release_file('Aerodynamix-Dev-Edition-Slim.html.xz')
+
+
+VERSIONED_DOWNLOADS = {
+    f'aerodynamix-standalone-v{STANDALONE_RELEASE_VERSION}.html': 'Aerodynamix-Standalone.html',
+    f'aerodynamix-dev-edition-v{STANDALONE_RELEASE_VERSION}.html': 'Aerodynamix-Dev-Edition.html',
+    f'aerodynamix-standalone-slim-v{STANDALONE_RELEASE_VERSION}.html': 'Aerodynamix-Standalone-Slim.html',
+    f'aerodynamix-dev-edition-slim-v{STANDALONE_RELEASE_VERSION}.html': 'Aerodynamix-Dev-Edition-Slim.html',
+    f'aerodynamix-standalone-v{STANDALONE_RELEASE_VERSION}.zip': 'Aerodynamix-Standalone.zip',
+    f'aerodynamix-dev-edition-v{STANDALONE_RELEASE_VERSION}.zip': 'Aerodynamix-Dev-Edition.zip',
+    f'aerodynamix-standalone-slim-v{STANDALONE_RELEASE_VERSION}.zip': 'Aerodynamix-Standalone-Slim.zip',
+    f'aerodynamix-dev-edition-slim-v{STANDALONE_RELEASE_VERSION}.zip': 'Aerodynamix-Dev-Edition-Slim.zip',
+    f'aerodynamix-standalone-v{STANDALONE_RELEASE_VERSION}.html.xz': 'Aerodynamix-Standalone.html.xz',
+    f'aerodynamix-dev-edition-v{STANDALONE_RELEASE_VERSION}.html.xz': 'Aerodynamix-Dev-Edition.html.xz',
+    f'aerodynamix-standalone-slim-v{STANDALONE_RELEASE_VERSION}.html.xz': 'Aerodynamix-Standalone-Slim.html.xz',
+    f'aerodynamix-dev-edition-slim-v{STANDALONE_RELEASE_VERSION}.html.xz': 'Aerodynamix-Dev-Edition-Slim.html.xz',
+}
+
+
+@app.route('/download/<path:filename>')
+def download_versioned_export(filename):
+    legacy_filename = VERSIONED_DOWNLOADS.get(filename)
+    if not legacy_filename:
+        abort(404)
+    versioned_filename = _versioned_release_name(legacy_filename)
+    target = versioned_filename if os.path.exists(
+        os.path.join(app.root_path, 'attached_assets', versioned_filename)
+    ) else legacy_filename
+    return _download_standalone_file(target, download_name=filename)
 
 
 @app.route('/api/standalone-updates.json')

@@ -26,12 +26,14 @@ SOURCE_EXPORT = WORKSPACE_ROOT / "attached_assets" / "presentation_1787450952428
 OUTPUT_DIR = PROJECT_ROOT / "attached_assets"
 VARIANT = "slim" if os.environ.get("AERO_SLIM") else "full"
 VARIANT_SUFFIX = "-Slim" if VARIANT == "slim" else ""
-OUTPUT_HTML = OUTPUT_DIR / f"Aerodynamix-Standalone{VARIANT_SUFFIX}.html"
-OUTPUT_ZIP = OUTPUT_DIR / f"Aerodynamix-Standalone{VARIANT_SUFFIX}.zip"
-OUTPUT_DEV_HTML = OUTPUT_DIR / f"Aerodynamix-Dev-Edition{VARIANT_SUFFIX}.html"
-OUTPUT_DEV_ZIP = OUTPUT_DIR / f"Aerodynamix-Dev-Edition{VARIANT_SUFFIX}.zip"
-OUTPUT_XZ = OUTPUT_DIR / f"Aerodynamix-Standalone{VARIANT_SUFFIX}.html.xz"
-OUTPUT_DEV_XZ = OUTPUT_DIR / f"Aerodynamix-Dev-Edition{VARIANT_SUFFIX}.html.xz"
+RELEASE_VERSION = "1.4"
+VERSION_SUFFIX = f"-v{RELEASE_VERSION}"
+OUTPUT_HTML = OUTPUT_DIR / f"Aerodynamix-Standalone{VARIANT_SUFFIX}{VERSION_SUFFIX}.html"
+OUTPUT_ZIP = OUTPUT_DIR / f"Aerodynamix-Standalone{VARIANT_SUFFIX}{VERSION_SUFFIX}.zip"
+OUTPUT_DEV_HTML = OUTPUT_DIR / f"Aerodynamix-Dev-Edition{VARIANT_SUFFIX}{VERSION_SUFFIX}.html"
+OUTPUT_DEV_ZIP = OUTPUT_DIR / f"Aerodynamix-Dev-Edition{VARIANT_SUFFIX}{VERSION_SUFFIX}.zip"
+OUTPUT_XZ = OUTPUT_DIR / f"Aerodynamix-Standalone{VARIANT_SUFFIX}{VERSION_SUFFIX}.html.xz"
+OUTPUT_DEV_XZ = OUTPUT_DIR / f"Aerodynamix-Dev-Edition{VARIANT_SUFFIX}{VERSION_SUFFIX}.html.xz"
 
 
 CONNECT_ORIGIN = "https://aerodynamix20.onrender.com"
@@ -600,7 +602,7 @@ def main() -> None:
     patch = (PROJECT_ROOT / "aerodynamix-standalone-patch.js").read_text(encoding="utf-8")
     dev_patch = (PROJECT_ROOT / "aerodynamix-dev-edition-patch.js").read_text(encoding="utf-8")
     updater = (PROJECT_ROOT / "aerodynamix-standalone-updater.js").read_text(encoding="utf-8")
-    updater = updater.replace("__AERODYNAMIX_VERSION__", "1.3")
+    updater = updater.replace("__AERODYNAMIX_VERSION__", RELEASE_VERSION)
     updater = updater.replace("__AERODYNAMIX_VARIANT__", VARIANT)
     edition_marker = (
         f"<script>window.AERODYNAMIX_EDITION='normal';"

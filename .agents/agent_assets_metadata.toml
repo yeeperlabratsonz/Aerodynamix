@@ -422,3 +422,59 @@ mtime_ms = 1788156255350
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/039db88a-9af2-4f89-bbf2-c3ba78701b23/10964ac3-4ad3-4ff8-9af0-41e4716b29a3"
 storage_version_token = "1788156359313676"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "YugdCXRV-UBpNeUUROHsb"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-Slim-v1.4.zip"
+type = "unspecified"
+title = "Aerodynamix Standalone Slim v1.4 ZIP"
+description = "Versioned Slim standalone distribution with corrected album artwork and metadata."
+logical_id = "fe3af2c7-7bb8-4944-8123-d4db5db006c3"
+content_hash = "sha256:66ce54c4142bbbc6080c7a7adf46ed70f66aa723cdba35a1a12d66d476c618ed"
+size = 80795676
+mtime_ms = 1788159178787
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/fe3af2c7-7bb8-4944-8123-d4db5db006c3/998bc1fa-5a75-40cd-93e0-071fee1be825"
+storage_version_token = "1788159786879280"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "ky_9Cry7LbH-x14c5Hi4K"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-Slim-v1.4.html.xz"
+type = "unspecified"
+title = "Aerodynamix Standalone Slim v1.4 XZ"
+description = "Compressed versioned Slim standalone HTML with corrected music catalog data."
+logical_id = "aca80c63-9276-4a00-ba12-7ddd56b2f965"
+content_hash = "sha256:cc1c74f9af9eb01aa569791c8aae88cfdd2bf01733603174939221499a52633d"
+size = 84066760
+mtime_ms = 1788159201356
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/aca80c63-9276-4a00-ba12-7ddd56b2f965/ab43dee3-422f-4441-a178-7dd869758d6e"
+storage_version_token = "1788159788721762"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "jOzHlkzTMMImPrKxaF8sj"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Dev-Edition-Slim-v1.4.zip"
+type = "unspecified"
+title = "Aerodynamix Dev Slim v1.4 ZIP"
+description = "Versioned Dev Slim distribution with corrected album artwork and metadata."
+logical_id = "85e07f01-828c-429f-8083-36d36eba88af"
+content_hash = "sha256:064e9d7eeab7e510679f6f69246cd3b7ed3d9689d9102544b4ef8356d1459926"
+size = 80799809
+mtime_ms = 1788159183083
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/85e07f01-828c-429f-8083-36d36eba88af/6cabdabf-6008-4715-b4f0-1ec21f15d989"
+storage_version_token = "1788159790377209"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "y6zv8pwyUt7-s0h5nuDAT"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Dev-Edition-Slim-v1.4.html.xz"
+type = "unspecified"
+title = "Aerodynamix Dev Slim v1.4 XZ"
+description = "Compressed versioned Dev Slim HTML with corrected music catalog data."
+logical_id = "50d22f0e-3f41-45df-812a-9612f761a87b"
+content_hash = "sha256:46606ca0b0d76865759bcb735ac8eb430d6c8376f4e33a36766c28fe44ef5818"
+size = 84069728
+mtime_ms = 1788159219728
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/50d22f0e-3f41-45df-812a-9612f761a87b/5a66e56a-b5c6-4d62-8cb2-769714fb2c0f"
+storage_version_token = "1788159792049935"
+content_type = "application/octet-stream"

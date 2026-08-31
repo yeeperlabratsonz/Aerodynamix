@@ -11,30 +11,30 @@
   var DB_STORE = 'games';
   var DEFAULT_PUBLIC_ROOT = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/docs/';
   var UPDATE_PROXY_ROOT = 'https://aerodynamix20.onrender.com/api/update-proxy/';
-  var STANDALONE_VERSION = '1.3';
+  var STANDALONE_VERSION = '1.4';
   var UPDATE_MANIFEST_PATH = 'standalone-updates.json';
   var FALLBACK_UPDATE_MANIFEST = {
-    version: '1.3',
+    version: '1.4',
     changelog: [{
-      version: 'Aerodynamix Ver 1.3',
+      version: 'Aerodynamix Ver 1.4',
       changes: [
-        'Added a Spotify-like Aerodynamix Music tab with album browsing and search.',
-        'Music downloads automatically into browser storage for offline playback.',
-        'Added liked songs, shuffle, progress, volume, and background library caching.'
+        'Updated album artwork and corrected song album metadata.',
+        'Pablo is now listed under Donda 2, not The Life of Pablo.',
+        'New standalone downloads include the release version in their filename.'
       ]
     }],
-    download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html',
-    zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.zip',
-    xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html.xz',
-    slim_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.html',
-    slim_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.zip',
-    slim_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.html.xz',
-    dev_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html',
-    dev_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.zip',
-    dev_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html.xz',
-    dev_slim_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.html',
-    dev_slim_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.zip',
-    dev_slim_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.html.xz'
+    download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-v1.4.html',
+    zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-v1.4.zip',
+    xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-v1.4.html.xz',
+    slim_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim-v1.4.html',
+    slim_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim-v1.4.zip',
+    slim_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim-v1.4.html.xz',
+    dev_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-v1.4.html',
+    dev_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-v1.4.zip',
+    dev_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-v1.4.html.xz',
+    dev_slim_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim-v1.4.html',
+    dev_slim_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim-v1.4.zip',
+    dev_slim_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim-v1.4.html.xz'
   };
   var CLOAK_PRESETS = {
     google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
@@ -54,6 +54,7 @@
   var MUSIC_DB_STORE = 'assets';
   var musicDbPromise = null;
   var musicCatalog = [];
+  var musicCatalogVersion = '1';
   var musicCurrentId = '';
   var musicQueue = [];
   var musicQueueIndex = -1;
@@ -1683,7 +1684,9 @@
   }
 
   function getMusicAsset(track, kind) {
-    var key = kind + ':' + track.id;
+    var key = kind === 'cover'
+      ? 'cover:' + musicCatalogVersion + ':' + track.id
+      : 'audio:' + track.id;
     if (musicObjectUrls[key]) return Promise.resolve(musicObjectUrls[key]);
     return getMusicCache(key).then(function (cached) {
       if (cached && cached.value instanceof Blob) {
@@ -1773,6 +1776,7 @@
   function loadMusicCatalog() {
     var cachedCatalog = getMusicCache('catalog').then(function (cached) {
       if (cached && cached.value && Array.isArray(cached.value.tracks)) {
+        musicCatalogVersion = String(cached.value.version || '1');
         musicCatalog = cached.value.tracks;
         renderMusicAlbumsAndTracks();
         musicStatus('Offline catalog ready. Checking for new music…');
@@ -1786,6 +1790,7 @@
         })
         .then(function (catalog) {
           if (!catalog || !Array.isArray(catalog.tracks)) throw new Error('Music catalog is invalid.');
+          musicCatalogVersion = String(catalog.version || '1');
           musicCatalog = catalog.tracks;
           return putMusicCache('catalog', catalog);
         })

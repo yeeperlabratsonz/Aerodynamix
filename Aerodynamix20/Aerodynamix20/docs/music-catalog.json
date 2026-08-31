@@ -1,5 +1,5 @@
 {
-  "version": "1",
+  "version": "2",
   "title": "Aerodynamix Music",
   "description": "The shared Aerodynamix offline music catalog.",
   "tracks": [
@@ -8,7 +8,7 @@
       "title": "20 Min",
       "artist": "Lil Uzi Vert",
       "albumArtist": "Lil Uzi Vert",
-      "album": "Luv Is Rage 2",
+      "album": "Luv Is Rage 2 (Deluxe)",
       "genre": "Hip-Hop",
       "audio": "/api/music/20-min.mp3",
       "cover": "/api/music/20-min-cover.jpg"
@@ -21,14 +21,14 @@
       "album": "Rodeo",
       "genre": "Hip-Hop",
       "audio": "/api/music/90210.mp3",
-      "cover": "/api/music/90210-cover.jpg"
+      "cover": "/api/music/rodeo-album-cover.jpg"
     },
     {
       "id": "evil-jordan",
       "title": "EVIL J0RDAN",
       "artist": "Playboi Carti",
       "albumArtist": "Playboi Carti",
-      "album": "MUSIC",
+      "album": "MUSIC - SORRY 4 DA WAIT",
       "genre": "Hip-Hop",
       "audio": "/api/music/evil-jordan.mp3",
       "cover": "/api/music/evil-jordan-cover.jpg"
@@ -51,14 +51,14 @@
       "album": "My Beautiful Dark Twisted Fantasy",
       "genre": "Hip-Hop",
       "audio": "/api/music/power.mp3",
-      "cover": "/api/music/power-cover.jpg"
+      "cover": "/api/music/mbdtf-album-cover.jpg"
     },
     {
       "id": "rapp-snitch-knishes",
       "title": "Rapp Snitch Knishes",
       "artist": "MF DOOM",
       "albumArtist": "MF DOOM",
-      "album": "Madvillainy",
+      "album": "MM..FOOD (20th Anniversary Edition)",
       "genre": "Hip-Hop",
       "audio": "/api/music/rapp-snitch-knishes.mp3",
       "cover": "/api/music/rapp-snitch-knishes-cover.jpg"
@@ -81,14 +81,14 @@
       "album": "Dying to Live",
       "genre": "Hip-Hop",
       "audio": "/api/music/zeze.mp3",
-      "cover": "/api/music/music-starter-pack-cover.jpg"
+      "cover": "/api/music/dying-to-live-album-cover.jpg"
     },
     {
       "id": "pablo",
       "title": "Pablo",
       "artist": "Kanye West",
       "albumArtist": "Kanye West",
-      "album": "The Life of Pablo",
+      "album": "Donda 2",
       "genre": "Hip-Hop",
       "audio": "/api/music/Pablo_1786149856081.m4a",
       "cover": "/api/music/cover_1786149778547.jpg"
