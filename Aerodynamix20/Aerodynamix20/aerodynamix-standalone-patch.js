@@ -1460,6 +1460,29 @@
   }
 
   function patchUgsGameHtml(html, gameUrl) {
+    // Some UGS records are XML-like envelopes containing an HTML document.
+    // Keep only the document itself so srcdoc parses and runs it normally.
+    var htmlStart = html.search(/<html\b/i);
+    var htmlEnd = html.search(/<\/html\s*>/i);
+    if (htmlStart > 0 && htmlEnd >= htmlStart) {
+      html = html.slice(htmlStart, htmlEnd + html.match(/<\/html\s*>/i)[0].length);
+    }
+
+    // These wrappers were originally hosted inside the UGS shell. The shell
+    // exposes this optional parent API, but Aerodynamix does not need it.
+    html = html.replace(
+      /window\.parent\.maeExportApis_\s*\(\s*\)\s*;?/gi,
+      'if (window.parent && typeof window.parent.maeExportApis_ === "function") window.parent.maeExportApis_();'
+    );
+
+    // Avoid making a srcdoc document request UGS shell-only root paths from
+    // the standalone host. They are optional cloak/settings helpers; the
+    // actual game assets use the wrapper's own base URL.
+    html = html.replace(
+      /<script\b[^>]*\bsrc\s*=\s*["']\/(?:js\/all\.js|html\/settings\/js\/index\.js)["'][^>]*>\s*<\/script>/gi,
+      ''
+    );
+
     var movieMatch = html.match(/<param[^>]+name=["']movie["'][^>]+value=["']([^"']+)["']/i);
     if (!movieMatch) {
       movieMatch = html.match(/<embed[^>]+src=["']([^"']+\.swf(?:[?#][^"']*)?)["']/i);
@@ -1489,23 +1512,14 @@
   }
 
   async function openUgsGame(url, frame) {
-    // Most UGS wrappers are complete pages that expect to run at their
-    // original URL. Loading them through srcdoc changes location, storage,
-    // and parent-frame behavior, which breaks GameMaker/OpenFL/EJS games.
-    // Keep direct navigation as the default and only fetch wrappers that
-    // need the Flash movie placeholder repaired.
-    if (!/\/clmeatboyflash\.html(?:[?#]|$)/i.test(url)) {
-      frame.removeAttribute('srcdoc');
-      frame.src = url;
-      return;
-    }
     try {
       var response = await fetch(url, { credentials: 'omit' });
       if (!response.ok) throw new Error('UGS game could not be loaded');
       var html = await response.text();
       frame.srcdoc = patchUgsGameHtml(html, url);
     } catch (error) {
-      // Keep the direct URL fallback for hosts that block cross-origin reads.
+      // Keep a direct fallback for hosts that block cross-origin reads. The
+      // configured jsDelivr UGS files allow fetch and use the path above.
       frame.removeAttribute('srcdoc');
       frame.src = url;
     }
