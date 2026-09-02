@@ -1,6 +1,8 @@
 /* Early bootstrap for downloadable Aerodynamix standalone files.
  * The builder inlines this before the original app so a local file can
- * install a newer HTML copy without needing permission to overwrite itself.
+ * keep its original filename while loading the newest cached HTML copy.
+ * Browsers do not let a file:// page overwrite itself; IndexedDB is the
+ * durable patch store and document.open/write applies that patch in memory.
  */
 (function () {
   'use strict';
@@ -11,6 +13,7 @@
   var UPDATE_ORIGIN = 'https://aerodynamix20.onrender.com';
   var UPDATE_PROXY = UPDATE_ORIGIN + '/api/update-proxy/';
   var MANIFEST_URL = UPDATE_ORIGIN + '/api/standalone-updates.json';
+  var PUBLIC_MANIFEST_URL = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/docs/standalone-updates.json';
   var DB_NAME = 'aerodynamixStandaloneUpdates';
   var DB_VERSION = 1;
   var STORE_NAME = 'bundles';
@@ -102,6 +105,30 @@
     return VARIANT === 'slim' ? manifest.slim_download : manifest.download;
   }
 
+  function appendCacheBust(url, value) {
+    var separator = url.indexOf('?') >= 0 ? '&' : '?';
+    return url + separator + 'aerodynamix_update=' + encodeURIComponent(String(value || Date.now()));
+  }
+
+  function fetchManifest() {
+    var urls = [MANIFEST_URL, PUBLIC_MANIFEST_URL];
+    var lastError = null;
+    return urls.reduce(function (promise, url) {
+      return promise.catch(function () {
+        return fetchWithTimeout(appendCacheBust(url, Date.now()), {
+          credentials: 'omit',
+          cache: 'no-store'
+        }, 10000).then(function (response) {
+          if (!response.ok) throw new Error('Manifest server returned HTTP ' + response.status);
+          return response.json();
+        }).catch(function (error) {
+          lastError = error;
+          throw error;
+        });
+      });
+    }, Promise.reject(lastError || new Error('No update manifest source available')));
+  }
+
   function validStandaloneHtml(html) {
     return typeof html === 'string' &&
       html.length > 20000 &&
@@ -128,7 +155,10 @@
     var latest = manifest && manifest.version;
     var downloadPath = updateDownloadPath(manifest || {});
     if (!latest || !downloadPath || compareVersions(latest, currentVersion) <= 0) return Promise.resolve(false);
-    return fetchWithTimeout(downloadPath, { credentials: 'omit', cache: 'no-store' }, 30000)
+    return fetchWithTimeout(appendCacheBust(downloadPath, latest), {
+      credentials: 'omit',
+      cache: 'no-store'
+    }, 30000)
       .then(function (response) {
         if (!response.ok) throw new Error('Update server returned HTTP ' + response.status);
         return response.text();
@@ -160,14 +190,9 @@
         replaceWithUpdatedDocument(cached.html, cached.version);
         return true;
       }
-      return fetchWithTimeout(MANIFEST_URL, { credentials: 'omit', cache: 'no-store' }, 8000)
-        .then(function (response) {
-          if (!response.ok) throw new Error('Manifest server returned HTTP ' + response.status);
-          return response.json();
-        })
-        .then(function (manifest) {
-          return fetchAndInstall(manifest, CURRENT_VERSION);
-        });
+      return fetchManifest().then(function (manifest) {
+        return fetchAndInstall(manifest, CURRENT_VERSION);
+      });
     }).catch(function () {
       return false;
     }).then(function (replaced) {

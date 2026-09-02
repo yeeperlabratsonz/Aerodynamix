@@ -6,20 +6,20 @@
       "changes": [
         "Updated album artwork and corrected song album metadata.",
         "Pablo is now listed under Donda 2, not The Life of Pablo.",
-        "New standalone downloads include the release version in their filename."
+        "Updates now apply in place and keep the same standalone file."
       ]
     }
   ],
-  "download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone-v1.4.html",
-  "zip_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone-v1.4.zip",
-  "xz_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone-v1.4.html.xz",
-  "slim_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim-v1.4.html",
-  "slim_zip_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim-v1.4.zip",
-  "slim_xz_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim-v1.4.html.xz",
-  "dev_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-v1.4.html",
-  "dev_zip_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-v1.4.zip",
-  "dev_xz_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-v1.4.html.xz",
-  "dev_slim_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim-v1.4.html",
-  "dev_slim_zip_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim-v1.4.zip",
-  "dev_slim_xz_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim-v1.4.html.xz"
+  "download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html",
+  "zip_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone.zip",
+  "xz_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html.xz",
+  "slim_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.html",
+  "slim_zip_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.zip",
+  "slim_xz_download": "https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.html.xz",
+  "dev_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html",
+  "dev_zip_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.zip",
+  "dev_xz_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html.xz",
+  "dev_slim_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.html",
+  "dev_slim_zip_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.zip",
+  "dev_slim_xz_download": "https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.html.xz"
 }

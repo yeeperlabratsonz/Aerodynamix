@@ -13,6 +13,8 @@
   var UPDATE_PROXY_ROOT = 'https://aerodynamix20.onrender.com/api/update-proxy/';
   var STANDALONE_VERSION = '1.4';
   var UPDATE_MANIFEST_PATH = 'standalone-updates.json';
+  var UPDATE_CACHE_DB = 'aerodynamixStandaloneUpdates';
+  var UPDATE_CACHE_STORE = 'bundles';
   var FALLBACK_UPDATE_MANIFEST = {
     version: '1.4',
     changelog: [{
@@ -20,21 +22,21 @@
       changes: [
         'Updated album artwork and corrected song album metadata.',
         'Pablo is now listed under Donda 2, not The Life of Pablo.',
-        'New standalone downloads include the release version in their filename.'
+        'Updates now apply in place and keep the same standalone file.'
       ]
     }],
-    download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-v1.4.html',
-    zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-v1.4.zip',
-    xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-v1.4.html.xz',
-    slim_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim-v1.4.html',
-    slim_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim-v1.4.zip',
-    slim_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim-v1.4.html.xz',
-    dev_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-v1.4.html',
-    dev_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-v1.4.zip',
-    dev_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-v1.4.html.xz',
-    dev_slim_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim-v1.4.html',
-    dev_slim_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim-v1.4.zip',
-    dev_slim_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim-v1.4.html.xz'
+    download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html',
+    zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.zip',
+    xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html.xz',
+    slim_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.html',
+    slim_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.zip',
+    slim_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.html.xz',
+    dev_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html',
+    dev_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.zip',
+    dev_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html.xz',
+    dev_slim_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.html',
+    dev_slim_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.zip',
+    dev_slim_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.html.xz'
   };
   var CLOAK_PRESETS = {
     google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
@@ -2713,6 +2715,58 @@
     return 0;
   }
 
+  function validStandaloneHtml(html) {
+    return typeof html === 'string' &&
+      html.length > 20000 &&
+      /<html[\s>]/i.test(html) &&
+      /AERODYNAMIX/i.test(html);
+  }
+
+  function appendUpdateCacheBust(url, value) {
+    var separator = url.indexOf('?') >= 0 ? '&' : '?';
+    return url + separator + 'aerodynamix_update=' + encodeURIComponent(String(value || Date.now()));
+  }
+
+  function openUpdateCache() {
+    return new Promise(function (resolve, reject) {
+      if (!window.indexedDB) {
+        reject(new Error('Browser storage is unavailable'));
+        return;
+      }
+      var request = indexedDB.open(UPDATE_CACHE_DB, 1);
+      request.onupgradeneeded = function () {
+        if (!request.result.objectStoreNames.contains(UPDATE_CACHE_STORE)) {
+          request.result.createObjectStore(UPDATE_CACHE_STORE, { keyPath: 'key' });
+        }
+      };
+      request.onsuccess = function () { resolve(request.result); };
+      request.onerror = function () { reject(request.error || new Error('Could not open update storage')); };
+    });
+  }
+
+  function cacheLatestUpdate(version, html) {
+    return openUpdateCache().then(function (database) {
+      return new Promise(function (resolve, reject) {
+        var edition = window.AERODYNAMIX_EDITION === 'dev' ? 'dev' : 'normal';
+        var variant = window.AERODYNAMIX_VARIANT === 'slim' ? 'slim' : 'full';
+        var transaction = database.transaction(UPDATE_CACHE_STORE, 'readwrite');
+        transaction.objectStore(UPDATE_CACHE_STORE).put({
+          key: edition + ':' + variant,
+          version: String(version),
+          html: html
+        });
+        transaction.oncomplete = function () {
+          database.close();
+          resolve();
+        };
+        transaction.onerror = function () {
+          database.close();
+          reject(transaction.error || new Error('Could not save update'));
+        };
+      });
+    });
+  }
+
   function renderChangelog(entries) {
     var container = document.getElementById('aeroChangelog');
     if (!container) return;
@@ -2762,6 +2816,34 @@
     return new URL(UPDATE_MANIFEST_PATH, new URL('./', location.href)).href;
   }
 
+  function getUpdateManifestUrls() {
+    var candidates = [getUpdateManifestUrl()];
+    if (location.protocol === 'file:') {
+      candidates.push(new URL(UPDATE_MANIFEST_PATH, 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/docs/').href);
+    } else if (location.hostname !== 'aerodynamix20.onrender.com') {
+      candidates.push(new URL('/api/standalone-updates.json', 'https://aerodynamix20.onrender.com').href);
+    }
+    return candidates.filter(function (url, index, all) { return all.indexOf(url) === index; });
+  }
+
+  async function fetchUpdateManifest() {
+    var urls = getUpdateManifestUrls();
+    var lastError = null;
+    for (var index = 0; index < urls.length; index += 1) {
+      try {
+        var response = await fetch(appendUpdateCacheBust(urls[index], Date.now()), {
+          credentials: 'omit',
+          cache: 'no-store'
+        });
+        if (!response.ok) throw new Error('Update server returned HTTP ' + response.status);
+        return await response.json();
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error('No update manifest source available');
+  }
+
   function getUpdateDownloadUrl(path) {
     if (!path) return '';
     if (/^(https?:|blob:|data:)/i.test(path)) return path;
@@ -2774,6 +2856,21 @@
     return new URL(path, new URL('./', location.href)).href;
   }
 
+  async function applyStandaloneUpdate(downloadPath, latest) {
+    var response = await fetch(
+      appendUpdateCacheBust(getUpdateDownloadUrl(downloadPath), latest),
+      { credentials: 'omit', cache: 'no-store' }
+    );
+    if (!response.ok) throw new Error('Update server returned HTTP ' + response.status);
+    var html = await response.text();
+    if (!validStandaloneHtml(html)) throw new Error('The update was not a valid standalone file');
+    await cacheLatestUpdate(latest, html);
+    window.name = 'aerodynamix-auto-updated:' + String(latest);
+    document.open();
+    document.write(html);
+    document.close();
+  }
+
   async function checkForStandaloneUpdate() {
     var status = document.getElementById('aeroUpdateStatus');
     var button = document.getElementById('aeroUpdateButton');
@@ -2781,9 +2878,7 @@
     status.className = 'aero-update-status';
     status.textContent = 'Checking for updates…';
     try {
-      var response = await fetch(getUpdateManifestUrl(), { credentials: 'omit', cache: 'no-store' });
-      if (!response.ok) throw new Error('Update server returned HTTP ' + response.status);
-      var manifest = await response.json();
+      var manifest = await fetchUpdateManifest();
       renderChangelog(manifest.changelog);
       var latest = manifest.version || STANDALONE_VERSION;
       var isDev = window.AERODYNAMIX_EDITION === 'dev';
@@ -2793,14 +2888,17 @@
         : (isSlim ? manifest.slim_download : manifest.download);
       if (compareVersions(latest, STANDALONE_VERSION) > 0 && downloadPath) {
         button.disabled = false;
-        button.textContent = 'Download Ver ' + latest;
+        button.textContent = 'Apply update';
         status.className += ' ready';
-        status.textContent = 'Aerodynamix Ver ' + latest + ' will be applied automatically the next time this file opens.';
+        status.textContent = 'The update will be patched into this file and applied automatically on future launches.';
         button.dataset.download = downloadPath;
+        button.dataset.version = latest;
         showOutdatedNotification();
       } else {
         button.disabled = false;
         button.textContent = 'Check again';
+        delete button.dataset.download;
+        delete button.dataset.version;
         status.className += ' ready';
         status.textContent = 'You have the latest ' +
           (window.AERODYNAMIX_EDITION === 'dev' ? 'Developer Edition' : 'standalone') +
@@ -2811,7 +2909,7 @@
       button.disabled = false;
       button.textContent = 'Check again';
       status.className += ' ready';
-      status.textContent = 'Update information is unavailable right now. Your current file is ready to use, and the built-in changelog is shown below.';
+      status.textContent = 'The update service could not be reached. Check again when you are online; your current file is ready to use.';
     }
   }
 
@@ -2846,18 +2944,25 @@
       checkForStandaloneUpdate();
     };
     var updateButton = document.getElementById('aeroUpdateButton');
-    if (updateButton) updateButton.onclick = function () {
-      if (updateButton.dataset.download) {
-        showUpdateOverlay();
-        var link = document.createElement('a');
-        link.href = getUpdateDownloadUrl(updateButton.dataset.download);
-        link.download = '';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        toast('Updated file download started.');
-      } else {
+    if (updateButton) updateButton.onclick = async function () {
+      if (!updateButton.dataset.download) {
         checkForStandaloneUpdate();
+        return;
+      }
+      updateButton.disabled = true;
+      updateButton.textContent = 'Applying update…';
+      showUpdateOverlay();
+      try {
+        await applyStandaloneUpdate(updateButton.dataset.download, updateButton.dataset.version);
+      } catch (error) {
+        updateButton.disabled = false;
+        updateButton.textContent = 'Apply update';
+        var updateStatus = document.getElementById('aeroUpdateStatus');
+        if (updateStatus) {
+          updateStatus.className = 'aero-update-status error';
+          updateStatus.textContent = 'The update could not be applied in this file. Check your connection and try again.';
+        }
+        toast('Update could not be applied.');
       }
     };
     if (clock) {
