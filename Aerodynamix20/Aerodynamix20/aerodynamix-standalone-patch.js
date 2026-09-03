@@ -3011,6 +3011,12 @@
       event.preventDefault();
       showView('drawing');
     });
+    var soundboardCard = document.querySelector('#aeroAppsView .app-card[data-app-name*="soundboard"]');
+    if (soundboardCard) {
+      soundboardCard.href = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/docs/apps/soundboard/index.html';
+      soundboardCard.target = '_blank';
+      soundboardCard.rel = 'noopener';
+    }
     var drawingBack = document.querySelector('#aeroDrawingView .drawing-back');
     if (drawingBack) drawingBack.addEventListener('click', function (event) {
       event.preventDefault();

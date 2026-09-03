@@ -4,7 +4,6 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <base href="https://cdn.jsdelivr.net/gh/bubblfan/soundboard@main/" />
     <script
       async
       src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5521219086088837"
@@ -14,9 +13,18 @@
 
     <meta charset="UTF-8" />
     <title>Soundboard</title>
-    <script src="sounds.js" type="module"></script>
-    <script src="main.js" type="module"></script>
-    <link href="style.css" rel="stylesheet" />
+    <script src="./audio-fix.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/bubblfan/soundboard@main/sounds.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/gh/bubblfan/soundboard@main/main.js" type="module"></script>
+    <link href="https://cdn.jsdelivr.net/gh/bubblfan/soundboard@main/style.css" rel="stylesheet" />
+    <style>
+      .sound-image {
+        background-image: url("https://cdn.jsdelivr.net/gh/bubblfan/soundboard@main/button.png") !important;
+      }
+      .sound-image.pressed {
+        background-image: url("https://cdn.jsdelivr.net/gh/bubblfan/soundboard@main/button_pressed.png") !important;
+      }
+    </style>
   </head>
 
   <body>
