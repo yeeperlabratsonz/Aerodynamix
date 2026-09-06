@@ -12,3 +12,4 @@
 - [Slim UGS hosting](ugs-slim-hosting.md) — prefer verified UGS entries and expand their Flash `$1` movie placeholder at runtime.
 - [Ruffle self-hosted bundles](ruffle-self-hosted-bundles.md) — code-split Ruffle builds require their matching core chunks and WASM assets at the loader’s public path.
 - [Music artwork cache versions](music-artwork-cache-versions.md) — bump the shared catalog version when album art or metadata changes so IndexedDB-backed covers refresh.
+- [Git storage recovery](git-storage-recovery.md) — preserve reachable LFS history and remove only unreachable temporary objects when large export builds exhaust workspace quota.
