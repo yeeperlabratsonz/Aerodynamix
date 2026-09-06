@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071226">
+  <title>Friday Night Funkin' — Aerodynamix</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="mobile.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --fnf-blue: #2c7ffc;
+      --fnf-purple: #a855f7;
+      --fnf-panel: #0d172a;
+      --fnf-muted: #9aa8bf;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: #fff;
+      background:
+        radial-gradient(circle at 15% 8%, #2c7ffc38, transparent 25rem),
+        radial-gradient(circle at 85% 20%, #a855f72b, transparent 27rem),
+        #030509;
+    }
+
+    .fnf-page {
+      width: min(1420px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 9rem 0 5rem;
+    }
+
+    .fnf-hero {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 2rem;
+      min-height: 250px;
+      margin-bottom: 2rem;
+      padding: clamp(2rem, 5vw, 4rem);
+      border: 1px solid #7db8ff38;
+      border-radius: 28px;
+      background:
+        linear-gradient(110deg, #081b3be8 0%, #11152ce8 53%, #28133de8 100%),
+        url("images/fridaynightfunkin.png") center/cover;
+      box-shadow: 0 24px 70px #0008;
+    }
+
+    .fnf-hero::after {
+      content: "↑ ↓ ← →";
+      position: absolute;
+      right: 5%;
+      top: 12%;
+      color: #ffffff14;
+      font-size: clamp(2rem, 7vw, 7rem);
+      font-weight: 900;
+      letter-spacing: .18em;
+      transform: rotate(-8deg);
+      pointer-events: none;
+    }
+
+    .fnf-hero-copy {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
+    }
+
+    .fnf-kicker {
+      margin: 0 0 .7rem;
+      color: #8edcff;
+      font-size: .75rem;
+      font-weight: 800;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .fnf-hero h1 {
+      margin: 0 0 .8rem;
+      font-size: clamp(2.5rem, 6vw, 5.8rem);
+      line-height: .95;
+      letter-spacing: -.07em;
+    }
+
+    .fnf-hero h1 span {
+      color: #68c5ff;
+    }
+
+    .fnf-hero p {
+      max-width: 680px;
+      margin: 0;
+      color: #b9c8dd;
+      line-height: 1.65;
+    }
+
+    .fnf-count {
+      position: relative;
+      z-index: 1;
+      flex: 0 0 auto;
+      min-width: 140px;
+      padding: 1rem 1.2rem;
+      border: 1px solid #7db8ff55;
+      border-radius: 16px;
+      background: #071226c9;
+      text-align: center;
+    }
+
+    .fnf-count strong {
+      display: block;
+      color: #8edcff;
+      font-size: 2rem;
+    }
+
+    .fnf-count small {
+      color: var(--fnf-muted);
+      font-size: .72rem;
+    }
+
+    .fnf-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .fnf-search {
+      display: flex;
+      flex: 1 1 360px;
+      max-width: 620px;
+    }
+
+    .fnf-search input {
+      width: 100%;
+      padding: .9rem 1.1rem;
+      border: 1px solid #7db8ff45;
+      border-right: 0;
+      border-radius: 11px 0 0 11px;
+      outline: none;
+      background: #0d172a;
+      color: #fff;
+      font: inherit;
+    }
+
+    .fnf-search input:focus {
+      border-color: #68c5ff;
+      box-shadow: 0 0 0 3px #2c7ffc2b;
+    }
+
+    .fnf-search button {
+      width: 48px;
+      border: 1px solid #7db8ff45;
+      border-radius: 0 11px 11px 0;
+      background: #2c7ffc;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    .fnf-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem;
+    }
+
+    .fnf-filter button {
+      padding: .65rem .85rem;
+      border: 1px solid #7db8ff3d;
+      border-radius: 999px;
+      background: #ffffff0b;
+      color: #b9c8dd;
+      font-size: .76rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .fnf-filter button:hover,
+    .fnf-filter button.active {
+      border-color: #68c5ff;
+      background: #2c7ffc33;
+      color: #fff;
+    }
+
+    .fnf-results {
+      margin: 0 0 1rem;
+      color: #ffffff80;
+      font-size: .78rem;
+    }
+
+    .fnf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 1rem;
+    }
+
+    .fnf-card {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+      border: 1px solid #7db8ff30;
+      border-radius: 16px;
+      background: linear-gradient(145deg, #132649e8, #0b111eee);
+      box-shadow: 0 12px 28px #0005;
+      color: #fff;
+      text-decoration: none;
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .fnf-card:hover {
+      border-color: #68c5ffb0;
+      box-shadow: 0 18px 38px #0008, 0 0 22px #2c7ffc24;
+      transform: translateY(-4px);
+    }
+
+    .fnf-art {
+      position: relative;
+      aspect-ratio: 1.35;
+      overflow: hidden;
+      background: #080c16;
+    }
+
+    .fnf-art img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .25s ease;
+    }
+
+    .fnf-card:hover .fnf-art img {
+      transform: scale(1.05);
+    }
+
+    .fnf-art::after {
+      content: "PLAY";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: #0712268f;
+      color: #fff;
+      font-size: .82rem;
+      font-weight: 900;
+      letter-spacing: .18em;
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+
+    .fnf-card:hover .fnf-art::after {
+      opacity: 1;
+    }
+
+    .fnf-card-body {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: .65rem;
+      padding: .95rem;
+    }
+
+    .fnf-card h2 {
+      margin: 0;
+      font-size: .95rem;
+      line-height: 1.25;
+    }
+
+    .fnf-card p {
+      margin: 0;
+      color: #ffffff80;
+      font-size: .72rem;
+      line-height: 1.45;
+    }
+
+    .fnf-launch {
+      display: block;
+      margin-top: auto;
+      padding: .58rem .65rem;
+      border: 1px solid #7db8ff40;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #2c7ffc, #1a5fd0);
+      color: #fff;
+      font-size: .7rem;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .fnf-empty {
+      display: none;
+      padding: 3rem 1rem;
+      border: 1px dashed #7db8ff45;
+      border-radius: 16px;
+      color: #ffffff80;
+      text-align: center;
+    }
+
+    .fnf-note {
+      margin: 2rem 0 0;
+      color: #ffffff66;
+      font-size: .72rem;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .fnf-note a {
+      color: #8edcff;
+    }
+
+    @media (max-width: 720px) {
+      .fnf-page {
+        width: min(100% - 1rem, 560px);
+        padding-top: 7rem;
+      }
+
+      .fnf-hero {
+        display: block;
+        min-height: 0;
+        padding: 2rem 1.35rem 1.35rem;
+      }
+
+      .fnf-count {
+        display: inline-block;
+        min-width: 0;
+        margin-top: 1.4rem;
+        padding: .55rem .8rem;
+        text-align: left;
+      }
+
+      .fnf-count strong,
+      .fnf-count small {
+        display: inline;
+      }
+
+      .fnf-count strong {
+        margin-right: .35rem;
+        font-size: 1.2rem;
+      }
+
+      .fnf-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .65rem;
+      }
+
+      .fnf-card-body {
+        padding: .7rem;
+      }
+
+      .fnf-card h2 {
+        font-size: .78rem;
+      }
+
+      .fnf-card p {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <img src="images/logo.gif" alt="Aerodynamix logo" onclick="window.location='index.html'">
+    <h1><span class="logo-a">A</span>ERODYNAMIX</h1>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:.4vw;">
+      <a href="index.html" style="color:#fff;text-decoration:none;padding:.55vw 1.3vw;border-radius:.5vw;font-weight:600;font-size:.95vw;">Games</a>
+      <a href="apps.html" style="color:#fff;text-decoration:none;padding:.55vw 1.3vw;border-radius:.5vw;font-weight:600;font-size:.95vw;">Apps</a>
+      <a href="media-player.html" style="color:#fff;text-decoration:none;padding:.55vw 1.3vw;border-radius:.5vw;font-weight:600;font-size:.95vw;">Media Player</a>
+      <a href="dynamix-connect.html" style="color:#fff;text-decoration:none;padding:.55vw 1.3vw;border-radius:.5vw;font-weight:600;font-size:.95vw;">Connect</a>
+    </div>
+    <a href="colors.html" style="margin-right:1.5vw;color:#fff;text-decoration:none;padding:.55vw 1.3vw;background:#2c7ffc;border-radius:.5vw;font-weight:600;font-size:.95vw;">Settings</a>
+  </nav>
+
+  <main class="fnf-page">
+    <section class="fnf-hero">
+      <div class="fnf-hero-copy">
+        <p class="fnf-kicker">Aerodynamix / rhythm vault</p>
+        <h1>Friday Night <span>Funkin'</span></h1>
+        <p>Pick a version, pick a mod, and start your next battle. Every game below launches from the usual UGS single-file CDN, with artwork from the GN-Math game catalogue.</p>
+      </div>
+      <div class="fnf-count"><strong id="game-count">28</strong><small>versions ready</small></div>
+    </section>
+
+    <section aria-label="FNF game library">
+      <div class="fnf-toolbar">
+        <label class="fnf-search">
+          <input id="fnf-search" type="search" placeholder="Search versions and mods…" autocomplete="off">
+          <button type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+        </label>
+        <div class="fnf-filter" role="group" aria-label="Filter FNF games">
+          <button class="active" type="button" data-filter="all">All</button>
+          <button type="button" data-filter="classic">Classics</button>
+          <button type="button" data-filter="mod">Mods</button>
+        </div>
+      </div>
+      <p id="fnf-results" class="fnf-results"></p>
+      <div id="fnf-grid" class="fnf-grid"></div>
+      <div id="fnf-empty" class="fnf-empty">No FNF versions match that search.</div>
+    </section>
+
+    <p class="fnf-note">Artwork is supplied by the <a href="https://genizymath.github.io/" target="_blank" rel="noopener">GN-Math catalogue</a>. Games are hosted through the <a href="https://github.com/bubbls/ugs-singlefile" target="_blank" rel="noopener">UGS single-file CDN</a>.</p>
+  </main>
+
+  <script>
+    const COVER_ROOT = 'https://cdn.jsdelivr.net/gh/freebuisness/covers@main/';
+    const UGS_ROOT = 'https://cdn.jsdelivr.net/gh/bubbls/ugs-singlefile/UGS-Files/';
+    const games = [
+      ['Friday Night Funkin\\' (Original)', 8, 'clfridaynightfunkin', 'classic'],
+      ['Vs. Whitty', 474, 'clfnfwhitty', 'mod'],
+      ['B-Sides', 475, 'clfnfbside', 'mod'],
+      ['Vs. Hex', 476, 'clfnfhex', 'mod'],
+      ['Vs. Hatsune Miku', 477, 'clfnfmiku', 'mod'],
+      ['Neo', 478, 'clfnfneo', 'mod'],
+      ['Mid-Fight Masses', 480, 'clfnfmidfight', 'mod'],
+      ['Vs. Tricky', 481, 'clfnftricky', 'mod'],
+      ['Indie Cross', 489, 'clfnfindiecross', 'mod'],
+      ['Soft', 509, 'clfnfsoft', 'mod'],
+      ['Shaggy: 4 Keys', 559, 'clfnfshaggy4keys', 'mod'],
+      ['Hypno\\'s Lullaby', 583, 'clfnfhypnoslullaby', 'mod'],
+      ['Sonic.EXE', 601, 'clfnfsonicexe', 'mod'],
+      ['Impostor V4', 608, 'clfnfimposterv4', 'mod'],
+      ['Vs. QT', 487, 'clfnfqt', 'mod'],
+      ['Rev-Mixed', 619, 'clfnfrevmixed', 'mod'],
+      ['D-Sides', 636, 'clfnfdsides', 'mod'],
+      ['Vs. Zardy', 715, 'clfnfzardy', 'mod'],
+      ['Vs. Tabi', 714, 'clfnfvstabi', 'mod'],
+      ['Shucks V2', 836, 'clfnfshucks-v2', 'mod'],
+      ['Heartbreak Havoc', 691, 'clfnfheartbreakhavoc', 'mod'],
+      ['AKAGE', 690, 'clfnfakage', 'mod'],
+      ['Shaggy x Matt', 559, 'clfnfshaggyxmatt', 'mod'],
+      ['Vs. Undertale', 657, 'clfnfundertale', 'mod'],
+      ['Mario\\'s Madness: D-Side', 582, 'clfnfmariomadnessdside', 'mod'],
+      ['Vs. Sky', 556, 'clfnfsky', 'mod'],
+      ['Drop and Roll', 613, 'clfnfdropandroll', 'mod'],
+      ['FNAF 1: Friday Night Funkin\\'', 8, 'clfnffnaf1', 'classic']
+    ].map(([title, cover, file, type]) => ({
+      title,
+      cover: COVER_ROOT + cover + '.png',
+      url: UGS_ROOT + file + '.html',
+      type
+    }));
+
+    const grid = document.getElementById('fnf-grid');
+    const search = document.getElementById('fnf-search');
+    const results = document.getElementById('fnf-results');
+    const empty = document.getElementById('fnf-empty');
+    const count = document.getElementById('game-count');
+    let filter = 'all';
+
+    function render() {
+      const query = search.value.trim().toLowerCase();
+      const visible = games.filter(game => {
+        const matchesFilter = filter === 'all' || game.type === filter;
+        return matchesFilter && game.title.toLowerCase().includes(query);
+      });
+      grid.innerHTML = visible.map(game => `
+        <a class="fnf-card" href="${game.url}" target="_self" rel="noopener">
+          <div class="fnf-art">
+            <img src="${game.cover}" alt="${game.title} thumbnail" loading="lazy" onerror="this.onerror=null;this.src='images/fridaynightfunkin.png'">
+          </div>
+          <div class="fnf-card-body">
+            <h2>${game.title}</h2>
+            <p>${game.type === 'classic' ? 'Original-style release' : 'Community mod'}</p>
+            <span class="fnf-launch">Play now <i class="fas fa-arrow-right"></i></span>
+          </div>
+        </a>
+      `).join('');
+      count.textContent = visible.length;
+      results.textContent = `${visible.length} ${visible.length === 1 ? 'version' : 'versions'} shown`;
+      empty.style.display = visible.length ? 'none' : 'block';
+    }
+
+    search.addEventListener('input', render);
+    document.querySelectorAll('[data-filter]').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('[data-filter]').forEach(item => item.classList.remove('active'));
+        button.classList.add('active');
+        filter = button.dataset.filter;
+        render();
+      });
+    });
+    render();
+  </script>
+</body>
+</html>
