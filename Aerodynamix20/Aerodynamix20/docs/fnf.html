@@ -357,6 +357,25 @@
         display: none;
       }
     }
+
+    .fnf-content {
+      min-height: 100vh;
+    }
+
+    .fnf-title {
+      margin: 0 0 1.2vw;
+      color: #fff;
+      font-size: clamp(1.6rem, 2.8vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: .35em;
+      text-align: center;
+      text-indent: .35em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #2c7ffc 0%, #a855f7 50%, #ff6b6b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 20px #2c7ffc66);
+    }
   </style>
 </head>
 <body>
@@ -372,34 +391,15 @@
     <a href="colors.html" style="margin-right:1.5vw;color:#fff;text-decoration:none;padding:.55vw 1.3vw;background:#2c7ffc;border-radius:.5vw;font-weight:600;font-size:.95vw;">Settings</a>
   </nav>
 
-  <main class="fnf-page">
-    <section class="fnf-hero">
-      <div class="fnf-hero-copy">
-        <p class="fnf-kicker">Aerodynamix / rhythm vault</p>
-        <h1>Friday Night <span>Funkin'</span></h1>
-        <p>Pick a version, pick a mod, and start your next battle. Every game below launches from the usual UGS single-file CDN, with artwork from the GN-Math game catalogue.</p>
-      </div>
-      <div class="fnf-count"><strong id="game-count">28</strong><small>versions ready</small></div>
-    </section>
-
-    <section aria-label="FNF game library">
-      <div class="fnf-toolbar">
-        <label class="fnf-search">
-          <input id="fnf-search" type="search" placeholder="Search versions and mods…" autocomplete="off">
-          <button type="button" aria-label="Search"><i class="fas fa-search"></i></button>
-        </label>
-        <div class="fnf-filter" role="group" aria-label="Filter FNF games">
-          <button class="active" type="button" data-filter="all">All</button>
-          <button type="button" data-filter="classic">Classics</button>
-          <button type="button" data-filter="mod">Mods</button>
-        </div>
-      </div>
-      <p id="fnf-results" class="fnf-results"></p>
-      <div id="fnf-grid" class="fnf-grid"></div>
-      <div id="fnf-empty" class="fnf-empty">No FNF versions match that search.</div>
-    </section>
-
-    <p class="fnf-note">Artwork is supplied by the <a href="https://genizymath.github.io/" target="_blank" rel="noopener">GN-Math catalogue</a>. Games are hosted through the <a href="https://github.com/bubbls/ugs-singlefile" target="_blank" rel="noopener">UGS single-file CDN</a>.</p>
+  <main class="content fnf-content">
+    <h1 class="fnf-title">Friday Night Funkin' Mods</h1>
+    <hr>
+    <div class="search">
+      <input id="fnf-search" type="search" placeholder="Search..." aria-label="Search FNF versions and mods" autocomplete="off">
+      <button type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+    </div>
+    <div id="games" aria-label="Friday Night Funkin' versions"></div>
+    <p id="fnf-empty" class="fnf-empty">If there are no games, try refreshing the page.</p>
   </main>
 
   <script>
@@ -441,45 +441,22 @@
       type
     }));
 
-    const grid = document.getElementById('fnf-grid');
+    const grid = document.getElementById('games');
     const search = document.getElementById('fnf-search');
-    const results = document.getElementById('fnf-results');
     const empty = document.getElementById('fnf-empty');
-    const count = document.getElementById('game-count');
-    let filter = 'all';
 
     function render() {
       const query = search.value.trim().toLowerCase();
-      const visible = games.filter(game => {
-        const matchesFilter = filter === 'all' || game.type === filter;
-        return matchesFilter && game.title.toLowerCase().includes(query);
-      });
+      const visible = games.filter(game => game.title.toLowerCase().includes(query));
       grid.innerHTML = visible.map(game => `
-        <a class="fnf-card" href="${game.url}" target="_self" rel="noopener">
-          <div class="fnf-art">
-            <img src="${game.cover}" alt="${game.title} thumbnail" loading="lazy" onerror="this.onerror=null;this.src='images/fridaynightfunkin.png'">
-          </div>
-          <div class="fnf-card-body">
-            <h2>${game.title}</h2>
-            <p>${game.type === 'classic' ? 'Original-style release' : 'Community mod'}</p>
-            <span class="fnf-launch">Play now <i class="fas fa-arrow-right"></i></span>
-          </div>
+        <a href="${game.url}" title="${game.title}">
+          <img src="${game.cover}" alt="${game.title} thumbnail" loading="lazy" onerror="this.onerror=null;this.src='images/fridaynightfunkin.png'">
         </a>
       `).join('');
-      count.textContent = visible.length;
-      results.textContent = `${visible.length} ${visible.length === 1 ? 'version' : 'versions'} shown`;
       empty.style.display = visible.length ? 'none' : 'block';
     }
 
     search.addEventListener('input', render);
-    document.querySelectorAll('[data-filter]').forEach(button => {
-      button.addEventListener('click', () => {
-        document.querySelectorAll('[data-filter]').forEach(item => item.classList.remove('active'));
-        button.classList.add('active');
-        filter = button.dataset.filter;
-        render();
-      });
-    });
     render();
   </script>
 </body>
