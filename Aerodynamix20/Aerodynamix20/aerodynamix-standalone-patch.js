@@ -10,39 +10,6 @@
   var DB_NAME = 'aerodynamixStandaloneLibrary';
   var DB_STORE = 'games';
   var DEFAULT_PUBLIC_ROOT = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/docs/';
-  var UPDATE_PROXY_ROOT = 'https://aerodynamix20.onrender.com/api/update-proxy/';
-  var STANDALONE_VERSION = '1.4';
-  var UPDATE_MANIFEST_PATH = 'standalone-updates.json';
-  var UPDATE_CACHE_DB = 'aerodynamixStandaloneUpdates';
-  var UPDATE_CACHE_STORE = 'bundles';
-  var FALLBACK_UPDATE_MANIFEST = {
-    version: '1.4',
-    changelog: [{
-      version: 'Aerodynamix Ver 1.4',
-      changes: [
-        'Updated album artwork and corrected song album metadata.',
-        'Pablo is now listed under Donda 2, not The Life of Pablo.',
-        'Updates now apply in place and keep the same standalone file.'
-      ]
-    }],
-    download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html',
-    zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.zip',
-    xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone.html.xz',
-    slim_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.html',
-    slim_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.zip',
-    slim_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-standalone-slim.html.xz',
-    dev_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html',
-    dev_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.zip',
-    dev_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition.html.xz',
-    dev_slim_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.html',
-    dev_slim_zip_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.zip',
-    dev_slim_xz_download: 'https://aerodynamix20.onrender.com/download/aerodynamix-dev-edition-slim.html.xz'
-  };
-  var CLOAK_PRESETS = {
-    google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
-    deltaMath: { title: 'DeltaMath', path: 'attached_assets/delta-math-grad-cap.png' },
-    classroom: { title: 'Google Classroom', path: 'attached_assets/google-classroom-chalkboard.jpg' }
-  };
   var settings = readSettings();
   var builtInGames = [];
   var customGames = [];
@@ -68,6 +35,11 @@
   var musicPrefetchStarted = false;
   var musicLikedOnly = false;
   var musicPlayToken = 0;
+  var lowPowerDevice = false;
+
+  function isRemovedGame(game) {
+    return /nubby['’]?s number factory/i.test(String(game && game.title || ''));
+  }
 
   var themes = {
     black: {
@@ -76,13 +48,6 @@
       image: 'radial-gradient(ellipse at 50% 130%, rgba(44,127,252,.32), transparent 65%)',
       color: '#ffffff',
       accent: '#2c7ffc'
-    },
-    'frutiger-aero': {
-      label: 'Frutiger Aero',
-      background: '#87ceeb',
-      image: '',
-      color: '#002244',
-      accent: '#0879bd'
     },
     purple: {
       label: 'Midnight Purple',
@@ -139,7 +104,84 @@
       image: 'radial-gradient(ellipse at 50% 130%, rgba(0,200,83,.58), transparent 65%)',
       color: '#ecfff4',
       accent: '#00c853'
+    },
+    'electric-cyan': {
+      label: 'Electric Cyan',
+      background: '#031d2c',
+      image: 'radial-gradient(circle at 20% 10%, rgba(0,229,255,.34), transparent 32%), radial-gradient(ellipse at 70% 120%, rgba(0,119,255,.4), transparent 65%)',
+      color: '#e7fbff',
+      accent: '#00d9ff'
+    },
+    vaporwave: {
+      label: 'Vaporwave',
+      background: '#21072f',
+      image: 'linear-gradient(135deg, rgba(255,70,190,.25), transparent 45%), radial-gradient(ellipse at 70% 115%, rgba(89,54,255,.55), transparent 65%)',
+      color: '#fff0ff',
+      accent: '#ff5bd6'
+    },
+    'sunset-orange': {
+      label: 'Sunset Orange',
+      background: '#32100a',
+      image: 'radial-gradient(circle at 72% 12%, rgba(255,190,75,.42), transparent 28%), radial-gradient(ellipse at 35% 125%, rgba(255,75,45,.5), transparent 64%)',
+      color: '#fff4e8',
+      accent: '#ff8956'
+    },
+    'arctic-ice': {
+      label: 'Arctic Ice',
+      background: '#071b2c',
+      image: 'radial-gradient(circle at 15% 8%, rgba(196,246,255,.32), transparent 30%), radial-gradient(ellipse at 80% 115%, rgba(77,156,255,.44), transparent 65%)',
+      color: '#effcff',
+      accent: '#8deaff'
+    },
+    'lime-pulse': {
+      label: 'Lime Pulse',
+      background: '#111f08',
+      image: 'radial-gradient(circle at 80% 10%, rgba(183,255,0,.3), transparent 32%), radial-gradient(ellipse at 20% 120%, rgba(43,220,86,.42), transparent 65%)',
+      color: '#f3ffe5',
+      accent: '#a8f542'
+    },
+    'cosmic-dusk': {
+      label: 'Cosmic Dusk',
+      background: '#100b25',
+      image: 'radial-gradient(circle at 18% 15%, rgba(132,92,255,.38), transparent 28%), radial-gradient(circle at 82% 75%, rgba(255,82,175,.24), transparent 32%)',
+      color: '#f4efff',
+      accent: '#9b7cff'
+    },
+    'deep-ocean': {
+      label: 'Deep Ocean',
+      background: '#021722',
+      image: 'radial-gradient(circle at 50% 115%, rgba(0,190,220,.42), transparent 55%), linear-gradient(160deg, rgba(5,62,92,.35), transparent 55%)',
+      color: '#e9fcff',
+      accent: '#25d6e8'
+    },
+    'neon-night': {
+      label: 'Neon Night',
+      background: '#080511',
+      image: 'linear-gradient(135deg, rgba(0,255,209,.13), transparent 38%), radial-gradient(circle at 78% 18%, rgba(255,30,170,.27), transparent 30%)',
+      color: '#f8f4ff',
+      accent: '#00ffd1'
     }
+  };
+  var themeDefaultEffects = {
+    black: 'stars',
+    christmas: 'snow',
+    'bubble-gum-pink': 'bubbles',
+    'blood-red': 'embers',
+    'electric-cyan': 'rain',
+    vaporwave: 'stars',
+    'arctic-ice': 'snow',
+    'cosmic-dusk': 'stars',
+    'deep-ocean': 'bubbles',
+    'neon-night': 'aurora'
+  };
+  var visualEffects = {
+    none: 'None',
+    stars: 'Starlight',
+    rain: 'Rain',
+    embers: 'Embers',
+    aurora: 'Aurora',
+    snow: 'Snow',
+    bubbles: 'Bubbles'
   };
 
   function readSettings() {
@@ -237,7 +279,14 @@
         gap: 10px;
         margin-top: 18px;
       }
+      .aero-effect-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        gap: 10px;
+        margin-top: 18px;
+      }
       .aero-theme-button,
+      .aero-effect-button,
       .aero-button,
       .aero-icon-button {
         border: 1px solid var(--standalone-line);
@@ -276,6 +325,16 @@
         outline: 2px solid var(--standalone-accent);
         outline-offset: 2px;
         box-shadow: 0 12px 34px color-mix(in srgb, var(--standalone-accent) 28%, transparent);
+      }
+      .aero-effect-button {
+        min-height: 48px;
+        border-radius: 12px;
+        background: color-mix(in srgb, var(--standalone-bg) 80%, var(--standalone-accent));
+      }
+      .aero-effect-button:hover,
+      .aero-effect-button.active {
+        border-color: var(--standalone-accent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--standalone-accent) 18%, transparent);
       }
       .aero-setting-row {
         display: flex;
@@ -719,11 +778,68 @@
         filter: blur(var(--blur));
         animation: aeroSnowFall var(--duration) linear infinite;
       }
+      .aero-star {
+        position: absolute;
+        width: var(--size);
+        height: var(--size);
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 0 9px color-mix(in srgb, var(--standalone-accent) 65%, #fff);
+        animation: aeroStarTwinkle var(--duration) ease-in-out infinite alternate;
+      }
+      .aero-rain {
+        position: absolute;
+        top: -18vh;
+        width: 1px;
+        height: var(--length);
+        background: linear-gradient(transparent, color-mix(in srgb, var(--standalone-accent) 65%, #fff));
+        animation: aeroRainFall var(--duration) linear infinite;
+      }
+      .aero-ember {
+        position: absolute;
+        bottom: -20px;
+        width: var(--size);
+        height: var(--size);
+        border-radius: 50%;
+        background: #ff9b42;
+        box-shadow: 0 0 12px #ff4d00;
+        animation: aeroEmberRise var(--duration) ease-out forwards;
+      }
+      .aero-aurora {
+        position: absolute;
+        inset: -25% -10%;
+        opacity: .34;
+        filter: blur(45px);
+        background: conic-gradient(from 180deg at 50% 50%, transparent, var(--standalone-accent), #8b5cff, transparent 58%);
+        animation: aeroAuroraDrift 12s ease-in-out infinite alternate;
+      }
       body.aero-reduce-effects *,
       body.aero-reduce-effects *::before,
       body.aero-reduce-effects *::after {
         animation-duration: .01ms !important;
         transition-duration: .01ms !important;
+      }
+      html.aero-low-power body.aerodynamix-standalone *,
+      html.aero-low-power body.aerodynamix-standalone *::before,
+      html.aero-low-power body.aerodynamix-standalone *::after,
+      body.aero-reduce-effects * {
+        animation: none !important;
+        transition: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+      html.aero-low-power body.aerodynamix-standalone .card,
+      html.aero-low-power body.aerodynamix-standalone .aero-music-panel,
+      html.aero-low-power body.aerodynamix-standalone .aero-music-hero {
+        content-visibility: auto;
+        contain: layout paint style;
+        contain-intrinsic-size: 220px 180px;
+        box-shadow: none !important;
+      }
+      html.aero-low-power body.aerodynamix-standalone .card::after,
+      html.aero-low-power body.aerodynamix-standalone .aero-snow,
+      html.aero-low-power body.aerodynamix-standalone .aero-bubble {
+        display: none !important;
       }
       @keyframes aeroViewIn {
         from { opacity: 0; transform: translateY(10px); }
@@ -737,6 +853,10 @@
         from { transform: translate3d(0,-5vh,0); }
         to { transform: translate3d(var(--drift), 110vh,0); }
       }
+      @keyframes aeroStarTwinkle { from { opacity: .18; transform: scale(.65); } to { opacity: .95; transform: scale(1.2); } }
+      @keyframes aeroRainFall { from { transform: translate3d(0,-15vh,0) rotate(12deg); } to { transform: translate3d(-18vw,125vh,0) rotate(12deg); } }
+      @keyframes aeroEmberRise { from { transform: translate3d(0,0,0); opacity: 0; } 20% { opacity: .9; } to { transform: translate3d(var(--drift),-112vh,0) scale(.25); opacity: 0; } }
+      @keyframes aeroAuroraDrift { from { transform: translate3d(-6%,-3%,0) rotate(-8deg) scale(1); } to { transform: translate3d(7%,5%,0) rotate(10deg) scale(1.12); } }
       @media (max-width: 760px) {
         .aero-settings-grid { grid-template-columns: 1fr; }
         .aero-theme-grid { grid-template-columns: 1fr 1fr; }
@@ -993,6 +1113,210 @@
       .aero-connect-page .fa-trash::before { content: "⌫"; }
       .aero-connect-page .fa-arrow-left::before { content: "←"; }
       .aero-connect-page .fa-user::before { content: "●"; }
+      /* Visual polish for the standalone shell. Keep the existing game
+         catalogue markup, but give every view one consistent surface system. */
+      body.aerodynamix-standalone {
+        position: relative;
+        isolation: isolate;
+        background-color: var(--standalone-bg);
+        background-image:
+          radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--standalone-accent) 20%, transparent), transparent 34rem),
+          radial-gradient(circle at 92% 12%, rgba(168,85,247,.12), transparent 30rem),
+          linear-gradient(180deg, rgba(255,255,255,.025), transparent 30%);
+      }
+      body.aerodynamix-standalone::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        opacity: .3;
+        background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+        background-size: 34px 34px;
+        mask-image: linear-gradient(to bottom, #000, transparent 78%);
+      }
+      body.aerodynamix-standalone .real-nav {
+        position: sticky;
+        top: 0;
+        height: clamp(62px, 7vw, 82px);
+        border-bottom: 1px solid color-mix(in srgb, var(--standalone-accent) 24%, transparent);
+        background: color-mix(in srgb, var(--standalone-bg) 76%, transparent);
+        box-shadow: 0 14px 44px rgba(0,0,0,.18);
+        backdrop-filter: blur(22px) saturate(145%);
+      }
+      body.aerodynamix-standalone .real-nav::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: .42;
+        background: linear-gradient(105deg, transparent 12%, rgba(255,255,255,.12) 36%, transparent 58%);
+        transform: translateX(-110%);
+        animation: aeroNavShine 9s ease-in-out infinite;
+      }
+      body.aerodynamix-standalone .real-nav .nav-logo {
+        border: 1px solid rgba(255,255,255,.35);
+        box-shadow: 0 8px 24px color-mix(in srgb, var(--standalone-accent) 26%, transparent);
+        transition: transform .25s ease, box-shadow .25s ease;
+      }
+      body.aerodynamix-standalone .real-nav .nav-logo:hover {
+        transform: rotate(-3deg) scale(1.04);
+        box-shadow: 0 12px 30px color-mix(in srgb, var(--standalone-accent) 38%, transparent);
+      }
+      body.aerodynamix-standalone .nav-links a,
+      body.aerodynamix-standalone .settings-nav {
+        position: relative;
+        transition: color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+      }
+      body.aerodynamix-standalone .nav-links a:hover,
+      body.aerodynamix-standalone .settings-nav:hover {
+        transform: translateY(-1px);
+        background: color-mix(in srgb, var(--standalone-accent) 14%, transparent);
+        color: var(--standalone-text);
+      }
+      body.aerodynamix-standalone .nav-links a.active,
+      body.aerodynamix-standalone .settings-nav.active {
+        background: var(--standalone-accent);
+        color: #fff;
+        box-shadow: 0 7px 22px color-mix(in srgb, var(--standalone-accent) 30%, transparent);
+      }
+      body.aerodynamix-standalone .content {
+        position: relative;
+        padding-top: clamp(2rem, 4vw, 4rem);
+      }
+      body.aerodynamix-standalone .offline-title,
+      body.aerodynamix-standalone .featured h1 {
+        animation: aeroTitleIn .65s cubic-bezier(.2,.8,.2,1) both;
+      }
+      body.aerodynamix-standalone .search {
+        position: relative;
+        z-index: 1;
+        width: min(620px, 100%);
+        margin: clamp(1.2rem, 3vw, 2.5rem) auto 0;
+        filter: drop-shadow(0 16px 28px rgba(0,0,0,.2));
+      }
+      body.aerodynamix-standalone .search input {
+        flex: 1;
+        min-width: 0;
+        border: 1px solid var(--standalone-line);
+        border-radius: 14px 0 0 14px;
+        background: rgba(4,10,24,.62);
+        backdrop-filter: blur(15px);
+        transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+      }
+      body.aerodynamix-standalone .search input:focus {
+        border-color: var(--standalone-accent);
+        background: rgba(4,10,24,.84);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--standalone-accent) 17%, transparent);
+      }
+      body.aerodynamix-standalone .search button {
+        border: 1px solid var(--standalone-line);
+        border-left: 0;
+        background: color-mix(in srgb, var(--standalone-accent) 82%, #071226);
+        color: #fff;
+        transition: filter .2s ease, transform .2s ease;
+      }
+      body.aerodynamix-standalone .search button:hover {
+        filter: brightness(1.12);
+        transform: translateX(2px);
+      }
+      body.aerodynamix-standalone .grid {
+        gap: clamp(10px, 1vw, 16px);
+        margin-top: clamp(1.4rem, 2.8vw, 2.6rem);
+      }
+      body.aerodynamix-standalone .card {
+        margin: 0;
+        border-color: color-mix(in srgb, var(--standalone-accent) 22%, transparent);
+        border-radius: 18px;
+        background: var(--standalone-panel);
+        box-shadow: 0 16px 36px rgba(0,0,0,.2);
+        animation: aeroCardIn .55s cubic-bezier(.2,.8,.2,1) both;
+        transition: transform .28s cubic-bezier(.2,.8,.2,1), border-color .2s ease, box-shadow .28s ease;
+      }
+      body.aerodynamix-standalone .card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0;
+        background: linear-gradient(120deg, transparent 25%, rgba(255,255,255,.2) 48%, transparent 68%);
+        transform: translateX(-100%);
+        transition: opacity .25s ease;
+      }
+      body.aerodynamix-standalone .card:hover {
+        transform: translateY(-7px) scale(1.018);
+        border-color: color-mix(in srgb, var(--standalone-accent) 72%, #fff);
+        box-shadow: 0 22px 44px rgba(0,0,0,.32), 0 0 26px color-mix(in srgb, var(--standalone-accent) 19%, transparent);
+      }
+      body.aerodynamix-standalone .card:hover::after {
+        opacity: 1;
+        animation: aeroCardShine .7s ease both;
+      }
+      body.aerodynamix-standalone .card h2 {
+        padding: 3.2rem .85rem .8rem;
+        background: linear-gradient(transparent, rgba(0,0,0,.94));
+        letter-spacing: .04em;
+      }
+      body.aerodynamix-standalone .player {
+        background: rgba(0,0,0,.86);
+        backdrop-filter: blur(14px);
+        animation: aeroOverlayIn .25s ease both;
+      }
+      body.aerodynamix-standalone .playerbar {
+        height: clamp(58px, 6vw, 72px);
+        padding-inline: clamp(14px, 2.5vw, 32px);
+        border-bottom-color: color-mix(in srgb, var(--standalone-accent) 30%, transparent);
+        background: color-mix(in srgb, var(--standalone-bg) 82%, transparent);
+        backdrop-filter: blur(22px);
+      }
+      body.aerodynamix-standalone .playerbar button {
+        border: 1px solid rgba(255,255,255,.2);
+        border-radius: 10px;
+        box-shadow: 0 8px 20px color-mix(in srgb, var(--standalone-accent) 22%, transparent);
+        transition: transform .2s ease, filter .2s ease;
+      }
+      body.aerodynamix-standalone .playerbar button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.1);
+      }
+      #aeroAppsView .app-card,
+      #aeroMusicView .aero-music-panel,
+      #aeroSettingsView .aero-settings-card,
+      #aeroUpdatesView .aero-update-card,
+      #aeroClockView .aero-clock-display {
+        box-shadow: 0 22px 62px rgba(0,0,0,.26);
+        backdrop-filter: blur(18px);
+      }
+      #aeroAppsView .app-card {
+        transition: transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease, border-color .2s ease;
+      }
+      #aeroAppsView .app-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 26px 64px rgba(0,0,0,.34), 0 0 28px color-mix(in srgb, var(--standalone-accent) 18%, transparent);
+      }
+      @keyframes aeroNavShine { 0%, 55% { transform: translateX(-110%); } 78%, 100% { transform: translateX(110%); } }
+      @keyframes aeroTitleIn { from { opacity: 0; transform: translateY(12px); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+      @keyframes aeroCardIn { from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: none; } }
+      @keyframes aeroCardShine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+      @keyframes aeroOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+      body.aerodynamix-standalone .card:nth-child(2n) { animation-delay: .04s; }
+      body.aerodynamix-standalone .card:nth-child(3n) { animation-delay: .08s; }
+      body.aerodynamix-standalone .card:nth-child(4n) { animation-delay: .12s; }
+      body.aerodynamix-standalone :focus-visible {
+        outline: 3px solid color-mix(in srgb, var(--standalone-accent) 78%, #fff);
+        outline-offset: 3px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        body.aerodynamix-standalone *,
+        body.aerodynamix-standalone *::before,
+        body.aerodynamix-standalone *::after {
+          animation-duration: .01ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: .01ms !important;
+        }
+      }
       @supports not (color: color-mix(in srgb, white 50%, black)) {
         .aero-muted,
         .aero-update-status,
@@ -1051,29 +1375,21 @@
         <div class="aero-settings-grid">
           <section class="aero-settings-card">
             <h3>Choose Theme</h3>
-            <p class="aero-muted">The complete Aerodynamix visual collection, including its original animated effects.</p>
+            <p class="aero-muted">Choose the colors and background for Aerodynamix.</p>
             <div class="aero-theme-grid" id="aeroThemeGrid"></div>
           </section>
           <section class="aero-settings-card">
+            <h3>Visual Effects</h3>
+            <p class="aero-muted">Effects are independent from themes. Choosing a theme picks its recommended effect, but you can change it here.</p>
+            <div class="aero-effect-grid" id="aeroEffectGrid"></div>
+          </section>
+          <section class="aero-settings-card">
             <h3>Experience</h3>
-            <p class="aero-muted">Control privacy, performance, and where downloaded files load built-in games from.</p>
-            <div class="aero-setting-row">
-              <div>
-                <strong>Tab Cloak</strong>
-                <div class="aero-muted">Choose a familiar school tab title and icon. Enabled by default.</div>
-              </div>
-              <button class="aero-switch" id="aeroCloakToggle" type="button" aria-label="Toggle Tab Cloak"></button>
-            </div>
-            <label class="aero-label" for="aeroCloakPreset">Cloak preset</label>
-            <select class="aero-input" id="aeroCloakPreset">
-              <option value="google">Google · G favicon</option>
-              <option value="deltaMath">DeltaMath · grad cap</option>
-              <option value="classroom">Google Classroom · chalkboard</option>
-            </select>
+            <p class="aero-muted">Control performance and where downloaded files load built-in games from.</p>
             <div class="aero-setting-row">
               <div>
                 <strong>Reduce effects</strong>
-                <div class="aero-muted">Disable bubbles, snow, and most motion.</div>
+                <div class="aero-muted">Disable the selected visual effect and most motion.</div>
               </div>
               <button class="aero-switch" id="aeroEffectsToggle" type="button" aria-label="Toggle reduced effects"></button>
             </div>
@@ -1125,8 +1441,20 @@
         <header class="aero-music-heading">
           <div class="aero-kicker">Aerodynamix music</div>
           <h2>Your collection.</h2>
-          <p class="aero-muted">The catalog is downloaded once and saved in this browser for offline playback. No imports are needed, and the music page does not use remote audio after caching.</p>
+          <p class="aero-muted">A focused offline library for songs, albums, and favorites. Download it once while online, then keep listening from this file.</p>
         </header>
+        <section class="aero-music-hero" aria-label="Now playing">
+          <div class="aero-music-hero-art-wrap"><img id="aeroMusicHeroArt" class="aero-music-hero-art" alt=""></div>
+          <div class="aero-music-hero-copy">
+            <div class="aero-music-hero-kicker">Now playing</div>
+            <h3 id="aeroMusicHeroTitle" class="aero-music-hero-title">Choose a song</h3>
+            <p id="aeroMusicHeroMeta" class="aero-music-hero-meta">Your offline player is ready.</p>
+            <div class="aero-music-hero-actions">
+              <button id="aeroMusicHeroPlay" class="aero-button" type="button">Play library</button>
+              <span id="aeroMusicLibraryCount" class="aero-music-hero-count">0 songs saved</span>
+            </div>
+          </div>
+        </section>
         <div class="aero-music-toolbar">
           <input id="aeroMusicSearch" class="aero-music-search" type="search" placeholder="Search songs, artists, or albums…" autocomplete="off">
           <button id="aeroMusicDownload" class="aero-button" type="button">Download library</button>
@@ -1211,42 +1539,6 @@
     `;
     if (nav && nav.parentNode) nav.parentNode.insertBefore(clockView, nav.nextSibling);
     else document.body.prepend(clockView);
-
-    var updatesNav = document.createElement('a');
-    updatesNav.id = 'updatesNav';
-    updatesNav.href = '#';
-    updatesNav.title = 'Updates';
-    updatesNav.textContent = 'Updates';
-    if (navLinks) navLinks.appendChild(updatesNav);
-
-    var updatesView = document.createElement('main');
-    updatesView.id = 'aeroUpdatesView';
-    updatesView.innerHTML = `
-      <div class="aero-updates-shell">
-        <header class="aero-updates-title">
-          <div class="aero-kicker">Aerodynamix updates</div>
-          <h2>Stay up to date.</h2>
-          <p class="aero-muted">This file checks for updates when it opens and applies newer releases automatically.</p>
-        </header>
-        <div class="aero-updates-grid">
-          <section class="aero-update-card">
-            <h3>Your version</h3>
-            <div class="aero-update-version">Aerodynamix Ver ${STANDALONE_VERSION}</div>
-            <p id="aeroUpdateStatus" class="aero-update-status" aria-live="polite">Checking for updates…</p>
-            <button id="aeroUpdateButton" class="aero-button aero-update-button" type="button">Check for updates</button>
-          </section>
-          <section class="aero-update-card">
-            <h3>Latest changelog</h3>
-            <div id="aeroChangelog" class="aero-changelog">
-              <div class="aero-muted">Loading the latest changelog…</div>
-            </div>
-          </section>
-        </div>
-      </div>
-    `;
-    if (nav && nav.parentNode) nav.parentNode.insertBefore(updatesView, nav.nextSibling);
-    else document.body.prepend(updatesView);
-    renderChangelog(FALLBACK_UPDATE_MANIFEST.changelog);
 
     var appsStyles = document.getElementById('aeroAppsStyles');
     if (appsStyles) {
@@ -1340,44 +1632,6 @@
     });
     document.body.appendChild(messageNotification);
 
-    var updateNotification = document.createElement('div');
-    updateNotification.id = 'aeroUpdateNotification';
-    updateNotification.setAttribute('role', 'status');
-    updateNotification.setAttribute('aria-live', 'polite');
-    updateNotification.setAttribute('tabindex', '0');
-    updateNotification.innerHTML =
-      '<div class="aero-update-avatar">↻</div>' +
-      '<div class="aero-update-copy">' +
-        '<div class="aero-update-title">New Aerodynamix version</div>' +
-        '<div class="aero-update-preview">Hey dude you\'re on an older version. Go to the Update section and update to get the newest games and features</div>' +
-      '</div>';
-    function openUpdateNotification() {
-      updateNotification.classList.remove('show');
-      showView('updates');
-      checkForStandaloneUpdate();
-    }
-    updateNotification.addEventListener('click', openUpdateNotification);
-    updateNotification.addEventListener('keydown', function (event) {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        openUpdateNotification();
-      }
-    });
-    document.body.appendChild(updateNotification);
-
-    var updateOverlay = document.createElement('div');
-    updateOverlay.id = 'aeroUpdateOverlay';
-    updateOverlay.setAttribute('role', 'dialog');
-    updateOverlay.setAttribute('aria-modal', 'true');
-    updateOverlay.setAttribute('aria-label', 'Downloading update');
-    updateOverlay.innerHTML =
-      '<div class="aero-update-overlay-card">' +
-        '<div class="aero-update-orbit" aria-hidden="true"></div>' +
-        '<h2>Preparing your update</h2>' +
-        '<p>Your newest Aerodynamix file is on its way. Keep this tab open while the download begins.</p>' +
-        '<div class="aero-update-progress" aria-hidden="true"></div>' +
-      '</div>';
-    document.body.appendChild(updateOverlay);
   }
 
   function toast(message) {
@@ -1425,10 +1679,13 @@
 
   async function pollStandaloneMessages() {
     if (!window.fetch) return;
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
     try {
       var messageUrl = (
         location.protocol === 'file:' ||
-        location.hostname.endsWith('github.io')
+        location.hostname.endsWith('github.io') ||
+        location.hostname === 'localhost' ||
+        location.hostname === '127.0.0.1'
       )
         ? new URL('/api/dms', CONNECT_ORIGIN).href
         : new URL('/api/connect-proxy/api/dms', location.origin).href;
@@ -1464,7 +1721,9 @@
   function getManifest() {
     try {
       var manifest = window.eval('GAMES');
-      return Array.isArray(manifest) ? manifest : [];
+      return Array.isArray(manifest)
+        ? manifest.filter(function (game) { return !isRemovedGame(game); })
+        : [];
     } catch (error) {
       return [];
     }
@@ -1518,6 +1777,7 @@
   }
 
   function getMusicOrigin() {
+    if (window.AERODYNAMIX_PORTABLE) return MUSIC_ORIGIN;
     if (location.protocol !== 'file:' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
       return location.origin;
     }
@@ -1527,6 +1787,74 @@
 
   function musicTrackById(id) {
     return musicCatalog.find(function (track) { return track.id === id; }) || null;
+  }
+
+  function embeddedMusicCatalog() {
+    var catalog = window.AERODYNAMIX_EMBEDDED_MUSIC_CATALOG;
+    if (catalog && Array.isArray(catalog.tracks)) return catalog;
+    var node = document.getElementById('aeroEmbeddedMusicCatalog');
+    if (!node) return null;
+    try {
+      catalog = JSON.parse(node.textContent || '');
+      return catalog && Array.isArray(catalog.tracks) ? catalog : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function mergeMusicCatalogs(catalog, requiredCatalog) {
+    if (!requiredCatalog || !Array.isArray(requiredCatalog.tracks)) return catalog;
+    if (!catalog || !Array.isArray(catalog.tracks)) return requiredCatalog;
+    var tracks = catalog.tracks.slice();
+    var seen = {};
+    tracks.forEach(function (track) { if (track && track.id) seen[track.id] = true; });
+    requiredCatalog.tracks.forEach(function (track) {
+      if (track && track.id && !seen[track.id]) {
+        seen[track.id] = true;
+        tracks.push(track);
+      }
+    });
+    var merged = {};
+    Object.keys(catalog).forEach(function (key) { merged[key] = catalog[key]; });
+    merged.tracks = tracks;
+    merged.version = String(requiredCatalog.version || catalog.version || '1');
+    return merged;
+  }
+
+  function embeddedMusicAsset(track, kind) {
+    var assets = window.AERODYNAMIX_EMBEDDED_MUSIC_ASSETS;
+    var path = kind === 'audio' ? track.audio : track.cover;
+    var entry = null;
+    if (assets && typeof assets === 'object') {
+      entry = assets[path] || assets[track.id + ':' + kind] || (kind === 'audio' ? assets[track.id] : null);
+    }
+    if (entry == null) {
+      var node = document.getElementById('aeroMusicAsset-' + track.id + '-' + kind);
+      if (node) {
+        entry = {
+          base64: (node.textContent || '').trim(),
+          mime: node.getAttribute('data-mime') || (kind === 'audio' ? 'audio/mpeg' : 'image/jpeg')
+        };
+      }
+    }
+    if (entry == null) return Promise.resolve(null);
+    if (entry instanceof Blob) return Promise.resolve(entry);
+    if (typeof entry === 'string' && entry.indexOf('data:') === 0) {
+      return fetch(entry).then(function (response) { return response.blob(); });
+    }
+    var encoded = typeof entry === 'string' ? entry : entry.base64;
+    if (!encoded) return Promise.resolve(null);
+    try {
+      var raw = atob(encoded);
+      var bytes = new Uint8Array(raw.length);
+      for (var index = 0; index < raw.length; index++) bytes[index] = raw.charCodeAt(index);
+      return Promise.resolve(new Blob(
+        [bytes],
+        { type: entry.mime || (kind === 'audio' ? 'audio/mpeg' : 'image/jpeg') }
+      ));
+    } catch (error) {
+      return Promise.reject(new Error('Embedded music asset is invalid.'));
+    }
   }
 
   function musicFormatTime(seconds) {
@@ -1695,15 +2023,19 @@
         musicObjectUrls[key] = URL.createObjectURL(cached.value);
         return musicObjectUrls[key];
       }
-      if (navigator.onLine === false) throw new Error('This song is not cached yet.');
-      var path = kind === 'audio' ? track.audio : track.cover;
-      if (!path) return '';
-      return fetch(musicUrl(path), { credentials: 'omit', cache: 'no-store' })
-        .then(function (response) {
-          if (!response.ok) throw new Error('Music asset returned HTTP ' + response.status);
-          return response.blob();
-        })
+      return embeddedMusicAsset(track, kind).then(function (embedded) {
+        if (embedded) return embedded;
+        if (navigator.onLine === false) throw new Error('This song is not cached yet.');
+        var path = kind === 'audio' ? track.audio : track.cover;
+        if (!path) return null;
+        return fetch(musicUrl(path), { credentials: 'omit', cache: 'no-store' })
+          .then(function (response) {
+            if (!response.ok) throw new Error('Music asset returned HTTP ' + response.status);
+            return response.blob();
+          });
+      })
         .then(function (blob) {
+          if (!blob) return '';
           return putMusicCache(key, blob).then(function () {
             musicObjectUrls[key] = URL.createObjectURL(blob);
             return musicObjectUrls[key];
@@ -1727,16 +2059,24 @@
     musicSetArtwork(art, track);
     renderMusicTracks();
     var token = ++musicPlayToken;
-    musicStatus('Loading ' + (track.title || 'song') + ' for offline playback…');
-    getMusicAsset(track, 'audio').then(function (url) {
+    musicStatus('Loading ' + (track.title || 'song') + '…');
+    var fromOfflineLibrary = false;
+    getMusicCache('audio:' + track.id).catch(function () { return null; }).then(function (cached) {
+      if (cached && cached.value instanceof Blob) {
+        fromOfflineLibrary = true;
+        return URL.createObjectURL(cached.value);
+      }
+      if (navigator.onLine === false) throw new Error('Download this song while online first.');
+      return musicUrl(track.audio);
+    }).then(function (url) {
       if (token !== musicPlayToken || !url) return;
       musicAudio.src = url;
       musicAudio.load();
       return musicAudio.play();
     }).then(function () {
-      if (token === musicPlayToken) musicStatus('Playing from the offline library.');
+      if (token === musicPlayToken) musicStatus(fromOfflineLibrary ? 'Playing from the offline library.' : 'Streaming online. Use Download library to save music for offline playback.');
     }).catch(function () {
-      if (token === musicPlayToken) musicStatus('This song could not be downloaded yet. Open the file while online once.', true);
+      if (token === musicPlayToken) musicStatus('This song is not available. Connect to stream, or download music while online for offline playback.', true);
     });
   }
 
@@ -1754,6 +2094,27 @@
     playMusicTrack(musicQueue[musicQueueIndex], musicQueue);
   }
 
+  function cacheMusicAsset(track, kind) {
+    var key = kind === 'cover'
+      ? 'cover:' + musicCatalogVersion + ':' + track.id
+      : 'audio:' + track.id;
+    return getMusicCache(key).then(function (cached) {
+      if (cached && cached.value instanceof Blob) return;
+      return embeddedMusicAsset(track, kind).then(function (embedded) {
+        if (embedded) return embedded;
+        var path = kind === 'audio' ? track.audio : track.cover;
+        if (!path) return null;
+        return fetch(musicUrl(path), { credentials: 'omit', cache: 'no-store' })
+          .then(function (response) {
+            if (!response.ok) throw new Error('Music asset returned HTTP ' + response.status);
+            return response.blob();
+          });
+      }).then(function (blob) {
+        return blob ? putMusicCache(key, blob) : undefined;
+      });
+    });
+  }
+
   function prefetchMusicLibrary() {
     if (musicPrefetchStarted || !musicCatalog.length || navigator.onLine === false) return;
     musicPrefetchStarted = true;
@@ -1765,8 +2126,8 @@
       }
       var track = musicCatalog[index++];
       musicStatus('Saving music for offline playback… ' + index + ' of ' + musicCatalog.length);
-      getMusicAsset(track, 'audio').then(function () {
-        return getMusicAsset(track, 'cover');
+      cacheMusicAsset(track, 'audio').then(function () {
+        return cacheMusicAsset(track, 'cover');
       }).then(next).catch(function () {
         musicPrefetchStarted = false;
         musicStatus('Some music could not be cached. You can retry while online.', true);
@@ -1776,10 +2137,18 @@
   }
 
   function loadMusicCatalog() {
+    var bundledCatalog = embeddedMusicCatalog();
+    if (bundledCatalog) {
+      musicCatalogVersion = String(bundledCatalog.version || '1');
+      musicCatalog = bundledCatalog.tracks;
+      renderMusicAlbumsAndTracks();
+      musicStatus('Bundled music catalog ready. Checking for new music…');
+    }
     var cachedCatalog = getMusicCache('catalog').then(function (cached) {
       if (cached && cached.value && Array.isArray(cached.value.tracks)) {
-        musicCatalogVersion = String(cached.value.version || '1');
-        musicCatalog = cached.value.tracks;
+        var catalog = mergeMusicCatalogs(cached.value, bundledCatalog);
+        musicCatalogVersion = String(catalog.version || '1');
+        musicCatalog = catalog.tracks;
         renderMusicAlbumsAndTracks();
         musicStatus('Offline catalog ready. Checking for new music…');
       }
@@ -1792,18 +2161,18 @@
         })
         .then(function (catalog) {
           if (!catalog || !Array.isArray(catalog.tracks)) throw new Error('Music catalog is invalid.');
+          catalog = mergeMusicCatalogs(catalog, bundledCatalog);
           musicCatalogVersion = String(catalog.version || '1');
           musicCatalog = catalog.tracks;
           return putMusicCache('catalog', catalog);
         })
         .then(function () {
           renderMusicAlbumsAndTracks();
-          prefetchMusicLibrary();
+          musicStatus('Catalog ready. Choose a song, or download the library for offline playback.');
         })
         .catch(function () {
           if (musicCatalog.length) {
             renderMusicAlbumsAndTracks();
-            prefetchMusicLibrary();
             musicStatus('Using the cached catalog. Music remains available offline.');
           } else {
             musicStatus('Connect once to download the Aerodynamix music catalog.', true);
@@ -1816,7 +2185,7 @@
     if (musicInitialized) return;
     musicInitialized = true;
     musicAudio = document.createElement('audio');
-    musicAudio.preload = 'auto';
+    musicAudio.preload = 'metadata';
     musicAudio.volume = .85;
     document.body.appendChild(musicAudio);
     var search = document.getElementById('aeroMusicSearch');
@@ -1924,6 +2293,7 @@
         known[game.url || game.game || game.gamePath || game.path || game.title] = true;
       });
       var additions = liveGames.filter(function (game) {
+        if (isRemovedGame(game)) return false;
         var key = game.game || game.url || game.title;
         if (known[key]) return false;
         known[key] = true;
@@ -1992,13 +2362,19 @@
     var guard = documentCopy.createElement('script');
     guard.textContent = '(function(){window.open=function(){return null;};try{Object.defineProperty(window,"opener",{value:null,configurable:false});}catch(e){}})();';
     documentCopy.head.insertBefore(guard, documentCopy.head.firstChild);
-    var base = documentCopy.createElement('base');
-    try {
-      base.href = new URL('./', gameUrl).href;
-    } catch (error) {
-      base.href = gameUrl;
+    // Preserve a bundled game's own CDN base. Crossy Road, Subway Surfers,
+    // and similar wrappers use it for all relative scripts and Unity assets.
+    // Adding a second base here makes those paths resolve against the data URL
+    // or the standalone page instead.
+    if (!documentCopy.querySelector('base[href]')) {
+      var base = documentCopy.createElement('base');
+      try {
+        base.href = new URL('./', gameUrl).href;
+      } catch (error) {
+        base.href = gameUrl;
+      }
+      documentCopy.head.insertBefore(base, documentCopy.head.firstChild);
     }
-    documentCopy.head.insertBefore(base, documentCopy.head.firstChild);
     return '<!doctype html>\n' + documentCopy.documentElement.outerHTML;
   }
 
@@ -2067,24 +2443,93 @@
     );
   }
 
-  async function openUgsGame(url, frame) {
-    try {
-      var response = await fetch(url, { credentials: 'omit' });
-      if (!response.ok) throw new Error('UGS game could not be loaded');
-      var html = await response.text();
-      frame.srcdoc = patchUgsGameHtml(html, url);
-    } catch (error) {
-      // Keep a direct fallback for hosts that block cross-origin reads. The
-      // configured jsDelivr UGS files allow fetch and use the path above.
-      frame.removeAttribute('srcdoc');
-      frame.src = url;
+  function removeRun3PowerMenu() {
+    if (window.__aeroRun3PowerMenu && window.__aeroRun3PowerMenu.parentNode) {
+      window.__aeroRun3PowerMenu.parentNode.removeChild(window.__aeroRun3PowerMenu);
     }
+    window.__aeroRun3PowerMenu = null;
+  }
+
+  function installRun3PowerMenu(game, frame, url) {
+    removeRun3PowerMenu();
+    var isRun3 = String((game && game.title) || '').toLowerCase() === 'run 3' ||
+      /\/run-3(?:\/|$)/i.test(String(url || ''));
+    if (!isRun3) return;
+
+    var menu = document.createElement('div');
+    menu.setAttribute('role', 'region');
+    menu.setAttribute('aria-label', 'Run 3 mods');
+    menu.style.cssText = 'position:fixed;top:62px;right:18px;z-index:2147483001;width:230px;padding:12px;border:1px solid #8bc7ff66;border-radius:12px;background:#071226ee;color:#fff;box-shadow:0 12px 30px #0008;font:14px Arial,sans-serif;';
+
+    var toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.textContent = 'Run 3 Mods';
+    toggle.style.cssText = 'border:0;border-radius:7px;padding:8px 11px;background:#12345b;color:#fff;font:600 14px Arial,sans-serif;cursor:pointer;';
+
+    var panel = document.createElement('div');
+    panel.hidden = true;
+    panel.style.cssText = 'margin-top:8px;';
+
+    var label = document.createElement('label');
+    label.textContent = 'Power Cells';
+    label.style.cssText = 'display:block;margin-bottom:6px;font-weight:700;';
+
+    var input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0';
+    input.max = '2147483647';
+    input.step = '1';
+    input.inputMode = 'numeric';
+    input.value = '0';
+    input.style.cssText = 'box-sizing:border-box;width:100%;padding:7px 8px;border:0;border-radius:6px;background:#fff;color:#111;font:14px Arial,sans-serif;';
+
+    var apply = document.createElement('button');
+    apply.type = 'button';
+    apply.textContent = 'Set Power Cells';
+    apply.style.cssText = 'box-sizing:border-box;width:100%;margin-top:8px;padding:8px 10px;border:0;border-radius:6px;background:#28a9ff;color:#fff;font:600 14px Arial,sans-serif;cursor:pointer;';
+
+    var status = document.createElement('div');
+    status.setAttribute('role', 'status');
+    status.style.cssText = 'margin-top:8px;color:#c8dbef;font-size:12px;line-height:1.35;';
+
+    toggle.onclick = function () { panel.hidden = !panel.hidden; };
+    apply.onclick = function () {
+      var amount = Number(input.value);
+      if (!Number.isSafeInteger(amount) || amount < 0 || amount > 2147483647) {
+        status.textContent = 'Enter a whole number from 0 to 2,147,483,647.';
+        return;
+      }
+      status.textContent = 'Power Cells sent to Run 3. Reloading…';
+      frame.contentWindow.postMessage({
+        type: 'aerodynamix-run3-set-power-cells',
+        amount: amount
+      }, '*');
+    };
+
+    panel.append(label, input, apply, status);
+    menu.append(toggle, panel);
+    document.body.appendChild(menu);
+    var closeButton = document.getElementById('close');
+    if (closeButton) closeButton.addEventListener('click', removeRun3PowerMenu);
+    window.__aeroRun3PowerMenu = menu;
   }
 
   function openGame(game) {
+    if (game && game.embeddedKey != null && !game.content && window.AeroLoadGameContent) {
+      toast('Loading ' + (game.title || 'game') + '…');
+      window.AeroLoadGameContent(game).then(function () {
+        openGame(game);
+      }).catch(function () {
+        toast('This embedded game could not be opened.');
+      });
+      return;
+    }
     var gamePath = game.game || game.gamePath || game.path || '';
     var hasBundledContent = !!(game && game.content);
     var url = hasBundledContent ? getFallbackContent(game) : (game.url || resolveSitePath(gamePath));
+    if (window.AERODYNAMIX_PORTABLE && game.packaged && gamePath) {
+      url = new URL('/' + gamePath.replace(/^\/+/, ''), location.href).href;
+    }
 
     if (!url && location.protocol === 'file:' && gamePath) {
       showView('settings');
@@ -2106,14 +2551,15 @@
     if (!player || !frame) return;
 
     if (playing) playing.textContent = game.title || 'Game';
-    if (game.custom === true) {
-      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock');
-    } else {
-      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-pointer-lock');
-    }
+    var sandbox = 'allow-scripts allow-forms allow-modals allow-pointer-lock';
+    // Real-site game packages need their own origin for storage, workers,
+    // WASM, and relative asset loading. They remain cross-origin from the
+    // downloaded shell.
+    if (!hasBundledContent && /^https?:/i.test(url)) sandbox += ' allow-same-origin';
+    frame.setAttribute('sandbox', sandbox);
     frame.setAttribute(
       'allow',
-      'gamepad *; fullscreen *; autoplay *; pointer-lock *'
+      'gamepad *; fullscreen *; autoplay *'
     );
     if (hasBundledContent && /^data:text\/html/i.test(url)) {
       frame.removeAttribute('src');
@@ -2124,7 +2570,7 @@
           return response.text();
         })
         .then(function (html) {
-          frame.srcdoc = html;
+          frame.srcdoc = sanitizeStandaloneGameHtml(html, url);
         })
         .catch(function () {
           frame.removeAttribute('srcdoc');
@@ -2135,15 +2581,10 @@
     } else if (location.protocol === 'file:' && game.custom !== true && !game.url) {
       frame.removeAttribute('src');
       openSanitizedStandaloneGame(url, frame);
-    } else if (
-      !hasBundledContent &&
-      /^https?:\/\/cdn\.jsdelivr\.net\/gh\/bubbls\/ugs-singlefile\/UGS-Files\//i.test(url)
-    ) {
-      frame.removeAttribute('src');
-      openUgsGame(url, frame);
     } else {
       frame.src = url;
     }
+    installRun3PowerMenu(game, frame, url);
     player.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -2221,11 +2662,12 @@
       return (game.title || '').toLowerCase().includes(query);
     });
 
-    grid.innerHTML = '';
-    grid.appendChild(createAddCard());
+    var fragment = document.createDocumentFragment();
+    fragment.appendChild(createAddCard());
     visible.forEach(function (game) {
-      grid.appendChild(createCard(game, game.custom === true));
+      fragment.appendChild(createCard(game, game.custom === true));
     });
+    grid.replaceChildren(fragment);
 
     var count = document.getElementById('count');
     if (count) count.textContent = visible.length + ' OF ' + combined.length + ' GAMES';
@@ -2434,7 +2876,7 @@
     if (!display) return;
     var selectedStyle = settings.clockStyle || 'theme';
     display.classList.remove('liquid', 'neon', 'minimal');
-    display.classList.add(selectedStyle === 'theme' && settings.theme === 'frutiger-aero' ? 'liquid' : selectedStyle === 'theme' ? 'minimal' : selectedStyle);
+    display.classList.add(selectedStyle === 'theme' ? 'minimal' : selectedStyle);
     display.classList.remove('clock-font-digital', 'clock-font-square', 'clock-font-rounded', 'clock-font-serif');
     display.classList.add('clock-font-' + (settings.clockFont || 'digital'));
     display.style.setProperty('--aero-clock-color', settings.clockColor || getComputedStyle(document.documentElement).getPropertyValue('--standalone-accent').trim() || '#2c7ffc');
@@ -2462,9 +2904,6 @@
     if (drawingView) drawingView.classList.toggle('active', view === 'drawing');
     var clockView = document.getElementById('aeroClockView');
     if (clockView) clockView.classList.toggle('active', view === 'clock');
-    var updatesView = document.getElementById('aeroUpdatesView');
-    if (updatesView) updatesView.classList.toggle('active', view === 'updates');
-
     document.querySelectorAll('.nav-links a, .settings-nav').forEach(function (link) {
       link.classList.remove('active');
     });
@@ -2553,11 +2992,6 @@
     }
   }
 
-  function getFrutigerImage() {
-    var url = resolveSitePath('images/frutiger-aero-bg.jpg');
-    return url ? "url('" + url.replace(/'/g, '%27') + "')" : themes['frutiger-aero'].image;
-  }
-
   function applyTheme(name, quiet) {
     var selected = themes[name] || themes.black;
     settings.theme = themes[name] ? name : 'black';
@@ -2565,9 +2999,9 @@
     document.body.classList.add('aerodynamix-standalone');
     document.body.dataset.aeroTheme = settings.theme;
     document.body.style.backgroundColor = selected.background;
-    document.body.style.backgroundImage = name === 'frutiger-aero' ? getFrutigerImage() : selected.image;
-    document.body.style.backgroundSize = name === 'frutiger-aero' ? 'cover' : '';
-    document.body.style.backgroundPosition = name === 'frutiger-aero' ? 'center' : '';
+    document.body.style.backgroundImage = selected.image;
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundPosition = '';
     document.body.style.backgroundAttachment = 'fixed';
     document.documentElement.style.setProperty('--standalone-bg', selected.background);
     document.documentElement.style.setProperty('--standalone-text', selected.color);
@@ -2589,24 +3023,8 @@
     );
   }
 
-  function applyCloak(enabled) {
-    settings.cloak = enabled;
-    saveSettings();
-    var preset = CLOAK_PRESETS[settings.cloakPreset] || CLOAK_PRESETS.google;
-    document.title = enabled ? preset.title : 'Aerodynamix';
-    var icon = document.querySelector('link[rel~="icon"]');
-    if (!icon) {
-      icon = document.createElement('link');
-      icon.rel = 'icon';
-      document.head.appendChild(icon);
-    }
-    icon.href = enabled
-      ? (preset.icon || resolveSitePath(preset.path) || standaloneIcon())
-      : standaloneIcon();
-    var toggle = document.getElementById('aeroCloakToggle');
-    if (toggle) toggle.classList.toggle('on', enabled);
-    var select = document.getElementById('aeroCloakPreset');
-    if (select) select.value = settings.cloakPreset || 'google';
+  function applyCloak() {
+    document.title = 'Google';
   }
 
   function createEffectLayer() {
@@ -2664,6 +3082,27 @@
     }
   }
 
+  function spawnParticleField(kind, count) {
+    if (!effectLayer) return;
+    for (var index = 0; index < count; index += 1) {
+      var particle = document.createElement('span');
+      particle.className = 'aero-' + kind;
+      particle.style.left = Math.random() * 100 + 'vw';
+      particle.style.top = kind === 'star' ? Math.random() * 100 + 'vh' : '';
+      particle.style.setProperty('--size', (2 + Math.random() * 5).toFixed(1) + 'px');
+      particle.style.setProperty('--length', (35 + Math.random() * 80).toFixed(0) + 'px');
+      particle.style.setProperty('--duration', (kind === 'rain' ? 1.1 + Math.random() * 1.8 : 2.5 + Math.random() * 5).toFixed(2) + 's');
+      particle.style.setProperty('--drift', Math.round(-55 + Math.random() * 110) + 'px');
+      particle.style.animationDelay = (-Math.random() * 8).toFixed(2) + 's';
+      effectLayer.appendChild(particle);
+    }
+  }
+
+  function spawnEmber() {
+    if (!effectLayer || effectLayer.childElementCount > 34) return;
+    spawnParticleField('ember', 1);
+  }
+
   function syncThemeEffects() {
     stopThemeEffects();
     document.body.classList.toggle('aero-reduce-effects', settings.reduceEffects === true);
@@ -2671,14 +3110,40 @@
     if (toggle) toggle.classList.toggle('on', settings.reduceEffects === true);
     if (settings.reduceEffects) return;
 
-    if (settings.theme === 'frutiger-aero') {
+    var effect = visualEffects[settings.effect] ? settings.effect : 'none';
+    document.querySelectorAll('.aero-effect-button').forEach(function (button) {
+      button.classList.toggle('active', button.dataset.effect === effect);
+    });
+    if (effect === 'bubbles') {
       createEffectLayer();
       spawnBubble();
       effectTimer = setInterval(spawnBubble, 520);
-    } else if (settings.theme === 'christmas') {
+    } else if (effect === 'snow') {
       createEffectLayer();
       spawnSnow();
+    } else if (effect === 'stars') {
+      createEffectLayer();
+      spawnParticleField('star', 60);
+    } else if (effect === 'rain') {
+      createEffectLayer();
+      spawnParticleField('rain', 70);
+    } else if (effect === 'embers') {
+      createEffectLayer();
+      spawnEmber();
+      effectTimer = setInterval(spawnEmber, 240);
+    } else if (effect === 'aurora') {
+      createEffectLayer();
+      var aurora = document.createElement('span');
+      aurora.className = 'aero-aurora';
+      effectLayer.appendChild(aurora);
     }
+  }
+
+  function applyPerformanceMode() {
+    // Keep full effects by default. Users can opt into the existing
+    // "Reduce effects" setting when a device needs it.
+    lowPowerDevice = settings.reduceEffects === true;
+    document.documentElement.classList.toggle('aero-low-power', lowPowerDevice);
   }
 
   function renderThemeButtons() {
@@ -2691,12 +3156,30 @@
       button.dataset.theme = name;
       button.style.setProperty('--theme-color', theme.background);
       button.style.setProperty('--theme-text', theme.color);
-      if (name === 'frutiger-aero') {
-        var image = resolveSitePath('images/frutiger-aero-btn-bg.png');
-        if (image) button.style.backgroundImage = "url('" + image.replace(/'/g, '%27') + "')";
-      }
       button.textContent = theme.label;
-      button.onclick = function () { applyTheme(name, false); };
+      button.onclick = function () {
+        settings.effect = themeDefaultEffects[name] || 'none';
+        applyTheme(name, false);
+      };
+      container.appendChild(button);
+    });
+  }
+
+  function renderEffectButtons() {
+    var container = document.getElementById('aeroEffectGrid');
+    if (!container) return;
+    Object.keys(visualEffects).forEach(function (name) {
+      var button = document.createElement('button');
+      button.className = 'aero-effect-button';
+      button.type = 'button';
+      button.dataset.effect = name;
+      button.textContent = visualEffects[name];
+      button.onclick = function () {
+        settings.effect = name;
+        saveSettings();
+        syncThemeEffects();
+        toast(visualEffects[name] + ' effect applied.');
+      };
       container.appendChild(button);
     });
   }
@@ -2801,6 +3284,9 @@
     if (location.protocol === 'file:') {
       return new URL('/api/standalone-updates.json', UPDATE_PROXY_ROOT).href;
     }
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      return new URL('/api/standalone-updates.json', UPDATE_PROXY_ROOT).href;
+    }
     if (
       location.hostname.endsWith('github.io') &&
       location.pathname.includes('/Aerodynamix/Aerodynamix20/Aerodynamix20/')
@@ -2881,11 +3367,8 @@
       var manifest = await fetchUpdateManifest();
       renderChangelog(manifest.changelog);
       var latest = manifest.version || STANDALONE_VERSION;
-      var isDev = window.AERODYNAMIX_EDITION === 'dev';
       var isSlim = window.AERODYNAMIX_VARIANT === 'slim';
-      var downloadPath = isDev
-        ? (isSlim ? manifest.dev_slim_download : manifest.dev_download)
-        : (isSlim ? manifest.slim_download : manifest.download);
+      var downloadPath = isSlim ? manifest.slim_download : manifest.download;
       if (compareVersions(latest, STANDALONE_VERSION) > 0 && downloadPath) {
         button.disabled = false;
         button.textContent = 'Apply update';
@@ -2900,9 +3383,7 @@
         delete button.dataset.download;
         delete button.dataset.version;
         status.className += ' ready';
-        status.textContent = 'You have the latest ' +
-          (window.AERODYNAMIX_EDITION === 'dev' ? 'Developer Edition' : 'standalone') +
-          ' version.';
+        status.textContent = 'You have the latest standalone version.';
       }
     } catch (error) {
       renderChangelog(FALLBACK_UPDATE_MANIFEST.changelog);
@@ -2936,34 +3417,6 @@
     if (appsNav) appsNav.onclick = function (event) {
       event.preventDefault();
       showView('apps');
-    };
-    var updatesNav = document.getElementById('updatesNav');
-    if (updatesNav) updatesNav.onclick = function (event) {
-      event.preventDefault();
-      showView('updates');
-      checkForStandaloneUpdate();
-    };
-    var updateButton = document.getElementById('aeroUpdateButton');
-    if (updateButton) updateButton.onclick = async function () {
-      if (!updateButton.dataset.download) {
-        checkForStandaloneUpdate();
-        return;
-      }
-      updateButton.disabled = true;
-      updateButton.textContent = 'Applying update…';
-      showUpdateOverlay();
-      try {
-        await applyStandaloneUpdate(updateButton.dataset.download, updateButton.dataset.version);
-      } catch (error) {
-        updateButton.disabled = false;
-        updateButton.textContent = 'Apply update';
-        var updateStatus = document.getElementById('aeroUpdateStatus');
-        if (updateStatus) {
-          updateStatus.className = 'aero-update-status error';
-          updateStatus.textContent = 'The update could not be applied in this file. Check your connection and try again.';
-        }
-        toast('Update could not be applied.');
-      }
     };
     if (clock) {
       clock.title = 'Pacific time';
@@ -3011,12 +3464,9 @@
       event.preventDefault();
       showView('drawing');
     });
-    var soundboardCard = document.querySelector('#aeroAppsView .app-card[data-app-name*="soundboard"]');
-    if (soundboardCard) {
-      soundboardCard.href = 'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/docs/apps/soundboard/index.html';
-      soundboardCard.target = '_blank';
-      soundboardCard.rel = 'noopener';
-    }
+    document.querySelectorAll('#aeroAppsView .app-card[data-app-name*="soundboard"]').forEach(function (card) {
+      card.remove();
+    });
     var drawingBack = document.querySelector('#aeroDrawingView .drawing-back');
     if (drawingBack) drawingBack.addEventListener('click', function (event) {
       event.preventDefault();
@@ -3045,19 +3495,12 @@
     var searchButton = document.getElementById('searchButton');
     if (searchButton) searchButton.onclick = drawLibrary;
 
-    document.getElementById('aeroCloakToggle').onclick = function () {
-      applyCloak(!settings.cloak);
-    };
-    document.getElementById('aeroCloakPreset').onchange = function (event) {
-      if (!CLOAK_PRESETS[event.target.value]) return;
-      settings.cloakPreset = event.target.value;
-      saveSettings();
-      if (settings.cloak) applyCloak(true);
-    };
     document.getElementById('aeroEffectsToggle').onclick = function () {
       settings.reduceEffects = !settings.reduceEffects;
+      settings.effectsPreferenceVersion = '2.0';
       saveSettings();
       syncThemeEffects();
+      applyPerformanceMode();
       toast(settings.reduceEffects ? 'Visual effects reduced.' : 'Full visual effects restored.');
     };
 
@@ -3104,6 +3547,8 @@
 
   function rebrand() {
     document.querySelectorAll('.lite-label').forEach(function (label) { label.remove(); });
+    document.querySelectorAll('.library-meta').forEach(function (meta) {
+    });
     var heading = document.querySelector('.real-nav h1');
     if (heading) heading.textContent = 'AERODYNAMIX';
     document.body.dataset.originalTitle = 'Aerodynamix';
@@ -3115,15 +3560,35 @@
     createMarkup();
     rebrand();
     renderThemeButtons();
+    renderEffectButtons();
     wireEvents();
     builtInGames = getManifest();
     window.openGame = openGame;
     wireFeaturedGames();
-    if (settings.cloak === undefined) settings.cloak = true;
-    if (!settings.cloakPreset) settings.cloakPreset = 'google';
-    if (!settings.theme) settings.theme = 'black';
+    if (window.AeroLoadEmbeddedGames) {
+      window.AeroLoadEmbeddedGames().then(function () {
+        builtInGames = getManifest();
+        drawLibrary();
+        wireFeaturedGames();
+        var requestedGame = Number(new URLSearchParams(location.search).get('game'));
+        if (Number.isInteger(requestedGame) && builtInGames[requestedGame]) {
+          setTimeout(function () { openGame(builtInGames[requestedGame]); }, 0);
+        }
+      }).catch(function () {
+        toast('The embedded game library could not be loaded.');
+      });
+    }
+    delete settings.cloak;
+    delete settings.cloakPreset;
+    if (!settings.theme || settings.theme === 'frutiger-aero' || !themes[settings.theme]) settings.theme = 'black';
+    if (!visualEffects[settings.effect]) settings.effect = themeDefaultEffects[settings.theme] || 'none';
+    if (settings.effectsPreferenceVersion !== '2.0') {
+      settings.reduceEffects = false;
+      settings.effectsPreferenceVersion = '2.0';
+    }
+    applyPerformanceMode();
     saveSettings();
-    applyCloak(settings.cloak);
+    applyCloak();
     applyTheme(settings.theme, true);
     updateConnectionStatus();
     startStandaloneMessageNotifications();
@@ -3132,14 +3597,10 @@
     var params = new URLSearchParams(location.search);
     var requestedView = params.get('view');
     var validView = requestedView === 'media' || requestedView === 'music' || requestedView === 'settings' || requestedView === 'connect' ||
-      requestedView === 'apps' || requestedView === 'drawing' || requestedView === 'clock' || requestedView === 'updates'
+      requestedView === 'apps' || requestedView === 'drawing' || requestedView === 'clock'
       ? requestedView
       : 'games';
     showView(validView);
-    checkForStandaloneUpdate();
-    if (params.get('preview') === 'update') {
-      window.setTimeout(showUpdateOverlay, 120);
-    }
     if (validView === 'connect') loadConnectFrame();
     var requestedGame = Number(params.get('game'));
     if (params.has('game') && Number.isInteger(requestedGame) && builtInGames[requestedGame]) {
@@ -3147,9 +3608,5 @@
     }
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  init();
 })();
