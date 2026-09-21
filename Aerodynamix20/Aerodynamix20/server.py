@@ -29,7 +29,6 @@ UPLOAD_FOLDER = 'docs/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'}
 GAME_COSTS = {
     'games/the-greatest-game/index.html': 1000,
-    'aerodynamix-lite-download': 2000,
 }
 DEFAULT_CORS_ORIGINS = {
     'https://yeeperlabratsonz.github.io',
@@ -51,11 +50,7 @@ CONNECT_PROXY_TIMEOUT_SECONDS = max(
     5,
     float(os.environ.get('CONNECT_PROXY_TIMEOUT_SECONDS', '12'))
 )
-UPDATE_UPSTREAM_ORIGIN = os.environ.get(
-    'UPDATE_UPSTREAM_ORIGIN',
-    'https://yeeperlabratsonz.github.io/Aerodynamix/Aerodynamix20/Aerodynamix20/docs',
-).rstrip('/')
-STANDALONE_RELEASE_VERSION = '1.4'
+STANDALONE_RELEASE_VERSION = '2.0'
 
 app = Flask(__name__, static_folder='docs', static_url_path='')
 app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-key')
@@ -69,6 +64,142 @@ if os.environ.get('RENDER') or os.environ.get('RENDER_SERVICE_ID'):
 NEXTBOT_ROOM_TTL = 600
 NEXTBOT_PEER_TTL = 20
 NEXTBOT_GAME_MODES = {'hangout', 'nextbots', 'deathmatch'}
+GEMINI_INTERACTIONS_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions'
+GEMINI_INTERACTIONS_MODEL = os.environ.get('GEMINI_INTERACTIONS_MODEL', 'gemini-3.6-flash')
+LOCAL_AI_SYSTEM_PROMPT = (
+    'You are Aerodynamix AI. Give accurate, useful answers. Use the Google Search '
+    'tool when a question depends on current events, recent releases, or knowledge '
+    'after your training cutoff. Never invent plot details, dates, or sources. '
+    'For arithmetic, calculate carefully and show the steps.'
+)
+
+
+def _gemini_interaction_text(payload):
+    """Return the final text from a Gemini Interactions API response."""
+    steps = payload.get('steps') if isinstance(payload, dict) else None
+    if not isinstance(steps, list):
+        return ''
+    for step in reversed(steps):
+        if not isinstance(step, dict) or step.get('type') != 'model_output':
+            continue
+        content = step.get('content')
+        if isinstance(content, str) and content.strip():
+            return content.strip()
+        if isinstance(content, list):
+            text = '\n'.join(
+                item.get('text', '').strip()
+                for item in content
+                if isinstance(item, dict) and item.get('type') == 'text' and item.get('text')
+            ).strip()
+            if text:
+                return text
+    return ''
+
+
+def _local_ai_response(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    response.headers['Cache-Control'] = 'no-store, max-age=0'
+    return response
+
+
+@app.route('/api/local-ai/status', methods=['GET', 'OPTIONS'])
+def local_ai_status():
+    if request.method == 'OPTIONS':
+        return _local_ai_response(Response(status=204))
+    return _local_ai_response(jsonify({
+        'available': bool(os.environ.get('GEMINI_API_KEY')),
+        'model': GEMINI_INTERACTIONS_MODEL,
+        'fallback': 'webllm',
+    }))
+
+
+@app.route('/api/local-ai', methods=['POST', 'OPTIONS'])
+def local_ai():
+    if request.method == 'OPTIONS':
+        return _local_ai_response(Response(status=204))
+    api_key = os.environ.get('GEMINI_API_KEY')
+    if not api_key:
+        return _local_ai_response(jsonify({
+            'error': 'The optional current-knowledge assistant is not configured.'
+        })), 503
+
+    data = request.get_json(silent=True) or {}
+    prompt = str(data.get('message', '')).strip()
+    if not prompt:
+        return _local_ai_response(jsonify({'error': 'Enter a message first.'})), 400
+    if len(prompt) > 8000:
+        return _local_ai_response(jsonify({'error': 'That message is too long.'})), 400
+
+    history = data.get('history')
+    messages = []
+    if isinstance(history, list):
+        for item in history[-12:]:
+            if not isinstance(item, dict):
+                continue
+            role = item.get('role')
+            content = item.get('content')
+            if role in {'user', 'assistant'} and isinstance(content, str) and content.strip():
+                messages.append({
+                    'type': 'user_input' if role == 'user' else 'model_output',
+                    'content': content[:8000],
+                })
+    if not messages or messages[-1].get('content') != prompt:
+        messages.append({'type': 'user_input', 'content': prompt})
+
+    payload = {
+        'model': GEMINI_INTERACTIONS_MODEL,
+        'input': messages,
+        'system_instruction': LOCAL_AI_SYSTEM_PROMPT,
+        'tools': [{'type': 'google_search'}],
+        'store': False,
+    }
+    upstream_request = urllib.request.Request(
+        GEMINI_INTERACTIONS_URL,
+        data=json.dumps(payload).encode('utf-8'),
+        headers={
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'x-goog-api-key': api_key,
+        },
+        method='POST',
+    )
+    try:
+        with urllib.request.urlopen(upstream_request, timeout=45) as upstream:
+            result = json.loads(upstream.read().decode('utf-8', 'replace'))
+    except urllib.error.HTTPError as error:
+        # Do not send the provider response back to the browser; it may contain
+        # implementation details and the API key must never leave this server.
+        error.read()
+        return _local_ai_response(jsonify({
+            'error': 'The current-knowledge assistant is temporarily unavailable.'
+        })), 502
+    except (urllib.error.URLError, TimeoutError, ValueError):
+        return _local_ai_response(jsonify({
+            'error': 'The current-knowledge assistant is temporarily unavailable.'
+        })), 502
+
+    answer = _gemini_interaction_text(result)
+    if not answer:
+        output = result.get('output') if isinstance(result, dict) else None
+        if isinstance(output, str):
+            answer = output.strip()
+        elif isinstance(output, list):
+            answer = '\n'.join(
+                item.get('text', '').strip()
+                for item in output
+                if isinstance(item, dict) and isinstance(item.get('text'), str)
+            ).strip()
+    if not answer:
+        return _local_ai_response(jsonify({
+            'error': 'The current-knowledge assistant returned no answer.'
+        })), 502
+    return _local_ai_response(jsonify({
+        'reply': answer,
+        'source': 'gemini-interactions',
+        'model': GEMINI_INTERACTIONS_MODEL,
+    }))
 
 
 def _download_standalone_file(filename, download_name=None):
@@ -113,19 +244,9 @@ def download_standalone_export():
     return _download_release_file('Aerodynamix-Standalone.html')
 
 
-@app.route('/download/aerodynamix-dev-edition.html')
-def download_dev_export():
-    return _download_release_file('Aerodynamix-Dev-Edition.html')
-
-
 @app.route('/download/aerodynamix-standalone-slim.html')
 def download_slim_standalone_export():
     return _download_release_file('Aerodynamix-Standalone-Slim.html')
-
-
-@app.route('/download/aerodynamix-dev-edition-slim.html')
-def download_slim_dev_export():
-    return _download_release_file('Aerodynamix-Dev-Edition-Slim.html')
 
 
 @app.route('/download/aerodynamix-standalone.zip')
@@ -133,19 +254,9 @@ def download_standalone_zip():
     return _download_release_file('Aerodynamix-Standalone.zip')
 
 
-@app.route('/download/aerodynamix-dev-edition.zip')
-def download_dev_zip():
-    return _download_release_file('Aerodynamix-Dev-Edition.zip')
-
-
 @app.route('/download/aerodynamix-standalone-slim.zip')
 def download_slim_standalone_zip():
     return _download_release_file('Aerodynamix-Standalone-Slim.zip')
-
-
-@app.route('/download/aerodynamix-dev-edition-slim.zip')
-def download_slim_dev_zip():
-    return _download_release_file('Aerodynamix-Dev-Edition-Slim.zip')
 
 
 @app.route('/download/aerodynamix-standalone.html.xz')
@@ -153,34 +264,18 @@ def download_standalone_xz():
     return _download_release_file('Aerodynamix-Standalone.html.xz')
 
 
-@app.route('/download/aerodynamix-dev-edition.html.xz')
-def download_dev_xz():
-    return _download_release_file('Aerodynamix-Dev-Edition.html.xz')
-
-
 @app.route('/download/aerodynamix-standalone-slim.html.xz')
 def download_slim_standalone_xz():
     return _download_release_file('Aerodynamix-Standalone-Slim.html.xz')
 
 
-@app.route('/download/aerodynamix-dev-edition-slim.html.xz')
-def download_slim_dev_xz():
-    return _download_release_file('Aerodynamix-Dev-Edition-Slim.html.xz')
-
-
 VERSIONED_DOWNLOADS = {
     f'aerodynamix-standalone-v{STANDALONE_RELEASE_VERSION}.html': 'Aerodynamix-Standalone.html',
-    f'aerodynamix-dev-edition-v{STANDALONE_RELEASE_VERSION}.html': 'Aerodynamix-Dev-Edition.html',
     f'aerodynamix-standalone-slim-v{STANDALONE_RELEASE_VERSION}.html': 'Aerodynamix-Standalone-Slim.html',
-    f'aerodynamix-dev-edition-slim-v{STANDALONE_RELEASE_VERSION}.html': 'Aerodynamix-Dev-Edition-Slim.html',
     f'aerodynamix-standalone-v{STANDALONE_RELEASE_VERSION}.zip': 'Aerodynamix-Standalone.zip',
-    f'aerodynamix-dev-edition-v{STANDALONE_RELEASE_VERSION}.zip': 'Aerodynamix-Dev-Edition.zip',
     f'aerodynamix-standalone-slim-v{STANDALONE_RELEASE_VERSION}.zip': 'Aerodynamix-Standalone-Slim.zip',
-    f'aerodynamix-dev-edition-slim-v{STANDALONE_RELEASE_VERSION}.zip': 'Aerodynamix-Dev-Edition-Slim.zip',
     f'aerodynamix-standalone-v{STANDALONE_RELEASE_VERSION}.html.xz': 'Aerodynamix-Standalone.html.xz',
-    f'aerodynamix-dev-edition-v{STANDALONE_RELEASE_VERSION}.html.xz': 'Aerodynamix-Dev-Edition.html.xz',
     f'aerodynamix-standalone-slim-v{STANDALONE_RELEASE_VERSION}.html.xz': 'Aerodynamix-Standalone-Slim.html.xz',
-    f'aerodynamix-dev-edition-slim-v{STANDALONE_RELEASE_VERSION}.html.xz': 'Aerodynamix-Dev-Edition-Slim.html.xz',
 }
 
 
@@ -194,19 +289,6 @@ def download_versioned_export(filename):
         os.path.join(app.root_path, 'attached_assets', versioned_filename)
     ) else legacy_filename
     return _download_standalone_file(target, download_name=filename)
-
-
-@app.route('/api/standalone-updates.json')
-def standalone_updates_manifest():
-    response = send_from_directory(
-        os.path.join(app.root_path, 'docs'),
-        'standalone-updates.json',
-        mimetype='application/json',
-        max_age=0,
-    )
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Cache-Control'] = 'no-store, max-age=0'
-    return response
 
 
 @app.route('/api/music-catalog.json')
@@ -1314,36 +1396,6 @@ def attached_game_asset(filename):
     return send_from_directory('attached_assets', filename)
 
 
-@app.route('/aerodynamix-games-offline.html')
-def offline_games_export():
-    return send_from_directory('.', 'aerodynamix-games-offline.html')
-
-
-def _stream_lite_export_with_patch():
-    marker = b'<main class="grid" id="grid"></main>'
-    buffer = b''
-    source_path = os.path.join(app.root_path, 'aerodynamix-lite-tips.html')
-    with open(source_path, 'rb') as source:
-        while chunk := source.read(64 * 1024):
-            data = buffer + chunk
-            marker_index = data.find(marker)
-            if marker_index >= 0:
-                marker_end = marker_index + len(marker)
-                yield data[:marker_end]
-                yield b'<script src="/aerodynamix-lite-settings.js"></script>'
-                yield data[marker_end:]
-                yield from source
-                return
-            keep = len(marker) - 1
-            if len(data) > keep:
-                yield data[:-keep]
-                buffer = data[-keep:]
-            else:
-                buffer = data
-    if buffer:
-        yield buffer
-
-
 def _stream_standalone_export_with_patch():
     marker = b'</body>'
     buffer = b''
@@ -1373,14 +1425,6 @@ def _stream_standalone_export_with_patch():
         yield buffer
 
 
-@app.route('/aerodynamix-lite/')
-def aerodynamix_lite_export():
-    return Response(
-        stream_with_context(_stream_lite_export_with_patch()),
-        content_type='text/html; charset=utf-8'
-    )
-
-
 @app.route('/aerodynamix-standalone/')
 def aerodynamix_standalone_export():
     return Response(
@@ -1392,46 +1436,6 @@ def aerodynamix_standalone_export():
 @app.route('/aerodynamix-standalone-patch.js')
 def aerodynamix_standalone_patch_asset():
     return send_from_directory('.', 'aerodynamix-standalone-patch.js')
-
-
-@app.route('/aerodynamix-lite-tips.html')
-def aerodynamix_lite_tips_file():
-    return send_from_directory('.', 'aerodynamix-lite-tips.html')
-
-
-@app.route('/download/aerodynamix-lite.html')
-def download_aerodynamix_lite_file():
-    return send_from_directory(
-        '.',
-        'aerodynamix-lite-tips.html',
-        as_attachment=True,
-        download_name='aerodynamix-lite-fixed.html',
-    )
-
-
-@app.route('/aerodynamix-lite-settings.html')
-def aerodynamix_lite_settings_file():
-    return send_from_directory('.', 'aerodynamix-lite-tips.html')
-
-
-@app.route('/aerodynamix-lite-settings.js')
-def aerodynamix_lite_settings_asset():
-    return send_from_directory('.', 'aerodynamix-lite-settings.js')
-
-
-@app.route('/aerodynamix-one-file.html')
-def aerodynamix_one_file_export():
-    return send_from_directory('.', 'aerodynamix-one-file.html')
-
-
-@app.route('/aerodynamix-lite-connect/')
-def aerodynamix_lite_connect_export():
-    return send_from_directory('docs/aerodynamix-lite-connect', 'index.html')
-
-
-@app.route('/aerodynamix-refactor/')
-def aerodynamix_refactor_export():
-    return send_from_directory('docs/aerodynamix-refactor', 'index.html')
 
 
 @app.route('/aerodynamix-offline/')
@@ -1578,46 +1582,6 @@ def connect_proxy(upstream_path):
                 continue
             reason = error.reason if hasattr(error, 'reason') else error
             return jsonify({'error': f'Connect service unavailable: {reason}'}), 502
-    return Response(body, status=status, headers=response_headers)
-
-
-@app.route('/api/update-proxy/<path:update_path>', methods=['GET', 'OPTIONS'])
-def update_proxy(update_path):
-    """Serve the fixed public update host through a read-only gateway."""
-    if request.method == 'OPTIONS':
-        return ('', 204, {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-        })
-    target = f'{UPDATE_UPSTREAM_ORIGIN}/{update_path}'
-    if request.query_string:
-        target += '?' + request.query_string.decode('utf-8', 'replace')
-    proxy_request = urllib.request.Request(
-        target,
-        headers={'Accept': request.headers.get('Accept', '*/*')},
-        method='GET',
-    )
-    try:
-        with urllib.request.urlopen(proxy_request, timeout=30) as upstream:
-            body = upstream.read()
-            status = upstream.status
-            response_headers = {
-                name: value
-                for name, value in upstream.headers.items()
-                if name.lower() in {'content-type', 'content-disposition', 'content-length'}
-            }
-    except urllib.error.HTTPError as upstream:
-        body = upstream.read()
-        status = upstream.code
-        response_headers = {
-            name: value
-            for name, value in upstream.headers.items()
-            if name.lower() in {'content-type', 'content-disposition', 'content-length'}
-        }
-    except (urllib.error.URLError, TimeoutError) as error:
-        return jsonify({'error': f'Update service unavailable: {error.reason if hasattr(error, "reason") else error}'}), 502
-    response_headers['Access-Control-Allow-Origin'] = '*'
     return Response(body, status=status, headers=response_headers)
 
 
