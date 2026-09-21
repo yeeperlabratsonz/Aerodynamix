@@ -7,7 +7,6 @@
 
 <html lang="en">
 <head>
-<base href="https://cdn.jsdelivr.net/gh/VinMannie/Run_3@gh-pages/">
 	<meta charset="utf-8">
 
 	<title>Run 3</title>
@@ -16,8 +15,7 @@
 	<meta name="apple-mobile-web-app-capable" content="yes">
 
 
-	<link rel="shortcut icon" type="image/png" href="./favicon.png">
-	<script type="text/javascript" src="Run3beta.js"></script>  
+<script type="text/javascript" src="Run3.js"></script>  
 
 	<script>
 		window.addEventListener ("touchmove", function (event) { event.preventDefault (); }, { capture: false, passive: false });
@@ -29,29 +27,77 @@
 	<style>
 		html,body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
 		#openfl-content { background: #000000; width: 100%; height: 100%; }
+		#aerodynamix-run3-mod {
+			position: fixed;
+			top: 12px;
+			right: 12px;
+			z-index: 20;
+			font: 14px Arial, sans-serif;
+			color: #fff;
+		}
+		#aerodynamix-run3-mod button,
+		#aerodynamix-run3-mod input {
+			border: 0;
+			border-radius: 6px;
+			box-sizing: border-box;
+			font: inherit;
+		}
+		#aerodynamix-run3-mod > button {
+			background: rgba(20, 20, 28, .9);
+			color: #fff;
+			cursor: pointer;
+			padding: 8px 11px;
+		}
+		#aerodynamix-run3-mod-panel {
+			display: none;
+			background: rgba(20, 20, 28, .96);
+			border: 1px solid rgba(255, 255, 255, .25);
+			border-radius: 8px;
+			margin-top: 6px;
+			padding: 12px;
+			width: 220px;
+		}
+		#aerodynamix-run3-mod-panel.open { display: block; }
+		#aerodynamix-run3-mod-panel label {
+			display: block;
+			font-weight: 700;
+			margin-bottom: 7px;
+		}
+		#aerodynamix-run3-power-cells {
+			background: #fff;
+			color: #111;
+			padding: 7px 8px;
+			width: 100%;
+		}
+		#aerodynamix-run3-apply {
+			background: #28a9ff;
+			color: #fff;
+			cursor: pointer;
+			margin-top: 8px;
+			padding: 8px 10px;
+			width: 100%;
+		}
+		#aerodynamix-run3-mod-status {
+			color: rgba(255, 255, 255, .76);
+			font-size: 12px;
+			line-height: 1.35;
+			margin-top: 8px;
+		}
 		@font-face {
 			font-family: 'Comfortaa Bold';
-			src: url('font/COMFORTAA-BOLD.eot?#iefix') format('embedded-opentype'),
-			url('font/COMFORTAA-BOLD.woff') format('woff'),
-			url('font/COMFORTAA-BOLD.TTF') format('truetype'),
-			url('font/COMFORTAA-BOLD.svg#Comfortaa%20Bold') format('svg');
+			src: url('font/COMFORTAA-BOLD.woff') format('woff');
 			font-weight: normal;
 			font-style: normal;
 		}
 		@font-face {
 			font-family: 'Comfortaa';
-			src: url('font/Comfortaa.eot?#iefix') format('embedded-opentype'),
-			url('font/Comfortaa.woff') format('woff'),
-			url('font/Comfortaa.otf') format('truetype');
+			src: url('font/Comfortaa.woff') format('woff');
 			font-weight: normal;
 			font-style: normal;
 		}
 		@font-face {
 			font-family: 'Permanent Marker';
-			src: url('font/PERMANENTMARKER.eot?#iefix') format('embedded-opentype'),
-			url('font/PERMANENTMARKER.woff') format('woff'),
-			url('font/PERMANENTMARKER.TTF') format('truetype'),
-			url('font/PERMANENTMARKER.svg#Permanent%20Marker') format('svg');
+			src: url('font/PERMANENTMARKER.woff') format('woff');
 			font-weight: normal;
 			font-style: normal;
 		}
@@ -63,12 +109,93 @@
 	<noscript>This webpage makes extensive use of JavaScript. Please enable JavaScript in your web browser to view this page.</noscript>
 
 	<div id="openfl-content"></div>
+	<div id="aerodynamix-run3-mod" aria-label="Run 3 mod menu">
+		<button id="aerodynamix-run3-mod-toggle" type="button">Run 3 Mods</button>
+		<div id="aerodynamix-run3-mod-panel">
+			<label for="aerodynamix-run3-power-cells">Power Cells</label>
+			<input id="aerodynamix-run3-power-cells" type="number" min="0" max="2147483647" step="1" inputmode="numeric" />
+			<button id="aerodynamix-run3-apply" type="button">Set Power Cells</button>
+			<div id="aerodynamix-run3-mod-status" role="status"></div>
+		</div>
+	</div>
 
 	<script type="text/javascript">
+		(function () {
+			var saveKey = location.pathname.replace(/\/$/, '') + '/:Run3';
+			var modValueKey = location.pathname.replace(/\/$/, '') + '/:AerodynamixPowerCells';
+			var powerCells = localStorage.getItem(modValueKey);
+			var pendingPowerCells = null;
+
+			function validAmount(value) {
+				var amount = Number(value);
+				return Number.isSafeInteger(amount) && amount >= 0 && amount <= 2147483647 ? amount : null;
+			}
+
+			function updateSerializedSave(serialized, amount) {
+				var next = String(serialized || 'og');
+				var fields = {
+					softEarned: amount,
+					softBought: 0,
+					softSpent: 0
+				};
+				Object.keys(fields).forEach(function (name) {
+					var token = 'y' + name.length + ':' + name + 'i' + fields[name];
+					var fieldPattern = new RegExp('y' + name.length + ':' + name + 'i-?\\d+');
+					if (fieldPattern.test(next)) {
+						next = next.replace(fieldPattern, token);
+					} else if (next.charAt(next.length - 1) === 'g') {
+						next = next.slice(0, -1) + token + 'g';
+					}
+				});
+				return next;
+			}
+
+			powerCells = validAmount(powerCells);
+			if (powerCells !== null) {
+				pendingPowerCells = powerCells;
+				var existingSave = localStorage.getItem(saveKey);
+				if (existingSave) localStorage.setItem(saveKey, updateSerializedSave(existingSave, powerCells));
+			}
+
+			var originalSetItem = Storage.prototype.setItem;
+			Storage.prototype.setItem = function (key, value) {
+				if (pendingPowerCells !== null && key === saveKey) {
+					value = updateSerializedSave(value, pendingPowerCells);
+					pendingPowerCells = null;
+					localStorage.removeItem(modValueKey);
+				}
+				return originalSetItem.call(this, key, value);
+			};
+
+			var toggle = document.getElementById('aerodynamix-run3-mod-toggle');
+			var panel = document.getElementById('aerodynamix-run3-mod-panel');
+			var input = document.getElementById('aerodynamix-run3-power-cells');
+			var apply = document.getElementById('aerodynamix-run3-apply');
+			var status = document.getElementById('aerodynamix-run3-mod-status');
+			input.value = powerCells === null ? '0' : String(powerCells);
+			toggle.addEventListener('click', function () { panel.classList.toggle('open'); });
+			apply.addEventListener('click', function () {
+				var amount = validAmount(input.value);
+				if (amount === null) {
+					status.textContent = 'Enter a whole number from 0 to 2,147,483,647.';
+					return;
+				}
+				localStorage.setItem(modValueKey, String(amount));
+				var currentSave = localStorage.getItem(saveKey);
+				if (currentSave) localStorage.setItem(saveKey, updateSerializedSave(currentSave, amount));
+				status.textContent = 'Power Cells set. Reloading Run 3…';
+				setTimeout(function () { location.reload(); }, 250);
+			});
+			window.addEventListener('message', function (event) {
+				var data = event && event.data;
+				if (!data || data.type !== 'aerodynamix-run3-set-power-cells') return;
+				var amount = validAmount(data.amount);
+				if (amount === null) return;
+				input.value = String(amount);
+				apply.click();
+			});
+		}());
 		lime.embed ("Run3", "openfl-content", 800, 600, { parameters: {} });
 	</script>
-	<script src="js/analytics_ubg_v1_4.js"></script>
-  <!-- <script src="js/slopegame-gitlab-io.js"></script> -->
-  <script src="js/redirect_v1_0.js"></script>
 </body>
 </html>
