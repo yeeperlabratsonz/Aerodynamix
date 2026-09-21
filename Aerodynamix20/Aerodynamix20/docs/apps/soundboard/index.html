@@ -1,36 +1,23 @@
-<!-- Ultimate Game Stash file-->
-<!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
-
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="data:," />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
     <title>Soundboard</title>
     <script src="./main.js" type="module"></script>
-    <link href="https://cdn.jsdelivr.net/gh/bubblfan/soundboard@main/style.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/gh/bubblfan/soundboard@main/style.css" rel="stylesheet">
     <style>
-      .sound-image {
-        background-image: url("https://cdn.jsdelivr.net/gh/bubblfan/soundboard@main/button.png") !important;
-      }
-      .sound-image.pressed {
-        background-image: url("https://cdn.jsdelivr.net/gh/bubblfan/soundboard@main/button_pressed.png") !important;
-      }
+      .sound-image { background-image:url("https://cdn.jsdelivr.net/gh/bubblfan/soundboard@main/button.png")!important; }
+      .sound-image.pressed { background-image:url("https://cdn.jsdelivr.net/gh/bubblfan/soundboard@main/button_pressed.png")!important; }
     </style>
   </head>
-
   <body>
     <div id="controls">
-      <button id="toggleFavorites" class="control-button favorites-toggle">
-        ⭐ Favorites: OFF
-      </button>
-      <button id="toggleButton" class="control-button overlap-toggle">
-        🔇 Overlap: OFF
-      </button>
-      <button id="stopButton" class="control-button stop-button">
-        ⏹️ Stop All Sounds
-      </button>
-      <input id="searchInput" type="text" placeholder="Search sounds..." />
+      <button id="toggleFavorites" class="control-button favorites-toggle">⭐ Favorites: OFF</button>
+      <button id="toggleButton" class="control-button overlap-toggle">🔇 Overlap: OFF</button>
+      <button id="stopButton" class="control-button stop-button">⏹️ Stop All Sounds</button>
+      <input id="searchInput" type="text" placeholder="Search sounds...">
     </div>
     <div id="soundboard"></div>
   </body>

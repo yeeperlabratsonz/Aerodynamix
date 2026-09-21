@@ -2,6 +2,7 @@
 - [PostgreSQL heartbeat timestamps](postgres-heartbeat-timestamps.md) — multiplayer timestamps need 64-bit precision or active players become stale.
 - [Standalone page shells](standalone-page-shells.md) — embedded app pages must omit their own navigation when the host export supplies the shared shell.
 - [Gemini API compatibility](gemini-api-integration.md) — new Gemini keys may reject legacy generateContent models; use the current Interactions API model list.
+- [Gemini Interactions step input](gemini-interactions-step-input.md) — Interactions models require step objects such as user_input/model_output, not chat turn objects.
 - [PostgreSQL startup migrations](postgres-startup-migrations.md) — only run schema-altering type migrations when introspection shows they are needed, avoiding concurrent-start deadlocks.
 - [Lite export streaming patches](lite-export-streaming-patches.md) — inject hosted Lite patches early and use compact game data, not the giant inline manifest.
 - [Standalone export enhancement](standalone-export-enhancement.md) — keep giant exports immutable; inject a small layer and inline it only when packaging.
@@ -14,3 +15,6 @@
 - [Music artwork cache versions](music-artwork-cache-versions.md) — bump the shared catalog version when album art or metadata changes so IndexedDB-backed covers refresh.
 - [Git storage recovery](git-storage-recovery.md) — preserve reachable LFS history and remove only unreachable temporary objects when large export builds exhaust workspace quota.
 - [GitHub large-file pushes](github-large-file-pushes.md) — REST-based GitHub pushes reject large blobs; generated standalone exports must stay local or use a real Git LFS transport.
+- [Embedded standalone startup](embedded-standalone-startup.md) — keep large game payloads inert and lazy, and prevent DOM observers from retriggering their own writes.
+- [Standalone real-site games](standalone-real-site-games.md) — real-code downloads need complete game packages and a local HTTP launcher; hosted URLs and Blob wrappers are insufficient.
+- [Published static-site drift](published-static-site-drift.md) — local game fixes do not affect lightweight exports until the external static host publishes the matching files.

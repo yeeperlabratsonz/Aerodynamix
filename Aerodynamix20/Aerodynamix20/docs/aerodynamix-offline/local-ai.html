@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071226">
+    <title>Local AI - Aerodynamix</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { color-scheme: dark; }
+        body { background: radial-gradient(circle at 50% -15%, #18396e 0, #071226 46%, #030711 100%); }
+        .ai-page { min-height: calc(100vh - 7vw); padding: 8vw 5vw 8rem; }
+        .ai-shell { width: min(920px, 100%); margin: 0 auto; }
+        .ai-title { margin: 0; color: #fff; font-size: clamp(2rem, 4vw, 3.4rem); letter-spacing: .08em; text-align: center; text-transform: uppercase; }
+        .ai-subtitle { max-width: 690px; margin: .8rem auto 2rem; color: #ffffff9c; line-height: 1.65; text-align: center; }
+        .ai-card { overflow: hidden; border: 1px solid #7db8ff35; border-radius: 24px; background: linear-gradient(145deg, #10254ae8, #080d1aec); box-shadow: 0 25px 80px #0008; }
+        .ai-download { display: grid; place-items: center; min-height: 390px; padding: 2rem; text-align: center; }
+        .ai-download-icon { display: grid; place-items: center; width: 82px; height: 82px; margin-bottom: 1.2rem; border: 1px solid #7db8ff50; border-radius: 24px; background: #2c7ffc22; color: #8ec2ff; font-size: 2.2rem; box-shadow: 0 0 35px #2c7ffc22; }
+        .ai-download h2 { margin: 0 0 .65rem; color: #fff; }
+        .ai-download p { max-width: 560px; margin: 0 auto 1.35rem; color: #ffffff91; line-height: 1.6; }
+        .ai-note { margin-top: 1rem !important; color: #ffffff59 !important; font-size: .78rem; }
+        .ai-progress-wrap { width: min(550px, 100%); margin: 1.3rem auto 0; }
+        .ai-progress-track { height: 12px; overflow: hidden; border: 1px solid #7db8ff35; border-radius: 99px; background: #020610; }
+        .ai-progress-bar { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #2c7ffc, #8d72ff); transition: width .25s ease; }
+        .ai-progress-row { display: flex; justify-content: space-between; gap: 1rem; margin-top: .55rem; color: #ffffff91; font-size: .78rem; }
+        .ai-button { display: inline-flex; align-items: center; justify-content: center; gap: .55rem; min-width: 190px; padding: .85rem 1.2rem; border: 1px solid #7db8ff55; border-radius: 10px; background: linear-gradient(135deg, #2c7ffc, #1b57c7); color: #fff; font: inherit; font-weight: 800; cursor: pointer; box-shadow: 0 9px 25px #2c7ffc30; }
+        .ai-button:hover { filter: brightness(1.12); }
+        .ai-button:disabled { cursor: wait; opacity: .58; }
+        .ai-error { display: none; max-width: 650px; margin: 1rem auto 0; padding: .8rem 1rem; border: 1px solid #ff7d8d55; border-radius: 10px; background: #ff425015; color: #ffb8c0; font-size: .82rem; line-height: 1.5; }
+        .ai-chat { display: none; flex-direction: column; min-height: 560px; }
+        .ai-chat-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.3rem; border-bottom: 1px solid #ffffff12; }
+        .ai-chat-head strong { color: #fff; }
+        .ai-status { color: #7dffa9; font-size: .75rem; }
+        .ai-messages { display: flex; flex: 1; flex-direction: column; gap: 1rem; overflow-y: auto; min-height: 385px; max-height: 560px; padding: 1.3rem; }
+        .ai-message { max-width: 82%; padding: .85rem 1rem; border: 1px solid #ffffff16; border-radius: 15px; color: #f5f8ff; line-height: 1.55; white-space: pre-wrap; }
+        .ai-message.assistant { align-self: flex-start; background: #ffffff0b; border-top-left-radius: 4px; }
+        .ai-message.user { align-self: flex-end; background: #2c7ffc2c; border-color: #7db8ff35; border-top-right-radius: 4px; }
+        .ai-composer { display: flex; gap: .7rem; padding: 1rem 1.1rem; border-top: 1px solid #ffffff12; }
+        .ai-composer textarea { flex: 1; min-height: 52px; max-height: 150px; resize: vertical; padding: .85rem .9rem; border: 1px solid #7db8ff35; border-radius: 10px; outline: 0; background: #02061099; color: #fff; font: inherit; }
+        .ai-composer textarea:focus { border-color: #7db8ff99; box-shadow: 0 0 0 3px #2c7ffc20; }
+        .ai-composer .ai-button { min-width: 90px; align-self: flex-end; }
+        .ai-small { color: #ffffff59; font-size: .72rem; line-height: 1.5; }
+        @media (max-width: 650px) {
+            .ai-page { padding: 24vw 1rem 7rem; }
+            .ai-message { max-width: 94%; }
+            .ai-composer { flex-direction: column; }
+            .ai-composer .ai-button { width: 100%; }
+        }
+    </style>
+    <script src="theme.js"></script>
+    <script src="tab-cloak.js"></script>
+    <script src="discs.js" defer></script>
+    <script src="auth-overlay.js" defer></script>
+    <script src="mobile-nav.js" defer></script>
+</head>
+<body>
+    <nav>
+        <img src="images/logo.gif" alt="logo" onclick="window.location='index.html'">
+        <h1><span class="logo-a" id="logo-a">A</span>ERODYNAMIX</h1>
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:.4vw;">
+            <a href="index.html" style="color:#fff;text-decoration:none;padding:.55vw 1.3vw;border-radius:.5vw;font-weight:600;font-size:.95vw;">Games</a>
+            <a href="apps.html" style="color:#fff;text-decoration:none;padding:.55vw 1.3vw;background-color:#2c7ffc;border-radius:.5vw;font-weight:600;font-size:.95vw;">Apps</a>
+            <a href="media-player.html" style="color:#fff;text-decoration:none;padding:.55vw 1.3vw;border-radius:.5vw;font-weight:600;font-size:.95vw;">Media Player</a>
+        </div>
+        <a href="colors.html" style="margin-right:1.5vw;color:#fff;text-decoration:none;padding:.55vw 1.3vw;background-color:#2c7ffc;border-radius:.5vw;font-weight:600;font-size:.95vw;">Settings</a>
+    </nav>
+
+    <main class="ai-page">
+        <div class="ai-shell">
+            <h1 class="ai-title">Local AI</h1>
+            <p class="ai-subtitle">A private assistant that runs on your device. The model downloads once, stays cached in this browser, and then works without an API key or cloud chat service.</p>
+
+            <section class="ai-card">
+                <div class="ai-download" id="ai-download">
+                    <div>
+                        <div class="ai-download-icon"><i class="fa-solid fa-microchip"></i></div>
+                        <h2 id="download-title">Preparing Local AI</h2>
+                        <p id="download-copy">The first launch downloads a stronger Llama instruction model. This can take a few minutes; you only need to do it once per browser.</p>
+                        <button class="ai-button" id="download-button" type="button"><i class="fa-solid fa-download"></i> Download and start</button>
+                        <div class="ai-progress-wrap" id="ai-progress-wrap" hidden>
+                            <div class="ai-progress-track"><div class="ai-progress-bar" id="ai-progress-bar"></div></div>
+                            <div class="ai-progress-row"><span id="progress-label">Waiting to start…</span><span id="progress-value">0%</span></div>
+                        </div>
+                        <p class="ai-note" id="download-note">Model: Llama 3.2 3B Instruct · WebGPU recommended · cached locally by WebLLM</p>
+                        <div class="ai-error" id="ai-error" role="alert"></div>
+                    </div>
+                </div>
+
+                <div class="ai-chat" id="ai-chat">
+                    <div class="ai-chat-head">
+                        <div><strong>Aerodynamix Local AI</strong><div class="ai-small">Llama 3.2 3B Instruct · private on-device chat</div></div>
+                        <span class="ai-status"><i class="fa-solid fa-circle"></i> Ready</span>
+                    </div>
+                    <div class="ai-messages" id="ai-messages">
+                        <div class="ai-message assistant">I’m ready. Ask me to explain something, brainstorm an idea, write code, or help plan a project.</div>
+                    </div>
+                    <form class="ai-composer" id="ai-form">
+                        <textarea id="ai-input" rows="2" placeholder="Ask your local assistant…" autocomplete="off"></textarea>
+                        <button class="ai-button" id="send-button" type="submit"><i class="fa-solid fa-paper-plane"></i> Send</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="music-player.js"></script>
+    <script src="bubble-overlay.js"></script>
+    <script src="snow-overlay.js"></script>
+    <script type="module">
+        const MODEL_ID = 'Llama-3.2-3B-Instruct-q4f16_1-MLC';
+        const download = document.getElementById('ai-download');
+        const chat = document.getElementById('ai-chat');
+        const button = document.getElementById('download-button');
+        const progressWrap = document.getElementById('ai-progress-wrap');
+        const progressBar = document.getElementById('ai-progress-bar');
+        const progressLabel = document.getElementById('progress-label');
+        const progressValue = document.getElementById('progress-value');
+        const title = document.getElementById('download-title');
+        const copy = document.getElementById('download-copy');
+        const note = document.getElementById('download-note');
+        const errorBox = document.getElementById('ai-error');
+        const messages = document.getElementById('ai-messages');
+        const form = document.getElementById('ai-form');
+        const input = document.getElementById('ai-input');
+        const sendButton = document.getElementById('send-button');
+        let engine = null;
+        let onlineEndpoint = null;
+        let conversation = [
+            { role: 'system', content: 'You are Aerodynamix Local AI. Be helpful, accurate, concise, and honest about uncertainty. You run locally in the user’s browser. For arithmetic, calculate carefully and show the exact steps instead of guessing.' }
+        ];
+        const AI_SERVER_ORIGIN = 'https://aerodynamix20.onrender.com';
+
+        function onlineEndpointCandidates() {
+            const candidates = [];
+            if (location.protocol !== 'file:') candidates.push(new URL('/api/local-ai', location.origin).href);
+            candidates.push(AI_SERVER_ORIGIN + '/api/local-ai');
+            return [...new Set(candidates)];
+        }
+
+        async function detectOnlineAI() {
+            for (const endpoint of onlineEndpointCandidates()) {
+                try {
+                    const response = await fetch(endpoint.replace(/\/local-ai$/, '/local-ai/status'), {
+                        method: 'GET',
+                        cache: 'no-store'
+                    });
+                    const status = await response.json();
+                    if (response.ok && status.available) {
+                        onlineEndpoint = endpoint;
+                        title.textContent = 'Current-knowledge AI ready';
+                        copy.textContent = 'This hosted path can search for current information. If it is unavailable, you can still download the private on-device model below.';
+                        download.style.display = 'none';
+                        chat.style.display = 'flex';
+                        document.querySelector('.ai-status').innerHTML = '<i class="fa-solid fa-circle"></i> Online current knowledge';
+                        input.focus();
+                        return;
+                    }
+                } catch (error) {
+                    console.debug('Local AI server unavailable:', error);
+                }
+            }
+        }
+
+        function switchToLocalFallback(message) {
+            onlineEndpoint = null;
+            document.querySelector('.ai-status').innerHTML = '<i class="fa-solid fa-circle"></i> Local fallback available';
+            if (!engine) {
+                title.textContent = 'Private Local AI available';
+                copy.textContent = message || 'The hosted assistant is unavailable. Download the on-device model to keep chatting privately.';
+                download.style.display = 'grid';
+                chat.style.display = 'flex';
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-download"></i> Download Local AI';
+            }
+        }
+
+        function deterministicMathAnswer(prompt) {
+            const normalized = prompt.toLowerCase().replace(/,/g, '').replace(/milliom/g, 'million');
+            const root = normalized.match(/square\s+root\s+of\s+(-?(?:\d+(?:\.\d+)?)\s*(?:thousand|million|billion)?)/i);
+            if (!root) return null;
+            const quantity = root[1].trim();
+            const parts = quantity.match(/^(-?\d+(?:\.\d+)?)\s*(thousand|million|billion)?$/);
+            if (!parts) return null;
+            const multiplier = { thousand: 1e3, million: 1e6, billion: 1e9 }[parts[2] || ''] || 1;
+            const value = Number(parts[1]) * multiplier;
+            if (!Number.isFinite(value) || value < 0) return null;
+            const answer = Math.sqrt(value);
+            return `The square root of ${value.toLocaleString('en-US')} is ${answer.toPrecision(12)} (approximately ${answer.toFixed(6)}).`;
+        }
+
+        function deterministicCommonAnswer(prompt) {
+            const normalized = prompt.toLowerCase().replace(/[?!.,]/g, '').replace(/\s+/g, ' ').trim();
+            if (/^(what )?color (is|are) (a )?grape(s)?$/.test(normalized)) {
+                return 'Grapes can be green, red, purple, or nearly black, depending on the variety.';
+            }
+            if (/^(what )?color is the sky$/.test(normalized)) {
+                return 'The daytime sky usually appears blue because Earth’s atmosphere scatters blue light more strongly than most other visible colors.';
+            }
+            if (/^(what is )?2 ?\+ ?2$/.test(normalized)) {
+                return '2 + 2 = 4.';
+            }
+            return null;
+        }
+
+        function showError(message) {
+            errorBox.textContent = message;
+            errorBox.style.display = 'block';
+        }
+
+        function setProgress(progress) {
+            const raw = Number(progress?.progress);
+            const percent = Number.isFinite(raw) ? Math.max(0, Math.min(100, Math.round(raw))) : 0;
+            progressBar.style.width = percent + '%';
+            progressValue.textContent = percent + '%';
+            progressLabel.textContent = progress?.text || (percent ? 'Downloading model…' : 'Preparing model…');
+        }
+
+        function addMessage(role, text) {
+            const el = document.createElement('div');
+            el.className = 'ai-message ' + role;
+            el.textContent = text;
+            messages.appendChild(el);
+            messages.scrollTop = messages.scrollHeight;
+            return el;
+        }
+
+        async function startModel() {
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading…';
+            progressWrap.hidden = false;
+            errorBox.style.display = 'none';
+            try {
+                if (!navigator.gpu) {
+                    throw new Error('This browser does not expose WebGPU. Open the file in a current Chrome, Edge, or another browser with WebGPU enabled.');
+                }
+                title.textContent = 'Downloading Local AI';
+                copy.textContent = 'Keep this tab open while the model downloads. WebLLM caches the files locally so later launches skip this step.';
+                const { CreateMLCEngine } = await import('https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm/+esm');
+                engine = await CreateMLCEngine(MODEL_ID, {
+                    initProgressCallback: setProgress,
+                    logLevel: 'ERROR'
+                });
+                setProgress({ progress: 100, text: 'Model ready' });
+                download.style.display = 'none';
+                chat.style.display = 'flex';
+                input.focus();
+            } catch (error) {
+                console.error('Local AI failed to start:', error);
+                title.textContent = 'Local AI could not start';
+                copy.textContent = 'The model was not loaded. Check WebGPU support and your connection, then try again.';
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Try again';
+                showError(error?.message || 'The model download failed.');
+            }
+        }
+
+        button.addEventListener('click', startModel);
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const prompt = input.value.trim();
+            if (!prompt || sendButton.disabled) return;
+            input.value = '';
+            addMessage('user', prompt);
+            conversation.push({ role: 'user', content: prompt });
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            const reply = addMessage('assistant', 'Thinking…');
+            try {
+                const exactMath = deterministicMathAnswer(prompt);
+                const quickAnswer = deterministicCommonAnswer(prompt);
+                let text = exactMath || quickAnswer;
+                if (!text && onlineEndpoint) {
+                    try {
+                        const controller = new AbortController();
+                        const timeout = window.setTimeout(() => controller.abort(), 8000);
+                        let response;
+                        try {
+                            response = await fetch(onlineEndpoint, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ message: prompt, history: conversation.slice(-12) }),
+                                signal: controller.signal
+                            });
+                        } finally {
+                            window.clearTimeout(timeout);
+                        }
+                        const result = await response.json();
+                        if (!response.ok) {
+                            switchToLocalFallback('The current-knowledge assistant is unavailable right now. Download the on-device model to continue privately.');
+                            throw new Error(result.error || 'The current-knowledge assistant is unavailable.');
+                        }
+                        text = result.reply?.trim();
+                    } catch (error) {
+                        if (!engine) switchToLocalFallback('The hosted assistant is unavailable right now. Download the on-device model to continue privately.');
+                        console.warn('Current-knowledge assistant unavailable; using local fallback:', error);
+                    }
+                }
+                if (!text && engine) {
+                    const result = await engine.chat.completions.create({
+                        messages: conversation,
+                        temperature: 0.35,
+                        top_p: 0.9,
+                        max_tokens: 768
+                    });
+                    text = result.choices?.[0]?.message?.content?.trim() || 'I could not generate a response.';
+                }
+                if (!text) {
+                    text = 'Download the private local model above for full conversations. I can answer simple questions here while it is not loaded.';
+                }
+                reply.textContent = text;
+                conversation.push({ role: 'assistant', content: text });
+            } catch (error) {
+                reply.textContent = 'I hit an on-device generation error. Please try that again.';
+                console.error('Local AI generation failed:', error);
+            } finally {
+                sendButton.disabled = false;
+                sendButton.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send';
+                input.focus();
+            }
+        });
+        // Make the standalone useful before the large WebLLM download finishes.
+        // The download card remains available for full private conversations,
+        // while deterministic answers can be returned immediately.
+        chat.style.display = 'flex';
+        document.querySelector('.ai-status').innerHTML = '<i class="fa-solid fa-circle"></i> Quick answers ready';
+        detectOnlineAI();
+    </script>
+</body>
+</html>

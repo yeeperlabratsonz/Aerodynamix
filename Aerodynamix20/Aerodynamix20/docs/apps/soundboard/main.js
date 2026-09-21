@@ -6,7 +6,6 @@ const stopButton = document.getElementById('stopButton');
 const searchInput = document.getElementById('searchInput');
 const favoriteButton = document.getElementById('toggleFavorites');
 const soundBoard = document.getElementById('soundboard');
-
 let allowOverlap = false;
 let showFavorites = false;
 let currentAudios = [];
@@ -35,129 +34,90 @@ function stopAllSounds() {
 
 function playSound(sound, image) {
   if (!allowOverlap) stopAllSounds();
-
   const audio = new Audio(audioUrl(sound));
   currentAudios.push(audio);
-  audio.addEventListener('ended', () => {
-    currentAudios = currentAudios.filter((item) => item !== audio);
-  }, { once: true });
-  audio.addEventListener('error', () => {
-    currentAudios = currentAudios.filter((item) => item !== audio);
-  }, { once: true });
-  void audio.play().catch(() => {
-    currentAudios = currentAudios.filter((item) => item !== audio);
-  });
-
+  const remove = () => { currentAudios = currentAudios.filter((item) => item !== audio); };
+  audio.addEventListener('ended', remove, { once: true });
+  audio.addEventListener('error', remove, { once: true });
+  void audio.play().catch(remove);
   image.classList.add('pressed');
   window.setTimeout(() => image.classList.remove('pressed'), 150);
 }
 
 function renderSounds(query = '') {
   const normalizedQuery = query.trim().toLowerCase();
-  const favorites = getFavorites();
-  const favoriteNames = new Set(favorites.map((sound) => sound.name));
-  const visibleSounds = sounds.filter((sound) => {
-    const matchesQuery = String(sound.name).toLowerCase().includes(normalizedQuery);
-    return matchesQuery && (!showFavorites || favoriteNames.has(sound.name));
-  });
-
+  const favoriteNames = new Set(getFavorites().map((sound) => sound.name));
+  const visibleSounds = sounds.filter((sound) =>
+    String(sound.name).toLowerCase().includes(normalizedQuery) &&
+    (!showFavorites || favoriteNames.has(sound.name))
+  );
   soundBoard.innerHTML = '';
   visibleSounds.forEach((sound) => {
     const wrapper = document.createElement('div');
     wrapper.className = 'sound-wrapper';
-
     const button = document.createElement('button');
     button.className = 'sound-button-img';
     button.type = 'button';
     button.style.setProperty('--btn-color', sound.color || '#8a8a8a');
-
     const image = document.createElement('div');
     image.className = 'sound-image';
     button.appendChild(image);
     button.addEventListener('click', () => playSound(sound, image));
-
     const label = document.createElement('div');
     label.className = 'sound-label';
     label.textContent = sound.name;
-
     wrapper.append(button, label);
-    wrapper.addEventListener('contextmenu', (event) => {
-      event.preventDefault();
-      openSoundMenu(event, wrapper, sound);
-    });
+    wrapper.addEventListener('contextmenu', (event) => openSoundMenu(event, sound));
     soundBoard.appendChild(wrapper);
   });
 }
 
-function openSoundMenu(event, wrapper, sound) {
+function openSoundMenu(event, sound) {
+  event.preventDefault();
   document.querySelectorAll('.right-click-panel').forEach((panel) => panel.remove());
-
   const panel = document.createElement('div');
   panel.className = 'right-click-panel';
-  panel.style.setProperty('--btn-color', wrapper.style.getPropertyValue('--btn-color'));
   panel.style.left = `${event.pageX}px`;
   panel.style.top = `${event.pageY}px`;
-
   const favorites = getFavorites();
   const isFavorite = favorites.some((item) => item.name === sound.name);
   const favorite = document.createElement('button');
   favorite.className = 'right-click-panel-button';
   favorite.type = 'button';
   favorite.textContent = isFavorite ? '⭐ Unfavorite' : '🌟 Favorite';
-  favorite.addEventListener('click', () => {
-    const nextFavorites = isFavorite
+  favorite.onclick = () => {
+    localStorage.setItem('favorites', JSON.stringify(isFavorite
       ? favorites.filter((item) => item.name !== sound.name)
-      : [...favorites, sound];
-    localStorage.setItem('favorites', JSON.stringify(nextFavorites));
+      : [...favorites, sound]));
     panel.remove();
     renderSounds(searchInput.value);
-  });
-
+  };
   const download = document.createElement('button');
   download.className = 'right-click-panel-button';
   download.type = 'button';
   download.textContent = '💾 Download';
-  download.addEventListener('click', () => {
+  download.onclick = () => {
     const link = document.createElement('a');
     link.href = audioUrl(sound);
     link.download = String(sound.mp3).split('/').pop() || 'sound.mp3';
-    link.rel = 'noopener';
     document.body.appendChild(link);
     link.click();
     link.remove();
     panel.remove();
-  });
-
+  };
   panel.append(favorite, download);
   document.body.appendChild(panel);
-
-  const closeOnOutsideClick = (clickEvent) => {
-    if (!panel.contains(clickEvent.target)) {
-      panel.remove();
-      document.removeEventListener('click', closeOnOutsideClick);
-    }
-  };
-  window.setTimeout(() => document.addEventListener('click', closeOnOutsideClick), 0);
 }
 
-toggleButton.addEventListener('click', () => {
+toggleButton.onclick = () => {
   allowOverlap = !allowOverlap;
   toggleButton.textContent = allowOverlap ? '🔊 Overlap: ON' : '🔇 Overlap: OFF';
-});
-
-stopButton.addEventListener('click', stopAllSounds);
-
-favoriteButton.addEventListener('click', () => {
+};
+stopButton.onclick = stopAllSounds;
+favoriteButton.onclick = () => {
   showFavorites = !showFavorites;
   favoriteButton.textContent = showFavorites ? '🌟 Favorites: ON' : '⭐ Favorites: OFF';
   renderSounds(searchInput.value);
-});
-
-searchInput.addEventListener('input', () => renderSounds(searchInput.value));
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape') {
-    document.querySelectorAll('.right-click-panel').forEach((panel) => panel.remove());
-  }
-});
-
+};
+searchInput.oninput = () => renderSounds(searchInput.value);
 renderSounds();

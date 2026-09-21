@@ -93,16 +93,25 @@
         .game-container {
             margin-top: 7vw;
             width: 100%;
-            height: calc(100vh - 7vw + 120px);
-            min-height: calc(100vh - 7vw + 120px);
-            border: 0.5vw solid #000;
+            height: calc(100vh - 7vw);
+            min-height: calc(100vh - 7vw);
+            border: 2px solid #000;
             box-sizing: border-box;
+            overflow: hidden;
             box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
             transition: height 0.3s ease, min-height 0.3s ease;
         }
         .game-container.footer-visible {
-            height: calc(100vh - 7vw - 72px + 120px);
-            min-height: calc(100vh - 7vw - 72px + 120px);
+            height: calc(100vh - 7vw - 72px);
+            min-height: calc(100vh - 7vw - 72px);
+        }
+        .game-container:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            min-height: 100vh;
+            margin: 0;
+            border: 0;
+            overflow: hidden;
         }
 
         .game-container iframe {
@@ -541,7 +550,7 @@
     </div>
 
     <div class="game-container">
-        <iframe id="gameFrame"></iframe>
+        <iframe id="gameFrame" tabindex="0" allow="autoplay; fullscreen; gamepad; pointer-lock; clipboard-read; clipboard-write"></iframe>
     </div>
 
     <section class="virtual-keyboard" id="virtual-keyboard" aria-label="On-screen keyboard">
@@ -694,6 +703,7 @@
         const gamePath = params.get('game');
         const standaloneMode = params.get('standalone') === '1';
         const gameFrame = document.getElementById('gameFrame');
+        const remoteGame = /^https?:\/\//i.test(gamePath || '');
 
         if (!gamePath) {
             goHome();
@@ -702,13 +712,86 @@
         function isPaid() { return sessionStorage.getItem('authorized') === 'true'; }
         function isFreeTrial() { return sessionStorage.getItem('free_trial') === 'true'; }
 
+        function remoteGameError(message) {
+            const safeMessage = String(message || 'This game could not be loaded.')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+            return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+                html,body{height:100%;margin:0;background:#071226;color:#dbeafe;font:16px system-ui,sans-serif}
+                body{display:grid;place-items:center;padding:24px;box-sizing:border-box;text-align:center}
+                main{max-width:520px}h1{font-size:1.25rem;margin:0 0 10px}p{color:#9fb3d1;line-height:1.5}
+            </style></head><body><main><h1>Game could not be loaded</h1><p>${safeMessage}</p></main></body></html>`;
+        }
+
+        function prepareRemoteGameHtml(html, remoteUrl) {
+            // jsDelivr serves UGS wrappers as text/plain. Extract the actual
+            // document when a wrapper contains an XML-like envelope.
+            const htmlStart = html.search(/<html\b/i);
+            const htmlEndMatch = html.match(/<\/html\s*>/i);
+            if (htmlStart > 0 && htmlEndMatch && htmlEndMatch.index >= htmlStart) {
+                html = html.slice(htmlStart, htmlEndMatch.index + htmlEndMatch[0].length);
+            }
+
+            // UGS wrappers may call an optional API from their original shell.
+            // Aerodynamix does not need it, but the call must not abort the game.
+            html = html.replace(
+                /window\.parent\.maeExportApis_\s*\(\s*\)\s*;?/gi,
+                'if (window.parent && typeof window.parent.maeExportApis_ === "function") window.parent.maeExportApis_();'
+            );
+
+            const documentCopy = new DOMParser().parseFromString(html, 'text/html');
+            if (!documentCopy.querySelector('base[href]')) {
+                const base = documentCopy.createElement('base');
+                base.href = new URL('./', remoteUrl).href;
+                (documentCopy.head || documentCopy.documentElement).insertBefore(
+                    base,
+                    documentCopy.head ? documentCopy.head.firstChild : documentCopy.documentElement.firstChild
+                );
+            }
+            return '<!doctype html>\n' + documentCopy.documentElement.outerHTML;
+        }
+
+        async function loadRemoteGame(url) {
+            gameFrame.removeAttribute('src');
+            gameFrame.srcdoc = remoteGameError('Loading the game…');
+            try {
+                const response = await fetch(url, { credentials: 'omit' });
+                if (!response.ok) throw new Error(`The game server returned ${response.status}.`);
+                const html = await response.text();
+                gameFrame.srcdoc = prepareRemoteGameHtml(html, url);
+            } catch (error) {
+                console.error('Could not load remote game', error);
+                gameFrame.srcdoc = remoteGameError('The remote game wrapper could not be fetched. Try refreshing the page.');
+            }
+        }
+
         function loadGame() {
-            if (gamePath) {
-                // Flask serves static files but does not automatically resolve
-                // directory URLs to their index.html file. Most bundled games
-                // are linked as games/<name>/, so make that explicit for the
-                // iframe instead of producing a 404.
-                gameFrame.src = gamePath.endsWith('/') ? `${gamePath}index.html` : gamePath;
+            if (!gamePath) return;
+            if (remoteGame) {
+                loadRemoteGame(gamePath);
+                return;
+            }
+            // Flask serves static files but does not automatically resolve
+            // directory URLs to their index.html file. Most bundled games
+            // are linked as games/<name>/, so make that explicit for the
+            // iframe instead of producing a 404.
+            gameFrame.removeAttribute('srcdoc');
+            gameFrame.src = gamePath.endsWith('/') ? `${gamePath}index.html` : gamePath;
+        }
+
+        function focusGameFrame() {
+            try {
+                gameFrame.focus({ preventScroll: true });
+                gameFrame.contentWindow.focus();
+                const body = gameFrame.contentDocument && gameFrame.contentDocument.body;
+                if (body && typeof body.focus === 'function') {
+                    body.tabIndex = -1;
+                    body.focus({ preventScroll: true });
+                }
+            } catch (error) {
+                gameFrame.focus({ preventScroll: true });
             }
         }
 
@@ -900,7 +983,11 @@
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) releaseAllVirtualKeys(true);
         });
-        gameFrame.addEventListener('load', () => releaseAllVirtualKeys(true));
+        gameFrame.addEventListener('load', () => {
+            releaseAllVirtualKeys(true);
+            setTimeout(focusGameFrame, 0);
+        });
+        gameFrame.addEventListener('pointerdown', focusGameFrame);
 
         function isGamePurchased() {
             if (!window.AeroDiscs || !window.AeroDiscs.getPurchasedGames) return false;
@@ -968,11 +1055,17 @@
             if (footer && !window.AeroMusic?.getState?.().playing) {
                 footer.style.display = fsActive ? 'none' : '';
             }
-            // Adjust container margin when header hidden
+            // Keep fullscreen state isolated from the normal responsive layout.
             const gameContainer = document.querySelector('.game-container');
-            gameContainer.style.marginTop = fsActive ? '0' : '7vw';
-            gameContainer.style.height = fsActive ? '100vh' : '';
-            gameContainer.style.minHeight = fsActive ? '100vh' : '';
+            if (gameContainer) {
+                gameContainer.style.marginTop = fsActive ? '0' : '';
+                gameContainer.style.height = fsActive ? '100vh' : '';
+                gameContainer.style.minHeight = fsActive ? '100vh' : '';
+                gameContainer.style.width = fsActive ? '100vw' : '';
+                gameContainer.style.borderWidth = fsActive ? '0' : '';
+                gameContainer.style.overflow = fsActive ? 'hidden' : '';
+            }
+            document.body.style.overflow = fsActive ? 'hidden' : '';
         });
 
         // Sync footer with music player

@@ -76,7 +76,7 @@
         bubbles.push(bubble);
     }
 
-    const POP_SOUND = new Audio('/sounds/bubble-pop.mp3');
+    const POP_SOUND = new Audio('/aerodynamix-offline/sounds/bubble-pop.mp3');
     POP_SOUND.preload = 'auto';
     function playPopSound() {
         try {

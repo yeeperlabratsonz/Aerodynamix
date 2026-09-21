@@ -428,15 +428,15 @@
       ['Shucks V2', 836, 'clfnfshucks-v2', 'mod'],
       ['Heartbreak Havoc', 691, 'clfnfheartbreakhavoc', 'mod'],
       ['AKAGE', 690, 'clfnfakage', 'mod'],
-      ['Shaggy x Matt', 559, 'clfnfshaggyxmatt', 'mod'],
+      ['Shaggy x Matt', 'https://cdn.jsdelivr.net/gh/bubbls/fnf-mods@main/shaggyxmatt/favicon.png', 'clfnfshaggyxmatt', 'mod'],
       ['Vs. Undertale', 657, 'clfnfundertale', 'mod'],
       ["Mario's Madness: D-Side", 582, 'clfnfmariomadnessdside', 'mod'],
       ['Vs. Sky', 556, 'clfnfsky', 'mod'],
       ['Drop and Roll', 613, 'clfnfdropandroll', 'mod'],
-      ["FNAF 1: Friday Night Funkin'", 8, 'clfnffnaf1', 'classic']
+      ["FNAF 1: Friday Night Funkin'", 'https://cdn.jsdelivr.net/gh/bubbls/fnf-mods@dbdf272148d47429d3f019f5f2c226f9d6e140a9/fnaf1/favicon.png', 'clfnffnaf1', 'classic']
     ].map(([title, cover, file, type]) => ({
       title,
-      cover: COVER_ROOT + cover + '.png',
+      cover: /^https?:\/\//i.test(String(cover)) ? cover : COVER_ROOT + cover + '.png',
       url: UGS_ROOT + file + '.html',
       type
     }));
@@ -449,7 +449,7 @@
       const query = search.value.trim().toLowerCase();
       const visible = games.filter(game => game.title.toLowerCase().includes(query));
       grid.innerHTML = visible.map(game => `
-        <a href="${game.url}" title="${game.title}">
+        <a href="game-frame.html?game=${encodeURIComponent(game.url)}" title="${game.title}">
           <img src="${game.cover}" alt="${game.title} thumbnail" loading="lazy" onerror="this.onerror=null;this.src='images/fridaynightfunkin.png'">
         </a>
       `).join('');

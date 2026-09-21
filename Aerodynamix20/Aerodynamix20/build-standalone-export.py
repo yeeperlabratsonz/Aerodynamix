@@ -13,27 +13,25 @@ import re
 import zipfile
 import lzma
 import mimetypes
-import mmap
 import posixpath
 import os
 import shutil
 import subprocess
+import urllib.parse
+import zlib
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 WORKSPACE_ROOT = PROJECT_ROOT.parents[1]
 SOURCE_EXPORT = WORKSPACE_ROOT / "attached_assets" / "presentation_1787450952428.html"
-OUTPUT_DIR = PROJECT_ROOT / "attached_assets"
+OUTPUT_DIR = Path(os.environ.get("AERO_OUTPUT_DIR", PROJECT_ROOT / "attached_assets"))
 VARIANT = "slim" if os.environ.get("AERO_SLIM") else "full"
 VARIANT_SUFFIX = "-Slim" if VARIANT == "slim" else ""
-RELEASE_VERSION = "1.4"
+RELEASE_VERSION = "2.0"
 VERSION_SUFFIX = f"-v{RELEASE_VERSION}"
 OUTPUT_HTML = OUTPUT_DIR / f"Aerodynamix-Standalone{VARIANT_SUFFIX}{VERSION_SUFFIX}.html"
 OUTPUT_ZIP = OUTPUT_DIR / f"Aerodynamix-Standalone{VARIANT_SUFFIX}{VERSION_SUFFIX}.zip"
-OUTPUT_DEV_HTML = OUTPUT_DIR / f"Aerodynamix-Dev-Edition{VARIANT_SUFFIX}{VERSION_SUFFIX}.html"
-OUTPUT_DEV_ZIP = OUTPUT_DIR / f"Aerodynamix-Dev-Edition{VARIANT_SUFFIX}{VERSION_SUFFIX}.zip"
 OUTPUT_XZ = OUTPUT_DIR / f"Aerodynamix-Standalone{VARIANT_SUFFIX}{VERSION_SUFFIX}.html.xz"
-OUTPUT_DEV_XZ = OUTPUT_DIR / f"Aerodynamix-Dev-Edition{VARIANT_SUFFIX}{VERSION_SUFFIX}.html.xz"
 
 
 CONNECT_ORIGIN = "https://aerodynamix20.onrender.com"
@@ -48,37 +46,93 @@ def data_uri(filename: str, mime: str) -> str:
     return f"data:{mime};base64,{encoded}"
 
 
-def inline_new_game(source: str) -> str:
-    """Add the latest hosted catalogue game to the self-contained export."""
-    game_file = PROJECT_ROOT / "attached_assets" / "clnubbysnumberfactory_1787559476408.html"
-    thumbnail_file = PROJECT_ROOT / "docs" / "images" / "nubbys-number-factory.jpg"
-    content_uri = "data:text/html;base64," + base64.b64encode(game_file.read_bytes()).decode("ascii")
-    thumb_uri = "data:image/jpeg;base64," + base64.b64encode(thumbnail_file.read_bytes()).decode("ascii")
-    marker = "const GAMES="
-    start = source.find(marker)
-    end = source.find("];", start)
-    if start < 0 or end < 0:
-        raise RuntimeError("The standalone source has no GAMES catalogue.")
-    catalogue_start = start + len(marker)
-    catalogue = source[catalogue_start:end + 1]
-    if "Nubby's Number Factory" in catalogue:
-        return source
-    new_game = json.dumps({
-        "title": "Nubby's Number Factory",
-        "game": "attached_assets/clnubbysnumberfactory_1787559476408.html",
-        "thumb": thumb_uri,
-        "content": content_uri,
-    }, separators=(",", ":"))
-    insert_at = catalogue.rfind("]")
-    if insert_at < 0:
-        raise RuntimeError("The standalone GAMES catalogue is malformed.")
-    separator = "," if catalogue[:insert_at].rstrip().endswith("}") else ""
-    updated = catalogue[:insert_at] + separator + new_game + catalogue[insert_at:]
-    return source[:catalogue_start] + updated + source[end + 1:]
+def file_data_uri(path: Path, mime: str) -> str:
+    if not path.exists():
+        raise RuntimeError(f"Missing bundled media asset: {path}")
+    encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"data:{mime};base64,{encoded}"
+
+
+def compact_thumbnail(value: str) -> str:
+    """Shrink embedded cover art without making standalone files use the network."""
+    match = re.fullmatch(r"data:image/[^;,]+;base64,(.+)", value, flags=re.S)
+    if not match:
+        return value
+    original = base64.b64decode(match.group(1))
+    if len(original) < 40_000:
+        return value
+    converted = subprocess.run(
+        [
+            "magick", "-", "-auto-orient", "-thumbnail", "320x180>",
+            "-strip", "-quality", "68", "webp:-",
+        ],
+        input=original,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if converted.returncode or not converted.stdout:
+        raise RuntimeError(
+            "Could not compact embedded game artwork: "
+            + converted.stderr.decode("utf-8", errors="replace")
+        )
+    return "data:image/webp;base64," + base64.b64encode(converted.stdout).decode("ascii")
+
+
+def standalone_hotfix() -> str:
+    """Inline the file-only games and app pages into the generated export."""
+    hotfix = (PROJECT_ROOT / "aerodynamix-single-file-hotfix.js").read_text(
+        encoding="utf-8"
+    )
+
+    def embedded_html(path: Path, strip_host_shell: bool = False) -> str:
+        markup = path.read_text(encoding="utf-8")
+        # srcdoc has an about:blank base URL. Point page assets at the public
+        # docs directory so the embedded catalogue still has its own styling
+        # and images without copying the whole docs tree into the export.
+        markup = markup.replace(
+            "<head>",
+            f'<head><base href="{DEFAULT_PUBLIC_ROOT}">',
+            1,
+        )
+        if strip_host_shell:
+            markup = re.sub(r"<nav\b[^>]*>.*?</nav>", "", markup, flags=re.I | re.S)
+            for script_name in (
+                "theme.js", "tab-cloak.js", "discs.js", "auth-overlay.js",
+                "mobile-nav.js", "music-player.js", "bubble-overlay.js",
+                "snow-overlay.js",
+            ):
+                markup = re.sub(
+                    rf"<script\b[^>]*\bsrc=[\"'][^\"']*{re.escape(script_name)}[^\"']*[\"'][^>]*>\s*</script>",
+                    "",
+                    markup,
+                    flags=re.I | re.S,
+                )
+            markup = markup.replace(
+                "game-frame.html?game=${encodeURIComponent(game.url)}",
+                "${game.url}",
+            )
+        return markup
+
+    replacements = {
+        "__AERO_LOCAL_AI_HTML__": embedded_html(
+            PROJECT_ROOT / "docs" / "aerodynamix-offline" / "local-ai.html",
+            strip_host_shell=True,
+        ),
+    }
+    for placeholder, value in replacements.items():
+        # The hotfix itself lives inside a script tag. Escape less-than signs
+        # in embedded documents so a nested </script> cannot terminate that
+        # outer script before the browser evaluates the string.
+        encoded_value = json.dumps(value).replace("<", "\\u003c")
+        hotfix = hotfix.replace("'" + placeholder + "'", encoded_value)
+    if "__AERO_" in hotfix:
+        raise RuntimeError("Standalone hotfix still has unresolved placeholders.")
+    return hotfix
 
 
 def make_slim_catalogue(source: str) -> str:
-    """Keep only remote game URLs, matching the original UGS loader model."""
+    """Point the download at the same local game packages as the real site."""
     marker = "const GAMES="
     start = source.find(marker)
     end = source.find("];", start)
@@ -86,74 +140,62 @@ def make_slim_catalogue(source: str) -> str:
         raise RuntimeError("The standalone source has no GAMES catalogue.")
     catalogue_start = start + len(marker)
     catalogue = json.loads(source[catalogue_start:end + 1])
-    ugs_root = "https://cdn.jsdelivr.net/gh/bubbls/ugs-singlefile/UGS-Files/"
-    attached_ids = {
-        "Papa's Pizzeria": "clpizzapapa",
-        "Super Smash Flash": "clsupersmashflash",
-        "Slope": "clslope",
-        "Papa'S Freezeria": "clpapasfreezeria",
-        "Adventure Capitalist": "clAdventureCapatalist",
-        "Friday Night Funkin'": "clfridaynightfunkin",
-        "Run 2": "clrun2",
-        "Pico'S School": "clpicosschool",
-        "World'S Hardest Game": "clworldshardestgame",
-        "Sandboxels": "clsandboxels",
-        "Run 3": "clrun3",
-        "Drive Mad": "cldrivemady",
-        "Retrobowl": "clretrobowl",
-        "Papa'S Pancakeria": "clpapaspancakeria",
-        "Papa'S Bakeria": "clpapabakeria",
-        "Meat Boy": "clmeatboyflash",
-        "Newgrounds Rumble": "clnewgroundsrumble",
-        "We Become What We Behold": "clwebecomewhatwebehold",
-        "Bad Time Simulator": "clbadtimesim",
-        "Deltarune": "cldeltarune",
-        "Alien Hominid": "clalienhominid",
-        "Subway Surfers San Francisco": "clsubwaysurferssanfrancisco",
-        "Hobo 1": "clhobo",
-        "Hobo 2": "clhobo2",
-        "Hobo 3": "clhobo3",
-        "Hobo 4": "clhobo4",
-        "Hobo 5": "clhobo5",
-        "Hobo 6": "clhobo6",
-        "Hobo 7": "clhobo7",
-        "Gladihoppers": "clgladdihoppers",
-        "Fruit Ninja": "clfruitninja",
-        "Binding Of Isaac Wrath Of The Lamb": "clbindingofisaccsheeptime",
-        "Crossy Road": "clcrossyroad",
-        "Cookie Clicker": "clcookieclicker",
-        "Duck Life": "clducklife",
-        "Geometry Dash Lite": "clgdlite",
-        "Doom": "cldoom",
-        "Minecraft": "clEaglercraftL_19_v0_7_0_Offline_Signed",
-        "Doki Doki Literature Club": "cldokidokiliteratureclub",
-        "Baldi'S Basics Classic Remastered": "clbaldisbasicsremaster",
-        "Breaking The Bank": "clstickminbreakingbank",
-        "Escaping The Prison": "clstickminescapingprison",
-        "Stealing The Diamond": "clstickmanstealingdiamond",
-        "Infiltrating The Airship": "clstickminairship",
-        "Nubby's Number Factory": "clnubbysnumberfactory",
+    catalogue = [
+        game for game in catalogue
+        if not re.match(r"^friday night funkin", str(game.get("title", "")), flags=re.I)
+    ]
+    compact_name = lambda value: re.sub(r"[^a-z0-9]", "", value.lower())
+    game_directories = {
+        compact_name(path.name): path.name
+        for path in (PROJECT_ROOT / "docs" / "games").iterdir()
+        if path.is_dir()
     }
+    missing = []
     for game in catalogue:
-        title = str(game.get("title", ""))
-        if title in attached_ids:
-            game["url"] = ugs_root + attached_ids[title] + ".html"
-            game.pop("content", None)
-        elif str(game.get("game", "")).startswith("games/"):
-            game["url"] = DEFAULT_PUBLIC_ROOT + str(game["game"])
-            game.pop("content", None)
-        elif game.get("content"):
-            # Keep the original wrapper when the remote catalogue has no
-            # verified matching file. Its own published asset URLs are more
-            # reliable than inventing a CDN filename that returns 404.
-            game.pop("url", None)
+        game_path = str(game.get("game", ""))
+        if game_path.startswith("games/"):
+            relative = game_path[len("games/"):].strip("/")
         else:
-            game.pop("content", None)
-    updated = json.dumps(catalogue, separators=(",", ":"))
-    return source[:catalogue_start] + updated + source[end + 1:]
+            relative = game_directories.get(compact_name(str(game.get("title", ""))), "")
+        if not relative:
+            if game.get("url"):
+                game.pop("content", None)
+                continue
+            missing.append(str(game.get("title", "Untitled")))
+            continue
+        game["game"] = f"games/{relative}/"
+        game["url"] = urllib.parse.urljoin(DEFAULT_PUBLIC_ROOT, game["game"])
+        game.pop("content", None)
+        game.pop("embeddedKey", None)
+        if game.get("thumb"):
+            game["thumb"] = compact_thumbnail(str(game["thumb"]))
+    if missing:
+        raise RuntimeError(
+            "The standalone catalogue has no real-site package for: "
+            + ", ".join(missing)
+        )
+    metadata = json.dumps(catalogue, separators=(",", ":")).replace("<", "\\u003c")
+    script_end = source.find("</script>", end)
+    if script_end < 0:
+        raise RuntimeError("The standalone catalogue script has no closing tag.")
+    inert_catalogue = (
+        '<script type="application/json" id="aeroEmbeddedGames">'
+        + metadata
+        + "</script>"
+    )
+    # Keep the original global name for legacy code, but do not make the
+    # browser compile the entire embedded game library as JavaScript.
+    updated_source = (
+        source[:start]
+        + "var GAMES=[];"
+        + source[end + 1:script_end + len("</script>")]
+        + inert_catalogue
+        + source[script_end + len("</script>"):]
+    )
+    return updated_source
 
 
-def bundle_catalogue_games(source: str) -> str:
+def bundle_catalogue_games(source: str, max_game_bytes: int = 1024 * 1024) -> str:
     """Embed hosted game folders and rewrite their local dependencies.
 
     The catalogue's HTML files often load large Unity/WASM/SWF assets through
@@ -236,6 +278,8 @@ def bundle_catalogue_games(source: str) -> str:
             continue
 
         files = [path for path in game_root.rglob("*") if path.is_file()]
+        if sum(path.stat().st_size for path in files) > max_game_bytes:
+            continue
         raw_uris = {}
         for path in files:
             rel = path.relative_to(game_root).as_posix()
@@ -246,22 +290,6 @@ def bundle_catalogue_games(source: str) -> str:
         for path in files:
             rel = path.relative_to(game_root).as_posix()
             bundled_uris[rel] = raw_uris[rel]
-            if path.name == "ruffle.min.js":
-                text = path.read_text(encoding="utf-8", errors="replace")
-                # Keep Ruffle's shared WASM engine as a single runtime
-                # dependency rather than duplicating two 13 MB binaries into
-                # every Flash game document.
-                ruffle_base = (
-                    "https://cdn.jsdelivr.net/npm/@ruffle-rs/ruffle@"
-                    "0.2.0-nightly.2025.10.2/"
-                )
-                for name in ("4d882486fa9bfce731b9.wasm", "f7f28eb60b84863611ca.wasm"):
-                    text = text.replace(name, ruffle_base + name)
-                bundled_uris[rel] = (
-                    "data:application/javascript;base64," +
-                    base64.b64encode(text.encode("utf-8")).decode("ascii")
-                )
-
         html = index_file.read_text(encoding="utf-8", errors="replace")
         # Flash wrappers commonly declare the same SWF in both an object
         # param and an embed tag. Ruffle can use the object param, and keeping
@@ -324,6 +352,45 @@ def bundle_catalogue_games(source: str) -> str:
             html.encode("utf-8")
         ).decode("ascii")
 
+    updated = json.dumps(catalogue, separators=(",", ":"))
+    return source[:catalogue_start] + updated + source[end + 1:]
+
+
+def add_requested_games(source: str) -> str:
+    """Restore hosted games that were added after the original file export."""
+    marker = "const GAMES="
+    start = source.find(marker)
+    end = source.find("];", start)
+    if start < 0 or end < 0:
+        raise RuntimeError("The standalone source has no GAMES catalogue.")
+    catalogue_start = start + len(marker)
+    catalogue = json.loads(source[catalogue_start:end + 1])
+    existing = {str(game.get("title", "")).lower() for game in catalogue}
+    additions = (
+        (
+            "Grand Theft Auto: Vice City",
+            PROJECT_ROOT / "attached_assets" / "vicecity_1788678084299.html",
+            PROJECT_ROOT / "attached_assets" / "vice_1788678166601.webp",
+        ),
+        (
+            "LittleBigPlanet",
+            PROJECT_ROOT / "attached_assets" / "lbp_1788679870225.html",
+            PROJECT_ROOT / "attached_assets" / "lbp_1788679892555.png",
+        ),
+    )
+    for title, html_path, thumb_path in additions:
+        if title.lower() in existing:
+            continue
+        html = html_path.read_text(encoding="utf-8")
+        iframe = re.search(r'<iframe\b[^>]*\bsrc=["\']([^"\']+)', html, flags=re.I)
+        if not iframe:
+            raise RuntimeError(f"{title} wrapper has no hosted game URL.")
+        mime = mimetypes.guess_type(thumb_path.name)[0] or "image/png"
+        catalogue.append({
+            "title": title,
+            "thumb": file_data_uri(thumb_path, mime),
+            "url": iframe.group(1),
+        })
     updated = json.dumps(catalogue, separators=(",", ":"))
     return source[:catalogue_start] + updated + source[end + 1:]
 
@@ -524,101 +591,79 @@ def validate_xz(path: Path, html_path: Path, expected_hash: str) -> None:
         raise RuntimeError(f"{path.name} does not match {html_path.name}.")
 
 
-def build_dev_html(normal_path: Path, dev_path: Path, dev_patch: str) -> None:
-    """Create Dev from Normal with a copy-on-write clone when supported."""
-    temporary = atomic_path(dev_path)
-    try:
-        subprocess.run(
-            ["cp", "--reflink=auto", str(normal_path), str(temporary)],
-            check=True,
-        )
-        old_marker = b"window.AERODYNAMIX_EDITION='normal'"
-        # Keep the byte length unchanged so the clone only copies the page
-        # containing the marker. The extra semicolon and space are valid JS
-        # between this assignment and the source's following statement.
-        new_marker = b"window.AERODYNAMIX_EDITION='dev';  "
-        if len(new_marker) != len(old_marker):
-            raise RuntimeError("Standalone edition markers must have equal lengths.")
-        with temporary.open("r+b") as file:
-            mapped = mmap.mmap(file.fileno(), 0)
-            marker_index = mapped.find(old_marker)
-            if marker_index < 0:
-                raise RuntimeError("Normal export has no edition marker.")
-            mapped[marker_index:marker_index + len(old_marker)] = new_marker
-            mapped.flush()
-            mapped.close()
-        # A script after </body> still executes during parsing, without
-        # rewriting the giant shared prefix of the CoW clone.
-        with temporary.open("ab") as file:
-            file.write(
-                ("\n<script>\n" + dev_patch + "\n</script>\n").encode("utf-8")
-            )
-        os.replace(temporary, dev_path)
-    finally:
-        if temporary.exists():
-            temporary.unlink()
-
-
 def main() -> None:
     source = SOURCE_EXPORT.read_text(encoding="utf-8")
-    source = inline_new_game(source)
-    if os.environ.get("AERO_SLIM"):
-        source = make_slim_catalogue(source)
-    else:
-        source = bundle_catalogue_games(source)
-    # Embed the user-provided tracks so the downloaded HTML does not depend on
-    # a sibling assets directory or a hosted media route.
-    sicko_uri = data_uri("sicko-mode.mp3", "audio/mpeg")
-    sicko_art_uri = data_uri("sicko-mode-cover.jpg", "image/jpeg")
-    magnolia_uri = data_uri("magnolia-user.mp3", "audio/mpeg")
-    magnolia_art_uri = data_uri("magnolia-user.webp", "image/webp")
-    source = source.replace(
-        "const BUNDLED_TRACKS = [",
-        "const BUNDLED_TRACKS = [\n"
-        "            {\n"
-        "                key: 'sicko-mode-user',\n"
-        f"                src: '{sicko_uri}',\n"
-        "                fileName: 'SICKO MODE.mp3',\n"
-        "                mime: 'audio/mpeg',\n"
-        "                tags: { title: 'SICKO MODE', artist: 'Travis Scott; Drake', album: 'ASTROWORLD' },\n"
-        f"                artUrl: '{sicko_art_uri}'\n"
-        "            },\n"
-        "            {\n"
-        "                key: 'magnolia-user',\n"
-        f"                src: '{magnolia_uri}',\n"
-        "                fileName: 'Magnolia.mp3',\n"
-        "                mime: 'audio/mpeg',\n"
-        "                tags: { title: 'Magnolia', artist: 'Playboi Carti', album: 'Playboi Carti' },\n"
-        f"                artUrl: '{magnolia_art_uri}'\n"
-        "            },",
-        1,
+    source, media_sections_removed = re.subn(
+        r'<section\b[^>]*\bclass=["\'][^"\']*\bactual-site-view\b[^"\']*["\'][^>]*\bid=["\']mediaView["\'][^>]*>.*?</section>',
+        '',
+        source,
+        count=1,
+        flags=re.I | re.S,
     )
+    if media_sections_removed != 1:
+        raise RuntimeError("The legacy Media Player section was not found.")
+    source, boot_scripts_removed = re.subn(
+        r"<script>\s*/\*\s*Aerodynamix Boot Screen\s*\*/.*?</script>",
+        "<script>window.AeroBootScreen={show:function(){}};</script>",
+        source,
+        count=1,
+        flags=re.I | re.S,
+    )
+    if boot_scripts_removed != 1:
+        raise RuntimeError("The legacy boot screen script was not found.")
+    # Every variant keeps the small self-contained HTML game payloads already
+    # present in the catalogue. The slim filename is kept for compatibility,
+    # but it no longer means CDN-backed game loading.
+    source = add_requested_games(source)
+    source = make_slim_catalogue(source)
     # The source export's global Media Player shortcut must not intercept
     # spaces typed into Connect textareas and other editable controls.
     source = source.replace(
         "if (e.target.tagName === 'INPUT') return;",
         "if (e.target.matches('input, textarea, select, [contenteditable=\"true\"]')) return;",
     )
+    # Keep the player frame empty without navigating it through about:blank.
+    # This is also friendlier to file-based exports that restore the frame.
+    source = source.replace(
+        "frame.src='about:blank';",
+        "frame.removeAttribute('src');frame.srcdoc='';",
+    )
     patch = (PROJECT_ROOT / "aerodynamix-standalone-patch.js").read_text(encoding="utf-8")
-    dev_patch = (PROJECT_ROOT / "aerodynamix-dev-edition-patch.js").read_text(encoding="utf-8")
-    updater = (PROJECT_ROOT / "aerodynamix-standalone-updater.js").read_text(encoding="utf-8")
-    updater = updater.replace("__AERODYNAMIX_VERSION__", RELEASE_VERSION)
-    updater = updater.replace("__AERODYNAMIX_VARIANT__", VARIANT)
+    patch, update_code_removed = re.subn(
+        r"\n  function compareVersions\(.*?\n  function wireEvents\(",
+        "\n  function wireEvents(",
+        patch,
+        count=1,
+        flags=re.S,
+    )
+    if update_code_removed != 1:
+        raise RuntimeError("The standalone update implementation was not found.")
+    patch, update_notification_styles_removed = re.subn(
+        r"\n      #aeroUpdateNotification \{.*?\n      #aeroThemeEffects \{",
+        "\n      #aeroThemeEffects {",
+        patch,
+        count=1,
+        flags=re.S,
+    )
+    patch, update_page_styles_removed = re.subn(
+        r"\n      #aeroUpdatesView \{.*?\n      #aeroMusicView \{",
+        "\n      #aeroMusicView {",
+        patch,
+        count=1,
+        flags=re.S,
+    )
+    if update_notification_styles_removed != 1 or update_page_styles_removed != 1:
+        raise RuntimeError("The standalone update styles were not found.")
+    music_styles = (PROJECT_ROOT / "aerodynamix-music-enhancement.css").read_text(encoding="utf-8")
+    music_script = (PROJECT_ROOT / "aerodynamix-music-enhancement.js").read_text(encoding="utf-8")
+    hotfix = standalone_hotfix()
     edition_marker = (
         f"<script>window.AERODYNAMIX_EDITION='normal';"
         f"window.AERODYNAMIX_VARIANT='{VARIANT}';</script>"
     )
-    early_update_bootstrap = (
-        "\n<style>html[data-aerodynamix-update-pending] body"
-        "{visibility:hidden!important}</style>\n"
-        + edition_marker
-        + "\n<script>\n"
-        + updater
-        + "\n</script>\n"
-    )
     if "</head>" not in source:
         raise RuntimeError("The original standalone export has no closing head tag.")
-    source = source.replace("</head>", early_update_bootstrap + "</head>", 1)
+    source = source.replace("</head>", "\n" + edition_marker + "\n</head>", 1)
     markup, styles, client = build_connect_assets()
     apps_markup, apps_styles, drawing_markup, drawing_styles, drawing_client = build_app_assets()
     injection = (
@@ -647,7 +692,35 @@ def main() -> None:
         + drawing_client
         + "\n</script>\n"
         + "<script>\n"
+        + "(function(){window.AeroLoadEmbeddedGames=function(){"
+        + "if(window.__aeroEmbeddedGamesLoaded)return Promise.resolve(window.GAMES||[]);"
+        + "var node=document.getElementById('aeroEmbeddedGames');"
+        + "if(!node)return Promise.resolve(window.GAMES||[]);"
+        + "try{window.GAMES=JSON.parse(node.textContent||'[]');"
+        + "window.__aeroEmbeddedGamesLoaded=true;"
+        + "return Promise.resolve(window.GAMES);"
+        + "}catch(error){return Promise.reject(error);}};"
+        + "window.AeroLoadGameContent=function(game){"
+        + "if(!game||game.content)return Promise.resolve(game);"
+        + "var node=document.getElementById('aeroGamePayload-'+game.embeddedKey);"
+        + "if(!node)return Promise.reject(new Error('Embedded game payload is missing'));"
+        + "try{var raw=atob(node.textContent||''),bytes=new Uint8Array(raw.length);"
+        + "for(var i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);"
+        + "return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate')))"
+        + ".text().then(function(text){game.content=text;return game;});"
+        + "}catch(error){return Promise.reject(error);}};}());"
+        + "\n</script>\n"
+        + "<script>\n"
         + patch
+        + "\n</script>\n"
+        + "<script>\n"
+        + hotfix
+        + "\n</script>\n"
+        + "<style id=\"aeroMusicEnhancementStyles\">\n"
+        + music_styles
+        + "\n</style>\n"
+        + "<script>\n"
+        + music_script
         + "\n</script>\n"
     )
 
@@ -655,32 +728,20 @@ def main() -> None:
         raise RuntimeError("The original standalone export has no closing body tag.")
     result = source.rsplit("</body>", 1)[0] + injection + "</body>" + source.rsplit("</body>", 1)[1]
     write_atomic_text(OUTPUT_HTML, result)
-    build_dev_html(OUTPUT_HTML, OUTPUT_DEV_HTML, dev_patch)
 
     normal_hash = validate_html(OUTPUT_HTML, "normal")
-    dev_hash = validate_html(OUTPUT_DEV_HTML, "dev")
     print(
         f"Built {OUTPUT_HTML.name} ({OUTPUT_HTML.stat().st_size:,} bytes, "
         f"sha256 {normal_hash})"
     )
-    print(
-        f"Built {OUTPUT_DEV_HTML.name} ({OUTPUT_DEV_HTML.stat().st_size:,} bytes, "
-        f"sha256 {dev_hash})"
-    )
 
     if not os.environ.get("AERO_HTML_ONLY"):
         build_zip(OUTPUT_HTML, OUTPUT_ZIP)
-        build_zip(OUTPUT_DEV_HTML, OUTPUT_DEV_ZIP)
         build_xz(OUTPUT_HTML, OUTPUT_XZ)
-        build_xz(OUTPUT_DEV_HTML, OUTPUT_DEV_XZ)
         validate_zip(OUTPUT_ZIP, OUTPUT_HTML, normal_hash)
-        validate_zip(OUTPUT_DEV_ZIP, OUTPUT_DEV_HTML, dev_hash)
         validate_xz(OUTPUT_XZ, OUTPUT_HTML, normal_hash)
-        validate_xz(OUTPUT_DEV_XZ, OUTPUT_DEV_HTML, dev_hash)
         print(f"Built {OUTPUT_ZIP.name} ({OUTPUT_ZIP.stat().st_size:,} bytes)")
-        print(f"Built {OUTPUT_DEV_ZIP.name} ({OUTPUT_DEV_ZIP.stat().st_size:,} bytes)")
         print(f"Built {OUTPUT_XZ.name} ({OUTPUT_XZ.stat().st_size:,} bytes)")
-        print(f"Built {OUTPUT_DEV_XZ.name} ({OUTPUT_DEV_XZ.stat().st_size:,} bytes)")
 
 
 if __name__ == "__main__":

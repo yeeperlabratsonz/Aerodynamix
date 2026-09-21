@@ -12,34 +12,38 @@ logical_id = "87e10072-31d3-4f85-9d0c-6119fe45ae21"
 [[outputs]]
 id = "B7nl27FcuNGNgtj6c2t5g"
 uri = "file://Aerodynamix20/Aerodynamix20/docs/games/nextbot/dora-viewer.html"
-type = "text"
+type = "html"
 title = "Dora model viewer"
 description = "Open this interactive viewer to rotate and inspect Dora with the updated non-T-pose arms."
 logical_id = "60944fd3-7dab-4ee5-8c17-2e6b83149ac4"
+content_type = "text/html"
 
 [[outputs]]
 id = "obrgqnyqz-4eRtOJGeRbT"
 uri = "file://Aerodynamix20/Aerodynamix20/aerodynamix-games-offline.html"
-type = "text"
+type = "html"
 title = "Aerodynamix Lite — restored legacy version"
 description = "Restored pre-fresh-start Aerodynamix Lite games-and-media export. It is also available at /aerodynamix-lite/ and remains available at /aerodynamix-games-offline.html."
 logical_id = "3836cc52-96a3-4442-b73b-80392ac50491"
+content_type = "text/html"
 
 [[outputs]]
 id = "XsvoVa5PHcupT3lxf806D"
 uri = "file://Aerodynamix20/Aerodynamix20/docs/aerodynamix-lite-connect/index.html"
-type = "text"
+type = "html"
 title = "Aerodynamix Lite Connect — Standalone WebRTC Version"
 description = "Self-contained single-file offline-first WebRTC app with Host/Join manual SDP signaling, local camera/mic feeds, peer-to-peer data channel chat, synchronized app state, responsive dark UI, and no external dependencies."
 logical_id = "25f67350-86d7-4165-bcae-b86327fdf5d6"
+content_type = "text/html"
 
 [[outputs]]
 id = "I2UzgEVWtkaJQ2Z4b2lyN"
 uri = "file://Aerodynamix20/Aerodynamix20/docs/aerodynamix-refactor/index.html"
-type = "text"
+type = "html"
 title = "Aerodynamix standalone refactor"
 description = "Single-file standalone Aerodynamix site shell with Games, Apps, Shop, Cards, Discs, Media Player, Connect, real game links, starter-pack audio, and site texture preload."
 logical_id = "725e1884-83f9-451d-8bba-478fce0bdc0c"
+content_type = "text/html"
 
 [[outputs]]
 id = "cBbbriU0QSHOAEvvSCDUe"
@@ -52,10 +56,11 @@ logical_id = "e25bd4f4-d5a1-4bcd-b547-eac42d2fbb90"
 [[outputs]]
 id = "SyiqIgwaQxZZX8EanYtqE"
 uri = "file://Aerodynamix20/Aerodynamix20/aerodynamix-one-file.html"
-type = "text"
+type = "html"
 title = "Aerodynamix corrected one-file export"
 description = "Single-file export with the password screen removed, Shop secret unlock sequence ↑ ↓ 2005, persistent full unlocks, and separate Apps utility cards matching the Canvas layout."
 logical_id = "cbef54fe-9868-4ee3-acf4-ff2689f53531"
+content_type = "text/html"
 
 [[outputs]]
 id = "Y17f6IFum7WptLE7d_v14"
@@ -68,10 +73,11 @@ logical_id = "83e04d32-cbf0-4fc6-892e-1c8107b7f6db"
 [[outputs]]
 id = "PoTl_soqiWCMlNLp-WoxZ"
 uri = "file://Aerodynamix20/Aerodynamix20/aerodynamix-lite-tips.html"
-type = "text"
+type = "html"
 title = "Aerodynamix Lite — Settings and Themes"
 description = "Standalone Lite export with AI/Tips removed, a dedicated Settings page, saved tab-cloak preference, Frutiger Aero bubbles, Christmas snow, and persistent themes."
 logical_id = "689b77f5-27ba-4dda-b097-f3439bfce7e0"
+content_type = "text/html"
 
 [[outputs]]
 id = "f0LoFsDZTAzF5fB61njhy"
@@ -356,7 +362,7 @@ content_type = "application/octet-stream"
 [[outputs]]
 id = "ygLtq9b55X6somBOlpD8h"
 uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/UGS-Files-CDN.html"
-type = "text"
+type = "html"
 title = "UGS Files — minimized CDN version"
 description = "Openable minimized HTML launcher. It keeps the same jsDelivr game catalogue, search script, and game loader as the uploaded file, so selected games require internet access."
 logical_id = "a0f0bc6c-d159-4ee2-91a0-7ce734c38b1b"
@@ -441,14 +447,14 @@ content_type = "application/octet-stream"
 id = "ky_9Cry7LbH-x14c5Hi4K"
 uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-Slim-v1.4.html.xz"
 type = "unspecified"
-title = "Aerodynamix Standalone Slim v1.4 XZ"
-description = "Compressed versioned Slim standalone HTML with corrected music catalog data."
+title = "Aerodynamix Standalone Slim v1.4 — Single File"
+description = "Single compressed XZ download. Extract it with 7-Zip, WinRAR, or an archive tool to get one Aerodynamix-Standalone-Slim-v1.4.html file."
 logical_id = "aca80c63-9276-4a00-ba12-7ddd56b2f965"
-content_hash = "sha256:cc1c74f9af9eb01aa569791c8aae88cfdd2bf01733603174939221499a52633d"
-size = 84066760
-mtime_ms = 1788159201356
-storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/aca80c63-9276-4a00-ba12-7ddd56b2f965/ab43dee3-422f-4441-a178-7dd869758d6e"
-storage_version_token = "1788159788721762"
+content_hash = "sha256:01defd87740c67dba57e5aac0b05c736712e784eea46e869bd3e6b0fccc908e0"
+size = 84068008
+mtime_ms = 1788815697470
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/aca80c63-9276-4a00-ba12-7ddd56b2f965/f9164aff-54ff-4abf-bec0-20903ce7d884"
+storage_version_token = "1789020758887102"
 content_type = "application/octet-stream"
 
 [[outputs]]
@@ -477,4 +483,158 @@ size = 84069728
 mtime_ms = 1788159219728
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/50d22f0e-3f41-45df-812a-9612f761a87b/5a66e56a-b5c6-4d62-8cb2-769714fb2c0f"
 storage_version_token = "1788159792049935"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "qZ0tOfnzUOr76CBDcGDog"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-File-Version-v1.4.zip.part-000"
+type = "unspecified"
+title = "Aerodynamix File Version v1.4 — Part 1 of 3"
+description = "Part of the updated Aerodynamix offline file package. Download all 3 parts, then rejoin them in order before extracting."
+logical_id = "3182ea3e-000b-448a-a4c0-797d8a2f7e30"
+content_hash = "sha256:757093a655236c00ebcf4bb271ceb68e1456bd775317b13f9178041868e07923"
+size = 94371840
+mtime_ms = 1789020507164
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/3182ea3e-000b-448a-a4c0-797d8a2f7e30/81501f4e-56f1-4ccc-9ef6-5664ac1866fa"
+storage_version_token = "1789020517981244"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "5pdwiQI30jCxH6n4BE5_-"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-File-Version-v1.4.zip.part-001"
+type = "unspecified"
+title = "Aerodynamix File Version v1.4 — Part 2 of 3"
+description = "Part of the updated Aerodynamix offline file package. Download all 3 parts, then rejoin them in order before extracting."
+logical_id = "0b8e4a55-41af-433f-8cc8-540bbc793d71"
+content_hash = "sha256:5b20a6c71c89a2089d6e21bf69e447920ab7a2accf97e80c269d3c7ecf781918"
+size = 94371840
+mtime_ms = 1789020507548
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/0b8e4a55-41af-433f-8cc8-540bbc793d71/7e226535-ee93-4578-a024-65f0e40860ca"
+storage_version_token = "1789020519602819"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "XrIB9g6duvTYpvgJfSVTR"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-File-Version-v1.4.zip.part-002"
+type = "unspecified"
+title = "Aerodynamix File Version v1.4 — Part 3 of 3"
+description = "Part of the updated Aerodynamix offline file package. Download all 3 parts, then rejoin them in order before extracting."
+logical_id = "9b5a9d2e-b6e9-404c-bc52-e97c0d665a1a"
+content_hash = "sha256:e667ea2ec77d67083b8229fb335507a380a7bc65fcbd3eac361a73641936e0e8"
+size = 17844448
+mtime_ms = 1789020507624
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/9b5a9d2e-b6e9-404c-bc52-e97c0d665a1a/14a7d5ba-4770-4ff9-9d77-2efe2ad2c018"
+storage_version_token = "1789020520648975"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "DAHaD44_euxtFyoKef4xL"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-Slim-v1.5.html.xz"
+type = "unspecified"
+title = "Aerodynamix Standalone Slim v1.5"
+description = "Updated compressed single-file export with Local AI, FNF Mods, embedded Soundboard, and corrected Luv Is Rage 2 artwork. Extract this XZ archive to get the standalone HTML file."
+logical_id = "fd58f290-6997-4558-8ed0-b02673d61e86"
+content_hash = "sha256:a3194dd45fad93fd862115606efffa38b6860135b4d0a385d244b7fa898fd268"
+size = 83942820
+mtime_ms = 1789021453984
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/fd58f290-6997-4558-8ed0-b02673d61e86/4234706b-e233-42e3-ba17-95289fe2e167"
+storage_version_token = "1789021482904718"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "snFcluFCwg1RzveOsW8wq"
+uri = "file://Aerodynamix20/Aerodynamix20/Aerodynamix-Standalone-Slim-v1.6.html.xz"
+type = "unspecified"
+title = "Aerodynamix Standalone Slim v1.6 — latest fix"
+description = "Latest standalone file: direct UGS game loading, embedded Local AI and FNF pages, safe script packaging, and fast simple-answer handling."
+logical_id = "909e1c4f-f9cc-49f3-8683-c5fd0dca5fde"
+content_hash = "sha256:1c84ed0fc4192c1b5873d0c02506b075023ee2a52c39c7a722ff012a17fbdc3a"
+size = 93731796
+mtime_ms = 1789027738766
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/909e1c4f-f9cc-49f3-8683-c5fd0dca5fde/3239be23-fcc9-4fb8-a9aa-aa48379dbd66"
+storage_version_token = "1789027895313201"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "p4QZvPyC5Zqlof-Q60gU9"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-Slim-v1.7.html.xz"
+type = "unspecified"
+title = "Aerodynamix Standalone Slim v1.7 — music and auto-update refresh"
+description = "Updated standalone release with Nubby’s Number Factory removed, the manual Updates page removed, silent automatic updates preserved, and a redesigned Music now-playing hero with improved controls."
+logical_id = "d133cbc7-8a7b-4b13-8151-ab618e038d91"
+content_hash = "sha256:f9d316993c0926975b9e09d7ed93c0feabe0aac05ff3166c7f9a3a3ea05850c4"
+size = 93729332
+mtime_ms = 1789105944015
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/d133cbc7-8a7b-4b13-8151-ab618e038d91/427cacb2-d5a7-48bc-908d-d44bf2cfc923"
+storage_version_token = "1789106165859251"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "ULjxZy951Net7nIaKcy9s"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-Slim-v1.8.html.xz"
+type = "unspecified"
+title = "Aerodynamix Standalone Slim v1.8 — UGS games in the game frame"
+description = "New standalone release using the Ultimate Game Stash jsDelivr source directly inside Aerodynamix’s game frame. The previous about:blank launcher is removed, and the player frame is cleared without navigating to about:blank."
+logical_id = "267f1c3c-1f17-4fba-82b6-f2ae60894ac3"
+content_hash = "sha256:c5a2d865f19df25e99d5dedbc51a843aa3490071bf451922337d53d4fef11713"
+size = 93728564
+mtime_ms = 1789456382212
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/267f1c3c-1f17-4fba-82b6-f2ae60894ac3/614cc4e5-2ba7-4b91-9785-ae4de9882964"
+storage_version_token = "1789456433656250"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "4fOQjhhXkh4CX_DBu6eQE"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-Slim-v1.9.html.xz"
+type = "unspecified"
+title = "Aerodynamix Standalone Slim v1.9 — Chromebook optimized"
+description = "Optimized standalone release for weaker devices, with automatic low-power mode, reduced visual effects, cheaper library rendering, debounced startup work, and the existing UGS games loaded inside the game frame."
+logical_id = "8f41e4df-4bdb-4849-95a8-db94208ceccd"
+content_hash = "sha256:be218e981d92668a6e3ace20fb21a8afa57f2c7c4e1f8d657881d483a4c0f9b3"
+size = 93729036
+mtime_ms = 1789456764108
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/8f41e4df-4bdb-4849-95a8-db94208ceccd/614e3771-ba5f-4b72-ab6c-8f753095a66f"
+storage_version_token = "1789456822895193"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "oy9PD6jSPixWX8Obw43ON"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-Slim-v2.0.html"
+type = "html"
+title = "Aerodynamix lightweight standalone"
+description = "17.6 MB HTML launcher. Games load their published assets online as needed; music streams online and can be downloaded from Music for offline playback. Settings and supported game saves persist in browser storage."
+logical_id = "5ab1ba69-4a55-4a6a-ba7b-eac5703747f3"
+content_hash = "sha256:0f7c44b932d43065c81585053e67ef5e735c233c8c45997ebf53342392890244"
+size = 17634041
+mtime_ms = 1789878311560
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/5ab1ba69-4a55-4a6a-ba7b-eac5703747f3/9bcc4a8a-42a3-408a-b98b-8d08631280fc"
+storage_version_token = "1789878346030330"
+content_type = "text/html"
+
+[[outputs]]
+id = "wEaKpX_PT9NXqriZP4URQ"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-Slim-v2.0.zip"
+type = "unspecified"
+title = "Aerodynamix Standalone Slim v2.0 ZIP"
+description = "Compressed download containing the corrected standalone HTML."
+logical_id = "992efbc8-35d5-4e53-8bc5-dff411972eba"
+content_hash = "sha256:2442e527b29b3684024f1c8b4cc5bd287c586432a5611aa3227a58f7adbd42bc"
+size = 43059728
+mtime_ms = 1789614186463
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/992efbc8-35d5-4e53-8bc5-dff411972eba/2676a0fb-e006-423d-8128-b98c5742db94"
+storage_version_token = "1789614192338473"
+content_type = "application/octet-stream"
+
+[[outputs]]
+id = "l3mktl6N6dnmihPXPgjwy"
+uri = "file://Aerodynamix20/Aerodynamix20/attached_assets/Aerodynamix-Standalone-Slim-v2.0.html.xz"
+type = "unspecified"
+title = "Aerodynamix Standalone Slim v2.0 XZ"
+description = "Smallest compressed download of the corrected standalone HTML."
+logical_id = "390d7834-f6f8-4dfb-8d5e-1a2abb878ebe"
+content_hash = "sha256:4c6bf25b7abde695edcca348b438f38da35c0eab797501c4debe1f8787249b25"
+size = 42398776
+mtime_ms = 1789614204507
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:0439fed8-2e60-4ae6-89ef-ffe1a96cb611/390d7834-f6f8-4dfb-8d5e-1a2abb878ebe/98c3a959-64cf-47b1-be96-d201b59fcee1"
+storage_version_token = "1789614212865796"
 content_type = "application/octet-stream"
